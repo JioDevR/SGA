@@ -1,0 +1,156 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "Password123!",
+    "nombres": "Administrador",
+    "apellidos": "General TI",
+    "correoInstitucional": "admin@sga.pe",
+    "tipoDocumento": "DNI",
+    "numeroDocumento": "45892104",
+    "telefono": "+51 987 654 321",
+    "cargoTitulo": "Administrador General del Sistema",
+    "codigoSunat": "ADM-SUNAT-01"
+  },
+  "sedes": [
+    {
+      "codigoSede": "SED-CALLAO-01",
+      "nombre": "Sede Central Callao",
+      "tipo": "SEDE_CENTRAL",
+      "direccion": "Av. Elmer Faucett 1950, Of. 602",
+      "distrito": "Callao",
+      "telefono": "+51 (1) 452-9800",
+      "estado": "OPERATIVO"
+    },
+    {
+      "codigoSede": "AGE-MOSTRADOR-02",
+      "nombre": "Agencia Callao / Ventanilla",
+      "tipo": "AGENCIA",
+      "direccion": "Av. Guardia Chalaca 1240",
+      "distrito": "Callao",
+      "telefono": "+51 (1) 452-9801",
+      "estado": "OPERATIVO"
+    },
+    {
+      "codigoSede": "TER-APM-03",
+      "nombre": "Terminal APM Terminals Muelle Norte",
+      "tipo": "PUERTO",
+      "direccion": "Av. Manco Cápac s/n - Muelle Norte",
+      "distrito": "Callao",
+      "telefono": "+51 (1) 200-8800",
+      "estado": "OPERATIVO"
+    },
+    {
+      "codigoSede": "TER-DPW-04",
+      "nombre": "Terminal DP World Callao Muelle Sur",
+      "tipo": "PUERTO",
+      "direccion": "Av. Manco Cápac 113",
+      "distrito": "Callao",
+      "telefono": "+51 (1) 200-9900",
+      "estado": "OPERATIVO"
+    },
+    {
+      "codigoSede": "DEP-RANSA-05",
+      "nombre": "Depósito Temporal Ransa San Agustín",
+      "tipo": "DEPOSITO_TEMPORAL",
+      "direccion": "Av. Elmer Faucett 5003",
+      "distrito": "Callao",
+      "telefono": "+51 (1) 313-6000",
+      "estado": "OPERATIVO"
+    }
+  ],
+  "puertos": [
+    {
+      "codigoPuerto": "PECLL",
+      "nombre": "Puerto del Callao",
+      "pais": "Perú",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "PEPAI",
+      "nombre": "Puerto de Paita",
+      "pais": "Perú",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "PEMAT",
+      "nombre": "Puerto de Matarani",
+      "pais": "Perú",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "PEAQP",
+      "nombre": "Aeropuerto Internacional Jorge Chávez",
+      "pais": "Perú",
+      "tipo": "AEREO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "CNSHA",
+      "nombre": "Puerto de Shanghái",
+      "pais": "China",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "CNNBO",
+      "nombre": "Puerto de Ningbo-Zhoushan",
+      "pais": "China",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "USMIA",
+      "nombre": "Puerto de Miami",
+      "pais": "Estados Unidos",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    },
+    {
+      "codigoPuerto": "DEHAM",
+      "nombre": "Puerto de Hamburgo",
+      "pais": "Alemania",
+      "tipo": "MARITIMO",
+      "estado": "ACTIVO"
+    }
+  ],
+  "tiposCarga": [
+    {
+      "codigo": "CARGA_GENERAL",
+      "nombre": "Carga General Suelta / Paletizada",
+      "tipoContenedorSugerido": "20ST / 40HC",
+      "taraSugeridaKg": 2200.00,
+      "estado": "ACTIVO"
+    },
+    {
+      "codigo": "CARGA_REFRIGERADA",
+      "nombre": "Carga Perecible Refrigerada",
+      "tipoContenedorSugerido": "40RF Reefer",
+      "taraSugeridaKg": 4400.00,
+      "estado": "ACTIVO"
+    },
+    {
+      "codigo": "CARGA_PELIGROSA_IMO",
+      "nombre": "Carga Peligrosa Regulada IMO",
+      "tipoContenedorSugerido": "20ST Especial",
+      "taraSugeridaKg": 2300.00,
+      "estado": "ACTIVO"
+    },
+    {
+      "codigo": "CARGA_GRANEL",
+      "nombre": "Carga a Granel Sólido / Líquido",
+      "tipoContenedorSugerido": "Tanque / Tolva",
+      "taraSugeridaKg": 3500.00,
+      "estado": "ACTIVO"
+    },
+    {
+      "codigo": "CARGA_PROYECTO",
+      "nombre": "Carga Proyecto y Sobredimensionada",
+      "tipoContenedorSugerido": "Flat Rack / Plataforma",
+      "taraSugeridaKg": 5000.00,
+      "estado": "ACTIVO"
+    }
+  ]
+}

@@ -1,0 +1,357 @@
+### Variables Globales
+@baseUrl = http://localhost:8085/api/v1
+@token = {{login.response.body.data.token}}
+
+### 1. Diagnóstico y Salud
+GET {{baseUrl}}/health
+
+### 2. Login y Autenticación
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Password123!"
+}
+
+### 3. Información del Usuario Autenticado
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### ===========================================================================
+### MÓDULO: SEGURIDAD (USUARIOS, SEDES, ROLES)
+### ===========================================================================
+
+### Listar usuarios
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{token}}
+
+### Listar sedes
+GET {{baseUrl}}/sedes
+Authorization: Bearer {{token}}
+
+### Listar roles
+GET {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+
+### ===========================================================================
+### CATÁLOGOS AUXILIARES
+### ===========================================================================
+
+### Listar Puertos
+GET {{baseUrl}}/catalogos/puertos
+
+### Listar Tipos de Carga
+GET {{baseUrl}}/catalogos/tipos-carga
+
+### Listar Mercancías
+GET {{baseUrl}}/catalogos/mercancias
+
+### Crear Mercancía
+POST {{baseUrl}}/catalogos/mercancias
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "codigo": "MERC-CEL-01",
+  "nombre": "Smartphones 5G Gama Alta",
+  "categoria": "TECNOLOGIA",
+  "requierePermiso": true,
+  "entidadReguladora": "MTC",
+  "arancelBasePct": 0.00
+}
+
+### Borrado Lógico de Mercancía
+DELETE {{baseUrl}}/catalogos/mercancias/1
+Authorization: Bearer {{token}}
+
+### Reactivar Mercancía
+PATCH {{baseUrl}}/catalogos/mercancias/1/reactivar
+Authorization: Bearer {{token}}
+
+### ===========================================================================
+### MÓDULO COMERCIAL: CLIENTES
+### ===========================================================================
+
+### Listar clientes (solo activos)
+GET {{baseUrl}}/clientes?soloActivos=true
+Authorization: Bearer {{token}}
+
+### Listar prospectos
+GET {{baseUrl}}/clientes?prospecto=true
+Authorization: Bearer {{token}}
+
+### Crear Prospecto / Cliente
+POST {{baseUrl}}/clientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tipoDocumento": "RUC",
+  "numeroDocumento": "20601234567",
+  "razonSocial": "IMPORTADORA LOGISTICA DEL SUR S.A.C.",
+  "contactoRepresentante": "Carlos Mendoza",
+  "direccionFiscal": "Av. Argentina 1840, Lima",
+  "correoContacto": "operaciones@logisticadelsur.pe",
+  "telefonoContacto": "+51 987 654 321",
+  "esProspecto": true
+}
+
+### Convertir Prospecto en Cliente Formal
+PATCH {{baseUrl}}/clientes/1/convertir-cliente
+Authorization: Bearer {{token}}
+
+### ===========================================================================
+### MÓDULO COMERCIAL: COTIZACIONES
+### ===========================================================================
+
+### Listar cotizaciones activas
+GET {{baseUrl}}/cotizaciones?soloActivas=true
+Authorization: Bearer {{token}}
+
+### Crear Cotización Comercial
+POST {{baseUrl}}/cotizaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idCliente": 1,
+  "idUsuarioComercial": 1,
+  "idMercancia": 1,
+  "idTipoCarga": 1,
+  "regimenAduanero": "IMPORTACION_DEFINITIVA",
+  "idPuertoEnvio": 2,
+  "idPuertoDestino": 1,
+  "servicioTransporte": true,
+  "montoFleteEstimado": 3500.00,
+  "montoHonorariosEstimado": 450.00,
+  "montoTributosEstimado": 1800.00,
+  "totalCotizado": 5750.00,
+  "validezDias": 15,
+  "observaciones": "Carga prioritaria con contenedor refrigerado"
+}
+
+### Revisión Técnica de Cotización por Agente Aduanero (Paso 2)
+PATCH {{baseUrl}}/cotizaciones/1/revision
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idAgenteRevisor": 1,
+  "estado": "APROBADA",
+  "observaciones": "Documentación técnica conforme con partida arancelaria y permiso MTC validado"
+}
+
+### ===========================================================================
+### MÓDULO OPERACIONES ADUANERAS: EXPEDIENTES
+### ===========================================================================
+
+### Listar expedientes activos
+GET {{baseUrl}}/expedientes?soloActivos=true
+Authorization: Bearer {{token}}
+
+### Aperturar Expediente desde Cotización Aprobada (Paso 3)
+POST {{baseUrl}}/expedientes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idCotizacion": 1,
+  "idAgenteAduanero": 1,
+  "contactoExteriorNombre": "Shenzhen Global Electronics Ltd.",
+  "contactoExteriorTelefono": "+86 755 12345678",
+  "contactoExteriorCorreo": "export@shenzhenglobal.cn",
+  "fechaZarpeEtd": "2026-11-01",
+  "fechaLlegadaEta": "2026-11-20",
+  "numeroContenedor": "MSKU9081234",
+  "precintoAduanero": "PE-SUNAT-88771",
+  "naveViaje": "CMA CGM TANGER V.102W",
+  "observaciones": "Expediente de importación con levante directo programado"
+}
+
+### Registrar Canal SUNAT y DAM (Pasos 4, 5 y 6)
+PATCH {{baseUrl}}/expedientes/1/canal
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "numeroDam": "118-2026-10-123456",
+  "canalSunat": "NARANJA",
+  "detalleInspeccion": "SUNAT asignó Canal Naranja: revisión documentaria física en depósito temporal"
+}
+
+### Autorizar Levante Aduanero
+PATCH {{baseUrl}}/expedientes/1/levante
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "detalleInspeccion": "Revisión documentaria conforme por especialista SUNAT. Diligencia aprobada.",
+  "observaciones": "Levante concedido. Listo para traslado a depósito y posterior retiro"
+}
+
+### ===========================================================================
+### MÓDULO ALMACÉN: DEPÓSITOS TEMPORALES Y PESAJE VGM
+### ===========================================================================
+
+### Listar registros de almacén
+GET {{baseUrl}}/almacen?soloActivos=true
+Authorization: Bearer {{token}}
+
+### Registrar Ingreso a Depósito Temporal (Pasos 5 y 6)
+POST {{baseUrl}}/almacen
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idExpediente": 1,
+  "depositoTemporal": "APM Terminals Callao",
+  "ubicacionBahia": "Bahía B-14",
+  "tipoIngreso": "POST_INSPECCION",
+  "finalidadAlmacenaje": "INGRESO_IMPORTACION",
+  "diasLibresAlmacen": 15,
+  "cantidadBultos": 250,
+  "pesoBrutoKg": 14500.50,
+  "ticketPesajeVgm": "VGM-2026-99881",
+  "precintoConforme": true,
+  "observaciones": "Inspección de precinto aduanero conforme"
+}
+
+### Autorizar Retiro / Salida de Carga de Almacén
+PATCH {{baseUrl}}/almacen/1/autorizar-salida
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "observaciones": "Gastos portuarios cancelados. Salida aprobada con levante concedido"
+}
+
+### ===========================================================================
+### MÓDULO TRANSPORTE 3NF: CONDUCTORES Y UNIDADES
+### ===========================================================================
+
+### Listar Conductores Activos
+GET {{baseUrl}}/transporte/conductores?soloActivos=true
+Authorization: Bearer {{token}}
+
+### Registrar Conductor
+POST {{baseUrl}}/transporte/conductores
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombres": "Marcos",
+  "apellidos": "Quispe Huamán",
+  "tipoLicencia": "A-IIIc",
+  "numeroLicencia": "Q45890123",
+  "telefono": "+51 977 112 233"
+}
+
+### Listar Unidades Disponibles
+GET {{baseUrl}}/transporte/unidades?soloDisponibles=true
+Authorization: Bearer {{token}}
+
+### Registrar Unidad Vehicular (Tracto / Plataforma)
+POST {{baseUrl}}/transporte/unidades
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "placaTracto": "V4Z-891",
+  "placaCarreta": "TC-332",
+  "marcaModelo": "Volvo FH 500",
+  "tipoVehiculo": "TRACTO_PLATAFORMA",
+  "capacidadCargaKg": 32000.00
+}
+
+### ===========================================================================
+### MÓDULO TRANSPORTE: DESPACHOS Y TRACKING
+### ===========================================================================
+
+### Listar Despachos
+GET {{baseUrl}}/transporte/despachos?soloActivos=true
+Authorization: Bearer {{token}}
+
+### Programar Despacho Terrestre (Paso 7)
+POST {{baseUrl}}/transporte/despachos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idExpediente": 1,
+  "tipoTraslado": "ENTREGA_IMPORTACION",
+  "direccionPartida": "Av. Manco Cápac 113, Puerto Callao",
+  "direccionLlegada": "Av. Los Sauces 450, Almacén Central del Cliente",
+  "distritoLlegada": "Ate Vitarte",
+  "contactoRecepcion": "Raúl Gómez (Jefe de Almacén)",
+  "fechaProgramada": "2026-11-22T08:00:00",
+  "observaciones": "Despacho con custodia local obligatoria"
+}
+
+### Asignar Chofer y Camión al Despacho (Paso 7)
+PATCH {{baseUrl}}/transporte/despachos/1/asignar-recursos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idConductor": 1,
+  "idUnidad": 1,
+  "guiaRemisionTransporte": "T001-0004523"
+}
+
+### Iniciar Ruta de Transporte
+PATCH {{baseUrl}}/transporte/despachos/1/iniciar-ruta
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "observaciones": "Unidad parte de depósito portuario con precinto de seguridad"
+}
+
+### Confirmar Entrega en Almacén del Cliente
+PATCH {{baseUrl}}/transporte/despachos/1/confirmar-entrega
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "contactoRecepcion": "Raúl Gómez",
+  "detalleIncidencia": "Sin incidencias. Carga recibida conforme",
+  "observaciones": "Guía de remisión firmada y sellada"
+}
+
+### ===========================================================================
+### MÓDULO FINANZAS: LIQUIDACIÓN DE COBRANZA
+### ===========================================================================
+
+### Listar Liquidaciones
+GET {{baseUrl}}/finanzas/liquidaciones
+Authorization: Bearer {{token}}
+
+### Emitir Liquidación Financiera Consolidada
+POST {{baseUrl}}/finanzas/liquidaciones
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "idExpediente": 1,
+  "totalTributosSunat": 6750.00,
+  "gastosAlmacenPuerto": 1250.00,
+  "fleteTransporteLocal": 1100.00,
+  "honorariosAgencia": 850.00,
+  "tipoCambio": 3.7500,
+  "numeroFactura": "F001-0009841",
+  "observaciones": "Cobranza consolidada de derechos arancelarios e impuestos"
+}
+
+### Registrar Pago Bancario de la Liquidación
+PATCH {{baseUrl}}/finanzas/liquidaciones/1/pago
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "metodoPago": "TRANSFERENCIA_BCP",
+  "numeroOperacion": "OP-9988771122",
+  "numeroFactura": "F001-0009841",
+  "observaciones": "Abono validado en cuenta corriente en soles"
+}
