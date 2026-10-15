@@ -1,69 +1,101 @@
 # 🗄️ Guía de Conexión y Configuración de Base de Datos - SGA
 
-Esta guía detalla los pasos para desplegar, conectar y administrar la base de datos **MySQL 8.4+** para el sistema **SGA (Sistema de Gestión Aduanera y Logística Integral)**, así como la configuración segura de credenciales locales en el backend sin exponer contraseñas al repositorio Git.
+Esta guía documenta los procedimientos estándar para desplegar, conectar y administrar la base de datos relacional **MySQL 8.4+** para la plataforma **SGA (Sistema de Gestión Aduanera y Logística Integral)**, garantizando la persistencia de datos y el aislamiento seguro de credenciales locales en el backend.
 
 ---
 
-## 📋 Requisitos Previos
+## 📋 Requisitos del Entorno
 
-* **Motor de Base de Datos:** MySQL versión 8.0 o superior (recomendado: MySQL 8.4 LTS).
-* **Collation recomendada:** `utf8mb4_unicode_ci` / `utf8mb4`.
-* **Motor de almacenamiento:** `InnoDB` (con soporte para transacciones e integridad referencial).
-* **Gestor de contenedores (Opcional, recomendado):** [Podman](https://podman.io/) o [Docker](https://www.docker.com/).
+| Parámetro | Especificación Requerida |
+| :--- | :--- |
+| **Motor RDBMS** | MySQL 8.0 o superior (Recomendado: **MySQL 8.4 LTS**) |
+| **Storage Engine** | **InnoDB** (soporte ACID y claves foráneas en cascada) |
+| **Charset / Collation** | `utf8mb4` con cotejamiento `utf8mb4_unicode_ci` |
+| **Timezone** | `-05:00` (Hora oficial de Lima / Perú) |
+| **Gestores de Contenedores** | [Podman](https://podman.io/) (con `podman-compose`) o [Docker](https://www.docker.com/) (con `docker compose`) |
 
 ---
 
-## 🐳 Opción 1: Despliegue con Contenedor (Podman / Docker)
+## 🚀 Método 1: Orquestación con Compose (Recomendado)
 
-Esta es la opción recomendada para mantener el entorno de desarrollo limpio y aislado.
+En la carpeta [`database/`](file:///home/jiodev/Documents/Proyects/SGA/database) se incluye el archivo de orquestación [`docker-compose.yml`](file:///home/jiodev/Documents/Proyects/SGA/database/docker-compose.yml) configurado con MySQL 8.4, volumen persistente de datos y montaje automático de los scripts de inicialización.
 
-### 1. Iniciar el contenedor MySQL 8.4
-Ejecuta el siguiente comando para levantar el contenedor con la base de datos `SGAdb`:
+### 1. Iniciar el servicio con Compose
+
+Desde la raíz del proyecto o desde el directorio `database/`:
+
+**Con Podman Compose:**
+```bash
+cd database
+podman compose up -d
+```
+
+**Con Docker Compose:**
+```bash
+cd database
+docker compose up -d
+```
+
+> [!NOTE]
+> El servicio se inicializa con una base de datos `SGAdb` limpia y vacía. La carga de tablas se puede realizar de forma automática con JPA al iniciar el backend o manualmente ejecutando los scripts según se indica en la sección de poblamiento.
+
+### 2. Comandos de ciclo de vida con Compose
+
+```bash
+# Consultar el estado y salud del contenedor
+podman compose ps           # o: docker compose ps
+
+# Visualizar los registros de actividad (logs)
+podman compose logs -f      # o: docker compose logs -f
+
+# Detener los servicios conservando los datos persistentes
+podman compose stop         # o: docker compose stop
+
+# Detener y remover contenedores y redes asociadas
+podman compose down         # o: docker compose down
+```
+
+---
+
+## 🐳 Método 2: Despliegue Manual con Contenedor Único
+
+Si prefieres levantar el contenedor directamente sin Compose:
 
 **Con Podman:**
 ```bash
-podman run -d --name mysql84 \
+podman run -d --name sga-mysql \
   -p 3306:3306 \
   -e MYSQL_ROOT_PASSWORD=tu_contraseña_aqui \
   -e MYSQL_DATABASE=SGAdb \
-  docker.io/library/mysql:8.4
+  -v sga-mysql-data:/var/lib/mysql \
+  docker.io/library/mysql:8.4 \
+  --character-set-server=utf8mb4 \
+  --collation-server=utf8mb4_unicode_ci
 ```
 
 **Con Docker:**
 ```bash
-docker run -d --name mysql84 \
+docker run -d --name sga-mysql \
   -p 3306:3306 \
   -e MYSQL_ROOT_PASSWORD=tu_contraseña_aqui \
   -e MYSQL_DATABASE=SGAdb \
-  mysql:8.4
-```
-
-### 2. Comandos útiles de administración del contenedor
-```bash
-# Ver el estado del contenedor
-podman ps -a  # o 'docker ps -a'
-
-# Iniciar el contenedor si está detenido
-podman start mysql84
-
-# Detener el contenedor
-podman stop mysql84
-
-# Ver logs de la base de datos
-podman logs -f mysql84
+  -v sga-mysql-data:/var/lib/mysql \
+  mysql:8.4 \
+  --character-set-server=utf8mb4 \
+  --collation-server=utf8mb4_unicode_ci
 ```
 
 ---
 
-## 💻 Opción 2: Instalación Nativa Local de MySQL
+## 💻 Método 3: Conexión a Instancia Nativa de MySQL
 
-Si tienes MySQL Server instalado directamente en tu sistema operativo:
+Si utilizas un servidor MySQL instalado localmente en el sistema operativo:
 
-1. Inicia sesión en la consola de MySQL como administrador:
+1. Ingresar a la consola administrativa de MySQL:
    ```bash
    mysql -u root -p
    ```
-2. Crea la base de datos si aún no existe:
+2. Asegurar la creación de la base de datos con la codificación adecuada:
    ```sql
    CREATE DATABASE IF NOT EXISTS SGAdb 
      CHARACTER SET utf8mb4 
@@ -72,23 +104,25 @@ Si tienes MySQL Server instalado directamente en tu sistema operativo:
 
 ---
 
-## 🔐 Configuración Segura de Credenciales en el Backend
+## 🔐 Configuración de Credenciales en el Backend
 
-Para evitar subir contraseñas personales a Git, el backend utiliza un archivo de configuración local ignorado por el control de versiones.
+El backend gestiona las propiedades locales de forma desacoplada del control de versiones para proteger información confidencial.
 
-### Paso 1: Crear tu archivo local de propiedades
-En la carpeta `backend/`, copia el archivo de plantilla:
+### Paso 1: Generar el archivo local de configuración
+Copia la plantilla de ejemplo situada en el directorio `backend/`:
 
 ```bash
 cd backend
 cp application-local.properties.example application-local.properties
 ```
 
-### Paso 2: Configurar tus credenciales personales
-Edita `backend/application-local.properties`:
+### Paso 2: Ajustar los parámetros de conexión
+Edita el archivo [`backend/application-local.properties`](file:///home/jiodev/Documents/Proyects/SGA/backend/application-local.properties):
 
 ```properties
+# =============================================================================
 # SGA - Configuración Local de Desarrollo (NO VERSIONAR)
+# =============================================================================
 spring.datasource.url=jdbc:mysql://localhost:3306/SGAdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
 spring.datasource.username=root
 spring.datasource.password=tu_contraseña_aqui
@@ -96,83 +130,70 @@ server.port=8085
 ```
 
 > [!NOTE]
-> * Este archivo `application-local.properties` está agregado en el `.gitignore` raíz y **nunca será subido a Git**.
-> * El archivo principal [`application.properties`](file:///home/jiodev/Documents/Proyects/SGA/backend/src/main/resources/application.properties) lo carga de forma opcional (`spring.config.import=optional:...`). Si el archivo no existe, Spring Boot usará variables de entorno como fallback.
-
-### Paso alternativo: Usar Variables de Entorno
-También puedes definir las credenciales mediante variables de entorno antes de ejecutar el backend:
-
-```bash
-export DB_URL="jdbc:mysql://localhost:3306/SGAdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-export DB_USERNAME="root"
-export DB_PASSWORD="tu_contraseña_aqui"
-
-./mvnw spring-boot:run
-```
+> El archivo principal [`application.properties`](file:///home/jiodev/Documents/Proyects/SGA/backend/src/main/resources/application.properties) incorpora automáticamente estas propiedades locales (`spring.config.import=optional:...`). En entornos CI/CD o contenedores productivos, las variables de entorno del sistema operativo (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) actúan como mecanismo de provisión predeterminado.
 
 ---
 
-## 📥 Inicialización de Tablas y Datos Semilla
+## 📥 Poblamiento de Datos (Schema & Seeds)
 
-Tienes dos alternativas para poblar la base de datos:
+El sistema soporta dos vías para la preparación de los catálogos e información operativa:
 
-### Alternativa A: Automática (Spring Boot JPA + DataInitializer)
-Al iniciar el backend por primera vez:
-1. Hibernate creará/actualizará automáticamente las tablas en `SGAdb`.
-2. El componente `DataInitializer` detectará la ausencia de datos e inyectará:
-   * Sedes operativas (Callao, APM Terminals, DP World, Ransa).
-   * Catálogos de puertos y tipos de carga aduanera.
-   * Usuario administrador inicial `admin` con clave `Password123!`.
-   * Usuarios semilla para cada rol del sistema.
+### Opción A: Carga Automatizada (JPA + DataInitializer)
+Al ejecutar el backend Spring Boot:
+1. Hibernate valida y actualiza el esquema de entidades relacionales en `SGAdb`.
+2. El componente `DataInitializer` detecta tablas desiertas e inserta:
+   * Sedes logísticas operativas (Callao, APM Terminals, DP World, Ransa).
+   * Catálogos oficiales de puertos marítimos/aéreos y tipos de carga.
+   * Usuario de administración general (`admin` / `Password123!`).
+   * Cuentas operativas base para cada rol (`gerente`, `vendedor`, `supervisor`, `agente`).
 
-### Alternativa B: Manual mediante Scripts SQL
-Si prefieres inicializar la base de datos con los scripts DDL y DML estructurados:
+### Opción B: Carga Manual mediante Scripts SQL
+Para una reconstrucción estricta mediante consola o cliente SQL:
 
-**Desde consola nativa:**
+**Instancia Nativa:**
 ```bash
-# 1. Esquema DDL (Tablas y restricciones)
 mysql -u root -p SGAdb < database/schema.sql
-
-# 2. Datos Semilla Completos (Catálogos, usuarios, clientes, cotizaciones)
 mysql -u root -p SGAdb < database/data.sql
 ```
 
-**Si usas Podman/Docker:**
+**Instancia en Contenedor:**
 ```bash
-# 1. Ejecutar esquema
-podman exec -i mysql84 mysql -u root -p<tu_contraseña> SGAdb < database/schema.sql
+# Con Podman:
+podman exec -i sga-mysql mysql -u root -p<tu_contraseña> SGAdb < database/schema.sql
+podman exec -i sga-mysql mysql -u root -p<tu_contraseña> SGAdb < database/data.sql
 
-# 2. Ejecutar datos semilla
-podman exec -i mysql84 mysql -u root -p<tu_contraseña> SGAdb < database/data.sql
+# Con Docker:
+docker exec -i sga-mysql mysql -u root -p<tu_contraseña> SGAdb < database/schema.sql
+docker exec -i sga-mysql mysql -u root -p<tu_contraseña> SGAdb < database/data.sql
 ```
 
 ---
 
-## 🔍 Verificación de Conectividad
+## 🔍 Verificación de Disponibilidad
 
-Para asegurarte de que la base de datos responde antes de arrancar el backend:
+Antes de iniciar el backend, valida la conectividad ejecutando una consulta de prueba:
 
 ```bash
-# Probar conexión al contenedor
-podman exec -i mysql84 mysql -u root -p<tu_contraseña> -e "USE SGAdb; SHOW TABLES;"
+# Probar conexión al servicio contenedorizado
+podman exec -i sga-mysql mysql -u root -p<tu_contraseña> -e "USE SGAdb; SHOW TABLES;"
 ```
 
 ---
 
-## ⚠️ Diagnóstico y Solución de Problemas Frecuentes
+## 🛠️ Diagnóstico y Resolución de Incidencias
 
-### 1. `Communications link failure` o `Connection refused`
-* **Causa:** El servicio o contenedor de MySQL está apagado.
-* **Solución:** Revisa con `podman ps` (o `docker ps`). Si está detenido, arráncalo con `podman start mysql84`.
+### 1. `Communications link failure` / `Connection refused`
+* **Diagnóstico:** El servicio de base de datos no está activo o el puerto `3306` no responde.
+* **Acción:** Verificar el estado del contenedor con `podman ps` (o `docker ps`). Si se encuentra detenido, iniciarlo con `podman compose up -d` o `podman start sga-mysql`.
 
 ### 2. `Access denied for user 'root'@'localhost'`
-* **Causa:** La contraseña en `backend/application-local.properties` no coincide con la configurada en tu base de datos MySQL.
-* **Solución:** Corrige `spring.datasource.password` en `backend/application-local.properties`.
+* **Diagnóstico:** Discrepancia entre la contraseña configurada en MySQL y la indicada en el backend.
+* **Acción:** Ajustar el valor de `spring.datasource.password` en [`backend/application-local.properties`](file:///home/jiodev/Documents/Proyects/SGA/backend/application-local.properties).
 
 ### 3. `Unknown database 'SGAdb'`
-* **Causa:** La base de datos no fue creada previamente.
-* **Solución:** Conéctate a MySQL y ejecuta `CREATE DATABASE SGAdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`.
+* **Diagnóstico:** El esquema base no ha sido aprovisionado.
+* **Acción:** Crear la base de datos ejecutando `CREATE DATABASE SGAdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`.
 
-### 4. La pantalla de login muestra *"Error al iniciar sesión. Verifique sus credenciales"*
-* **Causa:** El backend de Spring Boot se encuentra apagado en el puerto `8085`.
-* **Solución:** Inicia el backend en una terminal independiente con `./mvnw spring-boot:run` y **no cierres ni presiones `Ctrl + C`** en esa terminal mientras uses el sistema.
+### 4. Mensaje *"Error al iniciar sesión. Verifique sus credenciales"* en el Frontend
+* **Diagnóstico:** El proceso del backend Spring Boot (`http://localhost:8085`) fue detenido o interrumpido.
+* **Acción:** Iniciar el backend en una terminal dedicada mediante `./mvnw spring-boot:run` y mantenerla en ejecución continua mientras interactúas con la plataforma.

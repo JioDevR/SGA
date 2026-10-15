@@ -33,12 +33,14 @@ SGA/
 > 📖 **Guía Detallada:** Para instrucciones completas de instalación de base de datos con **Podman / Docker**, creación de usuarios, configuración segura sin subir credenciales y solución de errores, consulta la [**Guía de Conexión de Base de Datos**](docs/DATABASE_SETUP.md).
 
 ### 1. Base de Datos (MySQL 8.0+)
-1. Crear e inicializar la base de datos ejecutando el esquema:
+1. Levantar el servicio con Compose (recomendado con Podman o Docker):
+   ```bash
+   cd database
+   podman compose up -d   # o: docker compose up -d
+   ```
+2. O inicializar manualmente en una base de datos local preexistente:
    ```bash
    mysql -u root -p < database/schema.sql
-   ```
-2. Inyectar los datos semilla completos para todos los módulos:
-   ```bash
    mysql -u root -p < database/data.sql
    ```
    *(También puedes optar por la inicialización automática al arrancar el backend).*
