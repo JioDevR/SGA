@@ -30,6 +30,8 @@ SGA/
 
 ## 📦 Puesta en Marcha
 
+> 📖 **Guía Detallada:** Para instrucciones completas de instalación de base de datos con **Podman / Docker**, creación de usuarios, configuración segura sin subir credenciales y solución de errores, consulta la [**Guía de Conexión de Base de Datos**](docs/DATABASE_SETUP.md).
+
 ### 1. Base de Datos (MySQL 8.0+)
 1. Crear e inicializar la base de datos ejecutando el esquema:
    ```bash
@@ -39,18 +41,20 @@ SGA/
    ```bash
    mysql -u root -p < database/data.sql
    ```
+   *(También puedes optar por la inicialización automática al arrancar el backend).*
 
 ### 2. Backend (Spring Boot 3 - Java 21)
-1. Configurar credenciales de base de datos en `backend/src/main/resources/application.properties` o mediante variables de entorno:
-   - `DB_URL`: `jdbc:mysql://localhost:3306/SGAdb`
-   - `DB_USERNAME`: `root`
-   - `DB_PASSWORD`: `tu_contraseña`
-2. Ejecutar la aplicación con Maven Wrapper:
+1. Configurar credenciales locales creando tu archivo `application-local.properties` (ignorado por Git):
    ```bash
    cd backend
+   cp application-local.properties.example application-local.properties
+   ```
+   Edita `application-local.properties` con tu contraseña personal de MySQL.
+2. Ejecutar la aplicación con Maven Wrapper:
+   ```bash
    ./mvnw spring-boot:run
    ```
-   *El backend se ejecutará en `http://localhost:8085`.*
+   *El backend se ejecutará en `http://localhost:8085`. Recuerda mantener la terminal abierta.*
 
 ### 3. Frontend (Vue 3 + Vite)
 1. Instalar dependencias y levantar el servidor de desarrollo:

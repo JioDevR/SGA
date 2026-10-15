@@ -42,6 +42,13 @@ backend/logs/
 backend/*.log
 backend/.flattened-pom.xml
 backend/build/
+*application-local.properties
+*.local.properties
+backend/src/main/resources/application-local.properties
+.env
+.env.local
+backend/.env
+
 
 # -----------------------------------------------------------------------------
 # Frontend (Vue.js / Vite / Node)

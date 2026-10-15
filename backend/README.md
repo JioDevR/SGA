@@ -97,7 +97,7 @@ SGA/
 | Módulo | Método | Endpoint | Descripción |
 |---|---|---|---|
 | **Salud** | `GET` | `/api/v1/health` | Diagnóstico del backend y versión de SGA |
-| **Auth** | `POST` | `/api/v1/auth/login` | Login con credenciales (`admin` / `admin123`) |
+| **Auth** | `POST` | `/api/v1/auth/login` | Login con credenciales (`admin` / `Password123!`) |
 | **Auth** | `GET` | `/api/v1/auth/me` | Obtiene el usuario autenticado |
 | **Usuarios** | `GET` | `/api/v1/usuarios` | Listar usuarios (`?soloActivos=true`) |
 | **Usuarios** | `POST` | `/api/v1/usuarios` | Crear nuevo usuario |
@@ -120,17 +120,26 @@ SGA/
 
 ## 4. Instrucciones para vincular y ejecutar
 
-1. **Crear y poblar la base de datos en MySQL:**
+> 📖 **Guía Completa de Base de Datos:** Consulta la [**Guía de Configuración y Conexión de Base de Datos**](../docs/DATABASE_SETUP.md) para detalles sobre Podman, Docker y solución de problemas comunes.
+
+1. **Configurar credenciales locales (sin subirlas a Git):**
+   ```bash
+   cp application-local.properties.example application-local.properties
+   ```
+   Ajusta tu contraseña en `application-local.properties`.
+
+2. **Crear y poblar la base de datos en MySQL:**
    ```bash
    # Paso A: Crear estructura de tablas
-   mysql -u root -p < /home/jiodev/Documents/Proyects/SIGAD_platform/SGA/database/schema.sql
+   mysql -u root -p SGAdb < ../database/schema.sql
 
    # Paso B: Cargar datos iniciales
-   mysql -u root -p < /home/jiodev/Documents/Proyects/SIGAD_platform/SGA/database/data.sql
+   mysql -u root -p SGAdb < ../database/data.sql
    ```
+   *(O permite que Hibernate y `DataInitializer` la inicialicen automáticamente al arrancar).*
 
-2. **Iniciar el backend:**
+3. **Iniciar el backend:**
    ```bash
-   cd /home/jiodev/Documents/Proyects/SIGAD_platform/SGA/backend
-   JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./mvnw spring-boot:run
+   ./mvnw spring-boot:run
    ```
+   *El backend se ejecutará en `http://localhost:8085`. Mantén esta terminal abierta.*
