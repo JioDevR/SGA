@@ -90,7 +90,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import { transporteService } from '../services/transporteService'
+import { transporteFlotaService } from '../services/transporteFlotaService'
 
 const props = defineProps({
   visible: {
@@ -165,9 +165,9 @@ const handleSubmit = async () => {
 
     let res
     if (isEditing.value) {
-      res = await transporteService.updateConductor(props.conductor.idConductor, payload)
+      res = await transporteFlotaService.updateConductor(props.conductor.idConductor, payload)
     } else {
-      res = await transporteService.createConductor(payload)
+      res = await transporteFlotaService.createConductor(payload)
     }
 
     emit('saved', res)

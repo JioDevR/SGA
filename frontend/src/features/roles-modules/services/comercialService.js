@@ -1,6 +1,6 @@
 import apiClient from '@/core/api/apiClient'
 
-export const ventasService = {
+export const comercialService = {
   // ==========================================
   // CLIENTES & PROSPECTOS
   // ==========================================
@@ -119,4 +119,5 @@ export const ventasService = {
   }
 }
 
-export default ventasService
+export const ventasService = comercialService
+export default comercialService

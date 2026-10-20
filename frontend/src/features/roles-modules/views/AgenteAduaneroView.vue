@@ -207,7 +207,7 @@ const searchQuery = ref('')
 const showIngresoModal = ref(false)
 
 watch(
-  () => [navigationStore.aduanasSubOption, navigationStore.navTick],
+  () => [navigationStore.agenteAduaneroSubOption, navigationStore.navTick],
   ([sub]) => {
     if (sub === 'recepcion') {
       filterEstado.value = 'EN_CUSTODIA'

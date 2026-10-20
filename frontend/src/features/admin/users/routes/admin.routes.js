@@ -1,35 +1,37 @@
+import { ROLES } from '@/core/auth/roles'
+
 export const adminRoutes = [
   {
-    path: '/admin',
-    redirect: '/admin/usuarios'
+    path: '/administracion-ti',
+    redirect: '/administracion-ti/usuarios'
   },
   {
-    path: '/admin/usuarios',
+    path: '/administracion-ti/usuarios',
     name: 'AdminUsers',
     component: () => import('../views/UserManagementView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE'],
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL],
       title: 'Gestor de Usuarios TI - SGA'
     }
   },
   {
-    path: '/admin/acerca-de',
+    path: '/administracion-ti/acerca-de',
     name: 'AdminAbout',
     component: () => import('@/features/admin/about/views/AboutSystemView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE'],
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL],
       title: 'Acerca del Sistema - SGA'
     }
   },
   {
-    path: '/admin/logs',
+    path: '/administracion-ti/logs',
     name: 'AdminLogs',
     component: () => import('@/features/admin/views/SystemLogsView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR'],
+      roles: [ROLES.ADMINISTRADOR_TI],
       title: 'Bitácora y Consola de Logs TI - SGA'
     }
   }

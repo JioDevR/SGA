@@ -553,7 +553,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
-import { ventasService } from '../services/ventasService'
+import { comercialService } from '../services/comercialService'
 import { expedienteService } from '../services/expedienteService'
 import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useNotification } from '@/shared/composables/useNotification'
@@ -619,12 +619,12 @@ const closeAllForms = () => {
 const switchTab = (tabName) => {
   closeAllForms()
   activeTab.value = tabName
-  navigationStore.setVentasSubOption(tabName)
+  navigationStore.setComercialSubOption(tabName)
 }
 
-// Sincronizar activeTab y resetear formularios con sub-opción de navegación de Ventas y navTick
+// Sincronizar activeTab y resetear formularios con sub-opción de navegación Comercial y navTick
 watch(
-  () => [navigationStore.ventasSubOption, navigationStore.navTick],
+  () => [navigationStore.comercialSubOption, navigationStore.navTick],
   ([newSub]) => {
     if (newSub && ['cotizaciones', 'clientes', 'ordenes'].includes(newSub)) {
       activeTab.value = newSub
@@ -636,20 +636,20 @@ watch(
 
 // Escuchar disparadores de acciones desde el Sidebar
 watch(
-  () => [navigationStore.ventasActionTrigger, navigationStore.navTick],
+  () => [navigationStore.comercialActionTrigger, navigationStore.navTick],
   ([action]) => {
     if (action === 'nueva-cotizacion') {
       openCreateCotizacion()
       setTimeout(() => {
-        if (navigationStore.ventasActionTrigger === 'nueva-cotizacion') {
-          navigationStore.ventasActionTrigger = null
+        if (navigationStore.comercialActionTrigger === 'nueva-cotizacion') {
+          navigationStore.comercialActionTrigger = null
         }
       }, 50)
     } else if (action === 'nuevo-cliente') {
       openCreateCliente()
       setTimeout(() => {
-        if (navigationStore.ventasActionTrigger === 'nuevo-cliente') {
-          navigationStore.ventasActionTrigger = null
+        if (navigationStore.comercialActionTrigger === 'nuevo-cliente') {
+          navigationStore.comercialActionTrigger = null
         }
       }, 50)
     }
@@ -718,8 +718,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const [cots, cls, exps] = await Promise.all([
-      ventasService.getCotizaciones(),
-      ventasService.getClientes(),
+      comercialService.getCotizaciones(),
+      comercialService.getClientes(),
       expedienteService.getExpedientes()
     ])
     cotizaciones.value = cots || []
@@ -754,10 +754,10 @@ const openEditCliente = (cliente) => {
 const handleClienteSaved = async ({ isEdit, clienteId, payload }) => {
   try {
     if (isEdit) {
-      await ventasService.updateCliente(clienteId, payload)
+      await comercialService.updateCliente(clienteId, payload)
       showToast('Cliente actualizado correctamente.')
     } else {
-      await ventasService.createCliente(payload)
+      await comercialService.createCliente(payload)
       showToast('Nuevo cliente registrado exitosamente.')
     }
     showClienteForm.value = false
@@ -775,7 +775,7 @@ const handleDeleteCliente = async (cliente) => {
   if (!confirmed) return
 
   try {
-    await ventasService.deleteCliente(cliente.idCliente)
+    await comercialService.deleteCliente(cliente.idCliente)
     showToast('Cliente desactivado correctamente.', 'info')
     await loadData()
   } catch (err) {
@@ -794,7 +794,7 @@ const handleConvertirCliente = async (cliente) => {
   if (!confirmed) return
 
   try {
-    await ventasService.convertirACliente(cliente.idCliente)
+    await comercialService.convertirACliente(cliente.idCliente)
     showToast(`"${cliente.razonSocial}" ahora es cliente formal.`)
     await loadData()
   } catch (err) {
@@ -822,10 +822,10 @@ const handleQuickClientCreated = async (newClient) => {
 const handleCotizacionSaved = async ({ isEdit, cotizacionId, payload }) => {
   try {
     if (isEdit) {
-      await ventasService.updateCotizacion(cotizacionId, payload)
+      await comercialService.updateCotizacion(cotizacionId, payload)
       showToast('Cotización actualizada exitosamente.')
     } else {
-      await ventasService.createCotizacion(payload)
+      await comercialService.createCotizacion(payload)
       showToast('Cotización registrada exitosamente.')
     }
     showCotizacionForm.value = false
@@ -842,7 +842,7 @@ const handleCambiarEstadoCotizacion = async (cotizacion, nuevoEstado) => {
   }
 
   try {
-    await ventasService.updateCotizacionEstado(cotizacion.idCotizacion, {
+    await comercialService.updateCotizacionEstado(cotizacion.idCotizacion, {
       estado: nuevoEstado,
       motivoObservacion: motivo
     })
@@ -861,7 +861,7 @@ const handleDeleteCotizacion = async (cotizacion) => {
   if (!confirmed) return
 
   try {
-    await ventasService.deleteCotizacion(cotizacion.idCotizacion)
+    await comercialService.deleteCotizacion(cotizacion.idCotizacion)
     showToast('Cotización eliminada exitosamente.', 'info')
     await loadData()
   } catch (err) {
@@ -883,7 +883,7 @@ const handleGenerarOS = async (cotizacion) => {
   if (!confirmed) return
 
   try {
-    await ventasService.createOrdenServicio({
+    await comercialService.createOrdenServicio({
       idCotizacion: cotizacion.idCotizacion,
       idAgenteAduanero: cotizacion.idAgenteRevisor || 1,
       observaciones: `Servicio formalizado desde propuesta ${cotizacion.codigoCotizacion}`
@@ -898,7 +898,7 @@ const handleGenerarOS = async (cotizacion) => {
 
 const handleCambiarEstadoOS = async (os, nuevoEstado) => {
   try {
-    await ventasService.updateOrdenServicioEstado(os.idOrdenServicio, {
+    await comercialService.updateOrdenServicioEstado(os.idOrdenServicio, {
       estadoServicio: nuevoEstado,
       observaciones: os.observaciones
     })
@@ -917,7 +917,7 @@ const handleDeleteOS = async (os) => {
   if (!confirmed) return
 
   try {
-    await ventasService.deleteOrdenServicio(os.idOrdenServicio)
+    await comercialService.deleteOrdenServicio(os.idOrdenServicio)
     showToast('Orden de servicio eliminada.', 'info')
     await loadData()
   } catch (err) {

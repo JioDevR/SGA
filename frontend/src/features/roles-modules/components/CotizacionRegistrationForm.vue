@@ -824,7 +824,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import { useAuthStore } from '@/features/auth/stores/authStore'
-import { ventasService } from '../services/ventasService'
+import { comercialService } from '../services/comercialService'
 import { catalogoService } from '@/features/admin/catalogos/services/catalogoService'
 import CotizacionFormHeader from './CotizacionFormHeader.vue'
 import CotizacionStepperNav from './CotizacionStepperNav.vue'
@@ -1052,7 +1052,7 @@ const handleSaveQuickClient = async () => {
 
   savingQuickClient.value = true
   try {
-    const createdClient = await ventasService.createCliente(quickClient.value)
+    const createdClient = await comercialService.createCliente(quickClient.value)
     localClientsList.value.unshift(createdClient)
     form.value.idCliente = createdClient.idCliente
     showQuickClientForm.value = false

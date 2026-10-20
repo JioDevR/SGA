@@ -111,7 +111,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import { transporteService } from '../services/transporteService'
+import { transporteFlotaService } from '../services/transporteFlotaService'
 
 const props = defineProps({
   visible: {
@@ -186,7 +186,7 @@ const handleSubmit = async () => {
     }
 
     const despachoId = props.despacho.idDespachoTransporte || props.despacho.idDespacho
-    const res = await transporteService.confirmarEntrega(despachoId, payload)
+    const res = await transporteFlotaService.confirmarEntrega(despachoId, payload)
     emit('saved', res)
     handleClose()
   } catch (err) {

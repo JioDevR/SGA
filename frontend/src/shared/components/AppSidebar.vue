@@ -33,20 +33,19 @@
           class="module-custom-select"
           @change="handleModuleSelectChange"
         >
-          <option value="admin">00 Administración TI</option>
-          <option value="gerencia">01 Gerencia General & Sedes</option>
-          <option value="ventas">02 Ventas & Comercial</option>
-          <option value="supervision">03 Supervisión Aduanera</option>
-          <option value="aduanas">04 Agente Aduanero & Trámites</option>
-          <option value="transporte">05 Transporte & Flota</option>
+          <option value="administracion-ti">00 Administración TI</option>
+          <option value="gerencia-general">01 Gerencia General & Sedes</option>
+          <option value="comercial">02 Recepción Comercial</option>
+          <option value="gestion-aduanera">03 Gestión Aduanera</option>
+          <option value="agente-aduanero">04 Agente Aduanero & Trámites</option>
+          <option value="transporte-flota">05 Transporte y Flota</option>
           <option value="finanzas">06 Finanzas & Cobranzas</option>
-          <option value="liquidador">07 Liquidación Aduanera</option>
-          <option value="legal">08 Legal & Auditoría</option>
+          <option value="legal-auditoria">07 Legal y Auditoría</option>
         </select>
         <i class="pi pi-chevron-down select-chevron-icon"></i>
       </div>
 
-      <!-- Indicador Fijo para Operadores con Rol Específico (Vendedor, Supervisor, Agente, Finanzas) -->
+      <!-- Indicador Fijo para Operadores con Rol Específico -->
       <div v-else class="static-module-pill">
         <span class="pill-num">{{ moduleNumberCode }}</span>
         <span class="pill-title">{{ activeModuleShortTitle }}</span>
@@ -62,12 +61,12 @@
       <!-- ======================================================== -->
       <!-- SUB-OPCIONES: 00 ADMINISTRACIÓN & CONTROL TI -->
       <!-- ======================================================== -->
-      <ul v-if="navigationStore.currentModule === 'admin'" class="nav-list">
+      <ul v-if="navigationStore.currentModule === 'administracion-ti'" class="nav-list">
         <!-- Sub-opción 01: Usuarios -->
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.adminSubOption === 'users' || navigationStore.adminSubOption === 'create-user' }]"
+            :class="['nav-sub-btn', { active: navigationStore.administracionTiSubOption === 'users' || navigationStore.administracionTiSubOption === 'create-user' }]"
             @click="handleAdminSubClick('users')"
             :title="isCollapsed ? 'Gestión de Usuarios' : ''"
           >
@@ -80,7 +79,7 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.adminSubOption === 'about' }]"
+            :class="['nav-sub-btn', { active: navigationStore.administracionTiSubOption === 'about' }]"
             @click="handleAdminSubClick('about')"
             :title="isCollapsed ? 'Acerca de SGA' : ''"
           >
@@ -93,7 +92,7 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.adminSubOption === 'logs' }]"
+            :class="['nav-sub-btn', { active: navigationStore.administracionTiSubOption === 'logs' }]"
             @click="handleAdminSubClick('logs')"
             :title="isCollapsed ? 'Consola de Logs TI' : ''"
           >
@@ -106,12 +105,12 @@
       <!-- ======================================================== -->
       <!-- SUB-OPCIONES: 01 GERENCIA GENERAL & SEDES -->
       <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'gerencia'" class="nav-list">
+      <ul v-else-if="navigationStore.currentModule === 'gerencia-general'" class="nav-list">
         <!-- Sub-opción 01: Vista General (KPIs) -->
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.gerenciaSubOption === 'overview' }]"
+            :class="['nav-sub-btn', { active: navigationStore.gerenciaGeneralSubOption === 'overview' }]"
             @click="handleGerenciaSubClick('overview')"
             :title="isCollapsed ? 'Vista General Ejecutiva' : ''"
           >
@@ -124,7 +123,7 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.gerenciaSubOption === 'sedes' }]"
+            :class="['nav-sub-btn', { active: navigationStore.gerenciaGeneralSubOption === 'sedes' }]"
             @click="handleGerenciaSubClick('sedes')"
             :title="isCollapsed ? 'Gestión de Sedes' : ''"
           >
@@ -137,7 +136,7 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.gerenciaSubOption === 'catalogos' }]"
+            :class="['nav-sub-btn', { active: navigationStore.gerenciaGeneralSubOption === 'catalogos' }]"
             @click="handleGerenciaSubClick('catalogos')"
             :title="isCollapsed ? 'Catálogos Auxiliares' : ''"
           >
@@ -150,7 +149,7 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.gerenciaSubOption === 'flota' }]"
+            :class="['nav-sub-btn', { active: navigationStore.gerenciaGeneralSubOption === 'flota' }]"
             @click="handleGerenciaSubClick('flota')"
             :title="isCollapsed ? 'Parque Automotor & Flota' : ''"
           >
@@ -163,7 +162,7 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.gerenciaSubOption === 'conductores' }]"
+            :class="['nav-sub-btn', { active: navigationStore.gerenciaGeneralSubOption === 'conductores' }]"
             @click="handleGerenciaSubClick('conductores')"
             :title="isCollapsed ? 'Conductores MTC' : ''"
           >
@@ -174,15 +173,15 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 01 MÓDULO DE VENTAS & GESTIÓN COMERCIAL -->
+      <!-- SUB-OPCIONES: 02 RECEPCIÓN COMERCIAL & VENTAS -->
       <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'ventas'" class="nav-list">
+      <ul v-else-if="navigationStore.currentModule === 'comercial'" class="nav-list">
         <!-- Sub-opción 01: Cotizaciones -->
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.ventasSubOption === 'cotizaciones' }]"
-            @click="handleVentasSubClick('cotizaciones')"
+            :class="['nav-sub-btn', { active: navigationStore.comercialSubOption === 'cotizaciones' }]"
+            @click="handleComercialSubClick('cotizaciones')"
             :title="isCollapsed ? 'Cotizaciones Comerciales' : ''"
           >
             <span class="nav-num">01</span>
@@ -194,8 +193,8 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.ventasSubOption === 'clientes' }]"
-            @click="handleVentasSubClick('clientes')"
+            :class="['nav-sub-btn', { active: navigationStore.comercialSubOption === 'clientes' }]"
+            @click="handleComercialSubClick('clientes')"
             :title="isCollapsed ? 'Directorio de Clientes' : ''"
           >
             <span class="nav-num">02</span>
@@ -203,12 +202,12 @@
           </button>
         </li>
 
-        <!-- Sub-opción 03: Órdenes de Servicio -->
+        <!-- Sub-opción 03: Expedientes Aduaneros -->
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.ventasSubOption === 'ordenes' }]"
-            @click="handleVentasSubClick('ordenes')"
+            :class="['nav-sub-btn', { active: navigationStore.comercialSubOption === 'ordenes' }]"
+            @click="handleComercialSubClick('ordenes')"
             :title="isCollapsed ? 'Expedientes Aduaneros' : ''"
           >
             <span class="nav-num">03</span>
@@ -221,7 +220,7 @@
           <button
             type="button"
             class="nav-sub-btn action-item"
-            @click="handleVentasAction('nueva-cotizacion')"
+            @click="handleComercialAction('nueva-cotizacion')"
             :title="isCollapsed ? 'Emitir Nueva Cotización' : ''"
           >
             <span class="nav-num">04</span>
@@ -234,7 +233,7 @@
           <button
             type="button"
             class="nav-sub-btn action-item"
-            @click="handleVentasAction('nuevo-cliente')"
+            @click="handleComercialAction('nuevo-cliente')"
             :title="isCollapsed ? 'Registrar Nuevo Cliente' : ''"
           >
             <span class="nav-num">05</span>
@@ -244,15 +243,15 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 02 SUPERVISIÓN ADUANERA -->
+      <!-- SUB-OPCIONES: 03 GESTIÓN ADUANERA & OPERACIONES -->
       <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'supervision'" class="nav-list">
+      <ul v-else-if="navigationStore.currentModule === 'gestion-aduanera'" class="nav-list">
         <!-- Sub-opción 01: Bandeja de Cotizaciones -->
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.supervisionSubOption === 'cotizaciones' }]"
-            @click="handleSupervisionSubClick('cotizaciones')"
+            :class="['nav-sub-btn', { active: navigationStore.gestionAduaneraSubOption === 'cotizaciones' }]"
+            @click="handleGestionAduaneraSubClick('cotizaciones')"
             :title="isCollapsed ? 'Bandeja de Cotizaciones' : ''"
           >
             <span class="nav-num">01</span>
@@ -264,12 +263,51 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.supervisionSubOption === 'expedientes' }]"
-            @click="handleSupervisionSubClick('expedientes')"
+            :class="['nav-sub-btn', { active: navigationStore.gestionAduaneraSubOption === 'expedientes' }]"
+            @click="handleGestionAduaneraSubClick('expedientes')"
             :title="isCollapsed ? 'Gestión de Expedientes' : ''"
           >
             <span class="nav-num">02</span>
             <span v-if="!isCollapsed" class="nav-label">Gestión de Expedientes</span>
+          </button>
+        </li>
+
+        <!-- Sub-opción 03: Declaraciones DAM (Liquidación) -->
+        <li class="nav-item">
+          <button
+            type="button"
+            :class="['nav-sub-btn', { active: navigationStore.gestionAduaneraSubOption === 'declaraciones' }]"
+            @click="handleGestionAduaneraSubClick('declaraciones')"
+            :title="isCollapsed ? 'Declaraciones DAM' : ''"
+          >
+            <span class="nav-num">03</span>
+            <span v-if="!isCollapsed" class="nav-label">Declaraciones DAM</span>
+          </button>
+        </li>
+
+        <!-- Sub-opción 04: Clasificación Arancelaria -->
+        <li class="nav-item">
+          <button
+            type="button"
+            :class="['nav-sub-btn', { active: navigationStore.gestionAduaneraSubOption === 'clasificacion' }]"
+            @click="handleGestionAduaneraSubClick('clasificacion')"
+            :title="isCollapsed ? 'Clasificación Arancelaria' : ''"
+          >
+            <span class="nav-num">04</span>
+            <span v-if="!isCollapsed" class="nav-label">Clasificación Arancelaria</span>
+          </button>
+        </li>
+
+        <!-- Sub-opción 05: Cálculo de Tributos -->
+        <li class="nav-item">
+          <button
+            type="button"
+            :class="['nav-sub-btn', { active: navigationStore.gestionAduaneraSubOption === 'tributos' }]"
+            @click="handleGestionAduaneraSubClick('tributos')"
+            :title="isCollapsed ? 'Cálculo de Tributos' : ''"
+          >
+            <span class="nav-num">05</span>
+            <span v-if="!isCollapsed" class="nav-label">Cálculo de Tributos</span>
           </button>
         </li>
       </ul>
@@ -277,13 +315,13 @@
       <!-- ======================================================== -->
       <!-- SUB-OPCIONES: 04 AGENTE ADUANERO & OPERACIONES -->
       <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'aduanas' || navigationStore.currentModule === 'logistica'" class="nav-list">
+      <ul v-else-if="navigationStore.currentModule === 'agente-aduanero'" class="nav-list">
         <!-- Sub-opción 01: Dashboard de Almacén -->
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.aduanasSubOption === 'almacen' }]"
-            @click="handleAduanasSubClick('almacen')"
+            :class="['nav-sub-btn', { active: navigationStore.agenteAduaneroSubOption === 'almacen' }]"
+            @click="handleAgenteAduaneroSubClick('almacen')"
             :title="isCollapsed ? 'Dashboard de Almacén' : ''"
           >
             <span class="nav-num">01</span>
@@ -294,8 +332,8 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.aduanasSubOption === 'recepcion' }]"
-            @click="handleAduanasSubClick('recepcion')"
+            :class="['nav-sub-btn', { active: navigationStore.agenteAduaneroSubOption === 'recepcion' }]"
+            @click="handleAgenteAduaneroSubClick('recepcion')"
             :title="isCollapsed ? 'Recepción Contenedores' : ''"
           >
             <span class="nav-num">02</span>
@@ -306,8 +344,8 @@
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.aduanasSubOption === 'bultos' }]"
-            @click="handleAduanasSubClick('bultos')"
+            :class="['nav-sub-btn', { active: navigationStore.agenteAduaneroSubOption === 'bultos' }]"
+            @click="handleAgenteAduaneroSubClick('bultos')"
             :title="isCollapsed ? 'Control de Bultos' : ''"
           >
             <span class="nav-num">03</span>
@@ -317,74 +355,57 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 05 LIQUIDACIÓN ADUANERA -->
+      <!-- SUB-OPCIONES: 05 TRANSPORTE & FLOTA -->
       <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'liquidador'" class="nav-list">
+      <ul v-else-if="navigationStore.currentModule === 'transporte-flota'" class="nav-list">
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.liquidadorSubOption === 'declaraciones' }]"
-            @click="handleLiquidadorSubClick('declaraciones')"
-            :title="isCollapsed ? 'Declaraciones DAM' : ''"
+            :class="['nav-sub-btn', { active: navigationStore.transporteFlotaSubOption === 'cabina' }]"
+            @click="handleTransporteFlotaSubClick('cabina')"
+            :title="isCollapsed ? 'Mi Trabajo Actual (Cabina)' : ''"
           >
             <span class="nav-num">01</span>
-            <span v-if="!isCollapsed" class="nav-label">Declaraciones DAM</span>
+            <span v-if="!isCollapsed" class="nav-label">Mi Trabajo Actual</span>
           </button>
         </li>
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.liquidadorSubOption === 'clasificacion' }]"
-            @click="handleLiquidadorSubClick('clasificacion')"
-            :title="isCollapsed ? 'Clasificación Arancelaria' : ''"
+            :class="['nav-sub-btn', { active: navigationStore.transporteFlotaSubOption === 'camion' }]"
+            @click="handleTransporteFlotaSubClick('camion')"
+            :title="isCollapsed ? 'Camión Asignado' : ''"
           >
             <span class="nav-num">02</span>
-            <span v-if="!isCollapsed" class="nav-label">Clasificación Arancelaria</span>
+            <span v-if="!isCollapsed" class="nav-label">Camión Asignado</span>
           </button>
         </li>
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.liquidadorSubOption === 'tributos' }]"
-            @click="handleLiquidadorSubClick('tributos')"
-            :title="isCollapsed ? 'Cálculo de Tributos' : ''"
+            :class="['nav-sub-btn', { active: navigationStore.transporteFlotaSubOption === 'viajes' }]"
+            @click="handleTransporteFlotaSubClick('viajes')"
+            :title="isCollapsed ? 'Historial de Mis Viajes' : ''"
           >
             <span class="nav-num">03</span>
-            <span v-if="!isCollapsed" class="nav-label">Cálculo de Tributos</span>
-          </button>
-        </li>
-      </ul>
-
-      <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 06 LEGAL & AUDITORÍA -->
-      <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'legal'" class="nav-list">
-        <li class="nav-item">
-          <button
-            type="button"
-            :class="['nav-sub-btn', { active: navigationStore.legalSubOption === 'expedientes' }]"
-            @click="handleLegalSubClick('expedientes')"
-            :title="isCollapsed ? 'Expedientes & Recursos' : ''"
-          >
-            <span class="nav-num">01</span>
-            <span v-if="!isCollapsed" class="nav-label">Expedientes & Recursos</span>
+            <span v-if="!isCollapsed" class="nav-label">Historial de Viajes</span>
           </button>
         </li>
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.legalSubOption === 'auditorias' }]"
-            @click="handleLegalSubClick('auditorias')"
-            :title="isCollapsed ? 'Auditorías SUNAT' : ''"
+            :class="['nav-sub-btn', { active: navigationStore.transporteFlotaSubOption === 'despachos' }]"
+            @click="handleTransporteFlotaSubClick('despachos')"
+            :title="isCollapsed ? 'Monitoreo Global' : ''"
           >
-            <span class="nav-num">02</span>
-            <span v-if="!isCollapsed" class="nav-label">Auditorías SUNAT</span>
+            <span class="nav-num">04</span>
+            <span v-if="!isCollapsed" class="nav-label">Monitoreo Global</span>
           </button>
         </li>
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 07 FINANZAS -->
+      <!-- SUB-OPCIONES: 06 FINANZAS -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'finanzas'" class="nav-list">
         <li class="nav-item">
@@ -412,51 +433,29 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 08 TRANSPORTE & DISTRIBUCIÓN -->
+      <!-- SUB-OPCIONES: 07 LEGAL & AUDITORÍA -->
       <!-- ======================================================== -->
-      <ul v-else-if="navigationStore.currentModule === 'transporte'" class="nav-list">
+      <ul v-else-if="navigationStore.currentModule === 'legal-auditoria'" class="nav-list">
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.transporteSubOption === 'cabina' }]"
-            @click="handleTransporteSubClick('cabina')"
-            :title="isCollapsed ? 'Mi Trabajo Actual (Cabina)' : ''"
+            :class="['nav-sub-btn', { active: navigationStore.legalAuditoriaSubOption === 'expedientes' }]"
+            @click="handleLegalAuditoriaSubClick('expedientes')"
+            :title="isCollapsed ? 'Expedientes & Recursos' : ''"
           >
             <span class="nav-num">01</span>
-            <span v-if="!isCollapsed" class="nav-label">Mi Trabajo Actual</span>
+            <span v-if="!isCollapsed" class="nav-label">Expedientes & Recursos</span>
           </button>
         </li>
         <li class="nav-item">
           <button
             type="button"
-            :class="['nav-sub-btn', { active: navigationStore.transporteSubOption === 'camion' }]"
-            @click="handleTransporteSubClick('camion')"
-            :title="isCollapsed ? 'Camión Asignado' : ''"
+            :class="['nav-sub-btn', { active: navigationStore.legalAuditoriaSubOption === 'auditorias' }]"
+            @click="handleLegalAuditoriaSubClick('auditorias')"
+            :title="isCollapsed ? 'Auditorías SUNAT' : ''"
           >
             <span class="nav-num">02</span>
-            <span v-if="!isCollapsed" class="nav-label">Camión Asignado</span>
-          </button>
-        </li>
-        <li class="nav-item">
-          <button
-            type="button"
-            :class="['nav-sub-btn', { active: navigationStore.transporteSubOption === 'viajes' }]"
-            @click="handleTransporteSubClick('viajes')"
-            :title="isCollapsed ? 'Historial de Mis Viajes' : ''"
-          >
-            <span class="nav-num">03</span>
-            <span v-if="!isCollapsed" class="nav-label">Historial de Viajes</span>
-          </button>
-        </li>
-        <li class="nav-item">
-          <button
-            type="button"
-            :class="['nav-sub-btn', { active: navigationStore.transporteSubOption === 'despachos' }]"
-            @click="handleTransporteSubClick('despachos')"
-            :title="isCollapsed ? 'Monitoreo Global' : ''"
-          >
-            <span class="nav-num">04</span>
-            <span v-if="!isCollapsed" class="nav-label">Monitoreo Global</span>
+            <span v-if="!isCollapsed" class="nav-label">Auditorías SUNAT</span>
           </button>
         </li>
       </ul>
@@ -486,32 +485,28 @@ const toggleCollapse = () => {
 
 const activeModuleShortTitle = computed(() => {
   const map = {
-    admin: 'ADMINISTRACIÓN TI',
-    gerencia: 'GERENCIA GENERAL',
-    ventas: 'VENTAS & COMERCIAL',
-    supervision: 'SUPERVISIÓN ADUANERA',
-    aduanas: 'AGENTE ADUANERO',
-    logistica: 'AGENTE ADUANERO',
-    liquidador: 'LIQUIDACIÓN ADUANERA',
-    legal: 'LEGAL & AUDITORÍA',
-    finanzas: 'FINANZAS',
-    transporte: 'TRANSPORTE'
+    'administracion-ti': 'ADMINISTRACIÓN TI',
+    'gerencia-general': 'GERENCIA GENERAL',
+    'comercial': 'RECEPCIÓN COMERCIAL',
+    'gestion-aduanera': 'GESTIÓN ADUANERA',
+    'agente-aduanero': 'AGENTE ADUANERO',
+    'transporte-flota': 'TRANSPORTE Y FLOTA',
+    'finanzas': 'FINANZAS',
+    'legal-auditoria': 'LEGAL Y AUDITORÍA'
   }
   return map[navigationStore.currentModule] || 'OPERACIONES'
 })
 
 const moduleNumberCode = computed(() => {
   const codeMap = {
-    admin: '00',
-    gerencia: '01',
-    ventas: '02',
-    supervision: '03',
-    aduanas: '04',
-    logistica: '04',
-    transporte: '05',
-    finanzas: '06',
-    liquidador: '07',
-    legal: '08'
+    'administracion-ti': '00',
+    'gerencia-general': '01',
+    'comercial': '02',
+    'gestion-aduanera': '03',
+    'agente-aduanero': '04',
+    'transporte-flota': '05',
+    'finanzas': '06',
+    'legal-auditoria': '07'
   }
   return codeMap[navigationStore.currentModule] || '00'
 })
@@ -519,72 +514,61 @@ const moduleNumberCode = computed(() => {
 // Cambio de módulo desde el selector dropdown del sidebar
 const handleModuleSelectChange = () => {
   const mod = navigationStore.activeModule
-  if (mod === 'admin') {
-    navigationStore.setAdminSubOption('users')
-    if (route.path !== '/admin/usuarios') {
-      router.push('/admin/usuarios')
+  if (mod === 'administracion-ti') {
+    navigationStore.setAdministracionTiSubOption('users')
+    if (route.path !== '/administracion-ti/usuarios') {
+      router.push('/administracion-ti/usuarios')
     }
-  } else if (mod === 'gerencia') {
-    navigationStore.setGerenciaSubOption('sedes')
-    if (route.path !== '/gerencia/sedes') {
-      router.push('/gerencia/sedes')
+  } else if (mod === 'gerencia-general') {
+    navigationStore.setGerenciaGeneralSubOption('sedes')
+    if (route.path !== '/gerencia-general/sedes') {
+      router.push('/gerencia-general/sedes')
     }
-  } else if (mod === 'ventas') {
-    navigationStore.setVentasSubOption('cotizaciones')
-    if (route.path !== '/ventas') {
-      router.push('/ventas')
+  } else if (mod === 'comercial') {
+    navigationStore.setComercialSubOption('cotizaciones')
+    if (route.path !== '/recepcion-comercial') {
+      router.push('/recepcion-comercial')
     }
-  } else if (mod === 'supervision') {
-    navigationStore.setSupervisionSubOption('cotizaciones')
-    if (route.path !== '/supervision') {
-      router.push('/supervision')
+  } else if (mod === 'gestion-aduanera') {
+    navigationStore.setGestionAduaneraSubOption('cotizaciones')
+    if (route.path !== '/gestion-aduanera') {
+      router.push('/gestion-aduanera')
     }
-  } else if (mod === 'aduanas') {
-    navigationStore.setAduanasSubOption('almacen')
-    if (route.path !== '/aduanas') {
-      router.push('/aduanas')
+  } else if (mod === 'agente-aduanero') {
+    navigationStore.setAgenteAduaneroSubOption('almacen')
+    if (route.path !== '/agente-aduanero') {
+      router.push('/agente-aduanero')
     }
-  } else if (mod === 'transporte') {
-    navigationStore.setTransporteSubOption('despachos')
-    if (route.path !== '/transporte') {
-      router.push('/transporte')
+  } else if (mod === 'transporte-flota') {
+    navigationStore.setTransporteFlotaSubOption('despachos')
+    if (route.path !== '/transporte-flota') {
+      router.push('/transporte-flota')
     }
   } else if (mod === 'finanzas') {
     navigationStore.setFinanzasSubOption('liquidacion')
     if (route.path !== '/finanzas') {
       router.push('/finanzas')
     }
-  } else if (mod === 'liquidador') {
-    navigationStore.setLiquidadorSubOption('declaraciones')
-    if (route.path !== '/liquidador') {
-      router.push('/liquidador')
-    }
-  } else if (mod === 'legal') {
-    navigationStore.setLegalSubOption('expedientes')
-    if (route.path !== '/legal') {
-      router.push('/legal')
-    }
-  } else {
-    // Si cambia a otro rol (logística, finanzas, etc.)
-    const targetPath = `/${mod}`
-    if (route.path !== targetPath) {
-      router.push(targetPath)
+  } else if (mod === 'legal-auditoria') {
+    navigationStore.setLegalAuditoriaSubOption('expedientes')
+    if (route.path !== '/legal-auditoria') {
+      router.push('/legal-auditoria')
     }
   }
 }
 
-// Navegación en sub-opciones de Gerencia
+// Navegación en sub-opciones de Gerencia General
 const handleGerenciaSubClick = (subOption) => {
-  navigationStore.setActiveModule('gerencia')
-  navigationStore.setGerenciaSubOption(subOption)
+  navigationStore.setActiveModule('gerencia-general')
+  navigationStore.setGerenciaGeneralSubOption(subOption)
   const pathMap = {
-    overview: '/gerencia/resumen',
-    sedes: '/gerencia/sedes',
-    catalogos: '/gerencia/catalogos',
-    flota: '/gerencia/flota',
-    conductores: '/gerencia/conductores'
+    overview: '/gerencia-general/resumen',
+    sedes: '/gerencia-general/sedes',
+    catalogos: '/gerencia-general/catalogos',
+    flota: '/gerencia-general/flota',
+    conductores: '/gerencia-general/conductores'
   }
-  const target = pathMap[subOption] || '/gerencia/sedes'
+  const target = pathMap[subOption] || '/gerencia-general/sedes'
   if (route.path !== target) {
     router.push(target)
   }
@@ -592,79 +576,76 @@ const handleGerenciaSubClick = (subOption) => {
 
 // Navegación en sub-opciones de Administración TI
 const handleAdminSubClick = (subOption) => {
-  navigationStore.setActiveModule('admin')
-  navigationStore.setAdminSubOption(subOption)
-  let target = '/admin/usuarios'
+  navigationStore.setActiveModule('administracion-ti')
+  navigationStore.setAdministracionTiSubOption(subOption)
+  let target = '/administracion-ti/usuarios'
   if (subOption === 'about') {
-    target = '/admin/acerca-de'
+    target = '/administracion-ti/acerca-de'
   } else if (subOption === 'logs') {
-    target = '/admin/logs'
+    target = '/administracion-ti/logs'
   }
   if (route.path !== target) {
     router.push(target)
   }
 }
 
-// Navegación en sub-opciones de Ventas
-const handleVentasSubClick = (subOption) => {
-  navigationStore.setActiveModule('ventas')
-  navigationStore.setVentasSubOption(subOption)
-  if (route.path !== '/ventas') {
-    router.push('/ventas')
+// Navegación en sub-opciones de Comercial
+const handleComercialSubClick = (subOption) => {
+  navigationStore.setActiveModule('comercial')
+  navigationStore.setComercialSubOption(subOption)
+  if (route.path !== '/recepcion-comercial') {
+    router.push('/recepcion-comercial')
   }
 }
 
-// Navegación en sub-opciones de Supervisión Aduanera
-const handleSupervisionSubClick = (subOption) => {
-  navigationStore.setActiveModule('supervision')
-  navigationStore.setSupervisionSubOption(subOption)
-  if (route.path !== '/supervision') {
-    router.push('/supervision')
+// Disparador de acciones rápidas de Comercial (modales)
+const handleComercialAction = (action) => {
+  navigationStore.setActiveModule('comercial')
+  if (route.path !== '/recepcion-comercial') {
+    router.push('/recepcion-comercial')
+  }
+  navigationStore.triggerComercialAction(action)
+}
+
+// Navegación en sub-opciones de Gestión Aduanera (incluye Liquidación)
+const handleGestionAduaneraSubClick = (subOption) => {
+  navigationStore.setActiveModule('gestion-aduanera')
+  navigationStore.setGestionAduaneraSubOption(subOption)
+  if (['declaraciones', 'clasificacion', 'tributos'].includes(subOption)) {
+    if (route.path !== '/gestion-aduanera/liquidacion') {
+      router.push('/gestion-aduanera/liquidacion')
+    }
+  } else {
+    if (route.path !== '/gestion-aduanera') {
+      router.push('/gestion-aduanera')
+    }
   }
 }
 
-// Disparador de acciones rápidas de Ventas (modales)
-const handleVentasAction = (action) => {
-  navigationStore.setActiveModule('ventas')
-  if (route.path !== '/ventas') {
-    router.push('/ventas')
-  }
-  navigationStore.triggerVentasAction(action)
-}
-
-// Navegación en sub-opciones de Agente Aduanero / Operaciones
-const handleAduanasSubClick = (subOption) => {
-  navigationStore.setActiveModule('aduanas')
-  navigationStore.setAduanasSubOption(subOption)
-  if (route.path !== '/aduanas') {
-    router.push('/aduanas')
+// Navegación en sub-opciones de Agente Aduanero
+const handleAgenteAduaneroSubClick = (subOption) => {
+  navigationStore.setActiveModule('agente-aduanero')
+  navigationStore.setAgenteAduaneroSubOption(subOption)
+  if (route.path !== '/agente-aduanero') {
+    router.push('/agente-aduanero')
   }
 }
 
-// Navegación en sub-opciones de Transporte
-const handleTransporteSubClick = (subOption) => {
-  navigationStore.setActiveModule('transporte')
-  navigationStore.setTransporteSubOption(subOption)
-  if (route.path !== '/transporte') {
-    router.push('/transporte')
+// Navegación en sub-opciones de Transporte y Flota
+const handleTransporteFlotaSubClick = (subOption) => {
+  navigationStore.setActiveModule('transporte-flota')
+  navigationStore.setTransporteFlotaSubOption(subOption)
+  if (route.path !== '/transporte-flota') {
+    router.push('/transporte-flota')
   }
 }
 
-// Navegación en sub-opciones de Liquidación Aduanera
-const handleLiquidadorSubClick = (subOption) => {
-  navigationStore.setActiveModule('liquidador')
-  navigationStore.setLiquidadorSubOption(subOption)
-  if (route.path !== '/liquidador') {
-    router.push('/liquidador')
-  }
-}
-
-// Navegación en sub-opciones de Legal
-const handleLegalSubClick = (subOption) => {
-  navigationStore.setActiveModule('legal')
-  navigationStore.setLegalSubOption(subOption)
-  if (route.path !== '/legal') {
-    router.push('/legal')
+// Navegación en sub-opciones de Legal y Auditoría
+const handleLegalAuditoriaSubClick = (subOption) => {
+  navigationStore.setActiveModule('legal-auditoria')
+  navigationStore.setLegalAuditoriaSubOption(subOption)
+  if (route.path !== '/legal-auditoria') {
+    router.push('/legal-auditoria')
   }
 }
 

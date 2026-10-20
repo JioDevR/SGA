@@ -84,7 +84,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Sincronizar activeModule con la ruta actual
   const navStore = useNavigationStore()
-  if (to.path.startsWith('/administracion-ti') || to.path.startsWith('/admin')) {
+  if (to.path.startsWith('/administracion-ti')) {
     navStore.setActiveModule('administracion-ti')
     if (to.path.includes('acerca-de')) {
       navStore.setAdministracionTiSubOption('about')
@@ -93,7 +93,7 @@ router.beforeEach(async (to, from, next) => {
     } else {
       navStore.setAdministracionTiSubOption('users')
     }
-  } else if (to.path.startsWith('/gerencia-general') || to.path.startsWith('/gerencia')) {
+  } else if (to.path.startsWith('/gerencia-general')) {
     navStore.setActiveModule('gerencia-general')
     if (to.path.includes('sedes')) {
       navStore.setGerenciaGeneralSubOption('sedes')
@@ -106,15 +106,18 @@ router.beforeEach(async (to, from, next) => {
     } else if (to.path.includes('conductores')) {
       navStore.setGerenciaGeneralSubOption('conductores')
     }
-  } else if (to.path.startsWith('/recepcion-comercial') || to.path.startsWith('/ventas')) {
+  } else if (to.path.startsWith('/recepcion-comercial')) {
     navStore.setActiveModule('comercial')
-  } else if (to.path.startsWith('/gestion-aduanera') || to.path.startsWith('/supervision') || to.path.startsWith('/liquidador')) {
+  } else if (to.path.startsWith('/gestion-aduanera')) {
     navStore.setActiveModule('gestion-aduanera')
-  } else if (to.path.startsWith('/agente-aduanero') || to.path.startsWith('/aduanas') || to.path.startsWith('/logistica')) {
+    if (to.path.includes('liquidacion')) {
+      navStore.setGestionAduaneraSubOption('declaraciones')
+    }
+  } else if (to.path.startsWith('/agente-aduanero')) {
     navStore.setActiveModule('agente-aduanero')
-  } else if (to.path.startsWith('/transporte-flota') || to.path.startsWith('/transporte')) {
+  } else if (to.path.startsWith('/transporte-flota')) {
     navStore.setActiveModule('transporte-flota')
-  } else if (to.path.startsWith('/legal-auditoria') || to.path.startsWith('/legal')) {
+  } else if (to.path.startsWith('/legal-auditoria')) {
     navStore.setActiveModule('legal-auditoria')
   } else if (to.path.startsWith('/finanzas')) {
     navStore.setActiveModule('finanzas')

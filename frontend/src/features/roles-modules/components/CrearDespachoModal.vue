@@ -154,7 +154,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import { transporteService } from '../services/transporteService'
+import { transporteFlotaService } from '../services/transporteFlotaService'
 import { expedienteService } from '../services/expedienteService'
 
 const props = defineProps({
@@ -197,8 +197,8 @@ const loadAux = async () => {
   try {
     const [exps, conds, unids] = await Promise.all([
       expedienteService.getExpedientes(),
-      transporteService.getConductores(true),
-      transporteService.getUnidades({ soloActivos: true })
+      transporteFlotaService.getConductores(true),
+      transporteFlotaService.getUnidades({ soloActivos: true })
     ])
     expedientesList.value = exps || []
     conductoresList.value = conds || []
@@ -249,7 +249,7 @@ const handleSubmit = async () => {
       observaciones: form.value.observaciones || null
     }
 
-    const creado = await transporteService.createDespacho(payload)
+    const creado = await transporteFlotaService.createDespacho(payload)
     emit('saved', creado)
     handleClose()
   } catch (err) {
