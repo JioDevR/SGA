@@ -1,7 +1,6 @@
 package pe.sga.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
@@ -22,7 +21,6 @@ import pe.sga.repository.SedeRepository;
 import pe.sga.repository.UsuarioRepository;
 
 import java.io.InputStream;
-import java.math.BigDecimal;
 
 @Component
 @Slf4j
@@ -61,7 +59,7 @@ public class DataInitializer implements CommandLineRunner {
             if (!rolRepository.existsByNombreRol(rolEnum)) {
                 rolRepository.save(Rol.builder()
                         .nombreRol(rolEnum)
-                        .descripcion("Rol operativo: " + rolEnum.name())
+                        .descripcion(rolEnum.getEtiqueta())
                         .estadoActivo(true)
                         .build());
             }
@@ -130,38 +128,40 @@ public class DataInitializer implements CommandLineRunner {
                     log.info("Catálogo de tipos de carga cargado desde initial-data.json con éxito.");
                 }
 
-                    // Cargar usuario administrador desde JSON
-                    Rol rolAdminTi = rolRepository.findByNombreRol(RolUsuario.ADMIN_TI)
-                            .or(() -> rolRepository.findByNombreRol(RolUsuario.ADMINISTRADOR))
-                            .orElse(null);
+                // Cargar usuario administrador desde JSON
+                Rol rolAdminTi = rolRepository.findByNombreRol(RolUsuario.ADMINISTRADOR_TI)
+                        .orElse(null);
 
-                    Sede sede = sedeRepository.findAll().stream().findFirst().orElse(null);
+                Sede sede = sedeRepository.findAll().stream().findFirst().orElse(null);
 
-                    if (seedData.getAdmin() != null && !usuarioRepository.existsByUsername(seedData.getAdmin().getUsername())) {
-                        InitialSeedDataDTO.AdminSeedDTO adminDto = seedData.getAdmin();
-                        usuarioRepository.save(Usuario.builder()
-                                .rol(rolAdminTi)
-                                .sede(sede)
-                                .username(adminDto.getUsername())
-                                .passwordHash(passwordEncoder.encode(adminDto.getPassword()))
-                                .nombres(adminDto.getNombres())
-                                .apellidos(adminDto.getApellidos())
-                                .correoInstitucional(adminDto.getCorreoInstitucional())
-                                .tipoDocumento(adminDto.getTipoDocumento() != null ? adminDto.getTipoDocumento() : "DNI")
-                                .numeroDocumento(adminDto.getNumeroDocumento())
-                                .telefono(adminDto.getTelefono())
-                                .cargoTitulo(adminDto.getCargoTitulo())
-                                .codigoSunat(adminDto.getCodigoSunat())
-                                .estadoActivo(true)
-                                .build());
-                        log.info("Usuario inicial '{}' cargado exitosamente desde initial-data.json.", adminDto.getUsername());
-                    }
+                if (seedData.getAdmin() != null && !usuarioRepository.existsByUsername(seedData.getAdmin().getUsername())) {
+                    InitialSeedDataDTO.AdminSeedDTO adminDto = seedData.getAdmin();
+                    usuarioRepository.save(Usuario.builder()
+                            .rol(rolAdminTi)
+                            .sede(sede)
+                            .username(adminDto.getUsername())
+                            .passwordHash(passwordEncoder.encode(adminDto.getPassword()))
+                            .nombres(adminDto.getNombres())
+                            .apellidos(adminDto.getApellidos())
+                            .correoInstitucional(adminDto.getCorreoInstitucional())
+                            .tipoDocumento(adminDto.getTipoDocumento() != null ? adminDto.getTipoDocumento() : "DNI")
+                            .numeroDocumento(adminDto.getNumeroDocumento())
+                            .telefono(adminDto.getTelefono())
+                            .cargoTitulo(adminDto.getCargoTitulo() != null ? adminDto.getCargoTitulo() : RolUsuario.ADMINISTRADOR_TI.getEtiqueta())
+                            .codigoSunat(adminDto.getCodigoSunat())
+                            .estadoActivo(true)
+                            .build());
+                    log.info("Usuario inicial '{}' cargado exitosamente desde initial-data.json.", adminDto.getUsername());
+                }
 
-                    // Sembrar usuarios de prueba para los roles principales si no existen
-                    seedUserIfMissing("gerente", "Gerente General", "Operaciones", "gerente@sga.pe", RolUsuario.GERENTE, sede);
-                    seedUserIfMissing("vendedor", "Vendedor", "Comercial", "ventas@sga.pe", RolUsuario.VENTAS, sede);
-                    seedUserIfMissing("supervisor", "Supervisor", "Aduanero", "supervisor@sga.pe", RolUsuario.SUPERVISION, sede);
-                    seedUserIfMissing("agente", "Agente", "Aduanas", "agente@sga.pe", RolUsuario.AGENTE_ADUANERO, sede);
+                // Sembrar usuarios de prueba para los 7 roles restantes si no existen
+                seedUserIfMissing("gerente", "Carlos", "Mendoza Véliz", "gerente@sga.pe", RolUsuario.GERENTE_GENERAL, sede);
+                seedUserIfMissing("comercial", "Sofía", "Paredes Romero", "comercial@sga.pe", RolUsuario.AGENTE_COMERCIAL, sede);
+                seedUserIfMissing("supervisor", "Jorge", "Valenzuela Castro", "supervisor@sga.pe", RolUsuario.SUPERVISOR_ADUANERO, sede);
+                seedUserIfMissing("agente", "Miguel", "Aduviri Ramos", "agente@sga.pe", RolUsuario.AGENTE_ADUANERO, sede);
+                seedUserIfMissing("transporte", "Raúl", "Cárdenas Meléndez", "transporte@sga.pe", RolUsuario.SUPERVISOR_TRANSPORTE, sede);
+                seedUserIfMissing("contador", "Elena", "Morales Benítez", "contador@sga.pe", RolUsuario.CONTADOR, sede);
+                seedUserIfMissing("legal", "Fernando", "Arana Silva", "legal@sga.pe", RolUsuario.ASESOR_LEGAL, sede);
             }
         } catch (Exception e) {
             log.error("Error al procesar initial-data.json: {}", e.getMessage(), e);
@@ -182,7 +182,7 @@ public class DataInitializer implements CommandLineRunner {
                         .tipoDocumento("DNI")
                         .numeroDocumento("7000000" + (username.length()))
                         .telefono("+51 900 000 000")
-                        .cargoTitulo("Especialista " + rolEnum.name())
+                        .cargoTitulo(rolEnum.getEtiqueta())
                         .codigoSunat("SUNAT-" + rolEnum.name())
                         .estadoActivo(true)
                         .build());
@@ -190,5 +190,4 @@ public class DataInitializer implements CommandLineRunner {
             });
         }
     }
-
 }
