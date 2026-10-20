@@ -5,7 +5,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.response.ApiResponseDTO;
 import pe.sga.service.IAdminLogsService;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/admin/logs")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_LOGS_READ)
 public class AdminLogsController {
 
     private final IAdminLogsService adminLogsService;

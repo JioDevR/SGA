@@ -7,7 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.SedeCreateDTO;
 import pe.sga.dto.request.SedeUpdateDTO;
 import pe.sga.dto.response.ApiResponseDTO;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/sedes")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_SEDES_CATALOGOS_READ)
 public class SedeController {
 
     private final ISedeService sedeService;
@@ -42,6 +45,7 @@ public class SedeController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<SedeResponseDTO>> crear(@Valid @RequestBody SedeCreateDTO dto) {
         SedeResponseDTO creada = sedeService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -49,6 +53,7 @@ public class SedeController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<SedeResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody SedeUpdateDTO dto) {
@@ -57,12 +62,14 @@ public class SedeController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminarPorEstado(@PathVariable Integer id) {
         sedeService.eliminarPorEstado(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Sede desactivada exitosamente (eliminación lógica por estado)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @PreAuthorize(SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         sedeService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Sede reactivada exitosamente", null));

@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.RolDTO;
 import pe.sga.dto.response.ApiResponseDTO;
 import pe.sga.dto.response.RolResponseDTO;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_ROLES_READ)
 public class RolController {
 
     private final IRolService rolService;
@@ -35,6 +38,7 @@ public class RolController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_ROLES_WRITE)
     public ResponseEntity<ApiResponseDTO<RolResponseDTO>> crear(@Valid @RequestBody RolDTO dto) {
         RolResponseDTO creado = rolService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,6 +46,7 @@ public class RolController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_ROLES_WRITE)
     public ResponseEntity<ApiResponseDTO<RolResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody RolDTO dto) {
@@ -50,12 +55,14 @@ public class RolController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_ROLES_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminarPorEstado(@PathVariable Integer id) {
         rolService.eliminarPorEstado(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Rol desactivado exitosamente (eliminación lógica por estado)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @PreAuthorize(SecurityRoles.ACCESS_ROLES_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         rolService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Rol reactivado exitosamente", null));

@@ -41,7 +41,7 @@ public final class SecurityRoles {
     // 3. Clientes y Cotizaciones
     public static final String ACCESS_CLIENTE_COTIZACION_READ = "hasAnyRole('" + ADMINISTRADOR_TI + "', '" + GERENTE_GENERAL + "', '" + AGENTE_COMERCIAL + "', '" + SUPERVISOR_ADUANERO + "', '" + AGENTE_ADUANERO + "', '" + CONTADOR + "', '" + ASESOR_LEGAL + "')";
     public static final String ACCESS_CLIENTE_COTIZACION_WRITE = "hasAnyRole('" + ADMINISTRADOR_TI + "', '" + GERENTE_GENERAL + "', '" + AGENTE_COMERCIAL + "')";
-    public static final String ACCESS_COTIZACION_APROBACION = "hasAnyRole('" + ADMINISTRADOR_TI + "', '" + GERENTE_GENERAL + "', '" + SUPERVISOR_ADUANERO + "')";
+    public static final String ACCESS_COTIZACION_APROBACION = "hasAnyRole('" + ADMINISTRADOR_TI + "', '" + GERENTE_GENERAL + "', '" + SUPERVISOR_ADUANERO + "', '" + AGENTE_ADUANERO + "')";
 
     // 4. Expedientes y Control de Almacén
     public static final String ACCESS_EXPEDIENTE_ALMACEN_READ = "hasAnyRole('" + ADMINISTRADOR_TI + "', '" + GERENTE_GENERAL + "', '" + SUPERVISOR_ADUANERO + "', '" + AGENTE_ADUANERO + "', '" + ASESOR_LEGAL + "', '" + SUPERVISOR_TRANSPORTE + "', '" + CONTADOR + "')";

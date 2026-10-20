@@ -54,6 +54,7 @@ public class CatalogoPuertoController {
     }
 
     @PostMapping
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<CatalogoPuertoResponseDTO>> crear(@Valid @RequestBody CatalogoPuertoDTO dto) {
         CatalogoPuertoResponseDTO creado = puertoService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -61,6 +62,7 @@ public class CatalogoPuertoController {
     }
 
     @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<CatalogoPuertoResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody CatalogoPuertoDTO dto) {
@@ -69,12 +71,14 @@ public class CatalogoPuertoController {
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminarPorEstado(@PathVariable Integer id) {
         puertoService.eliminarPorEstado(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Puerto marcado como inactivo (eliminación por estado)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         puertoService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Puerto reactivado exitosamente", null));

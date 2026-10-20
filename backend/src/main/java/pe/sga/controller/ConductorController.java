@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.ConductorRequestDTO;
 import pe.sga.dto.response.ApiResponseDTO;
 import pe.sga.dto.response.ConductorResponseDTO;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/transporte/conductores")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_READ)
 public class ConductorController {
 
     private final IConductorService conductorService;
@@ -41,6 +44,7 @@ public class ConductorController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<ConductorResponseDTO>> crear(@Valid @RequestBody ConductorRequestDTO dto) {
         ConductorResponseDTO creado = conductorService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -48,6 +52,7 @@ public class ConductorController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<ConductorResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody ConductorRequestDTO dto) {
@@ -56,12 +61,14 @@ public class ConductorController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         conductorService.eliminar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Conductor desactivado exitosamente (borrado lógico)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         conductorService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Conductor reactivado exitosamente", null));

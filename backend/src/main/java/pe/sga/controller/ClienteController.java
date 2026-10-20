@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.ClienteRequestDTO;
 import pe.sga.dto.response.ApiResponseDTO;
 import pe.sga.dto.response.ClienteResponseDTO;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/clientes")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_READ)
 public class ClienteController {
 
     private final IClienteService clienteService;
@@ -50,6 +53,7 @@ public class ClienteController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<ClienteResponseDTO>> crear(@Valid @RequestBody ClienteRequestDTO dto) {
         ClienteResponseDTO creado = clienteService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -57,6 +61,7 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<ClienteResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody ClienteRequestDTO dto) {
@@ -65,18 +70,21 @@ public class ClienteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         clienteService.eliminar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Cliente desactivado exitosamente (borrado lógico por estado)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         clienteService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Cliente reactivado exitosamente", null));
     }
 
     @PatchMapping("/{id}/convertir-cliente")
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<ClienteResponseDTO>> convertirEnCliente(@PathVariable Integer id) {
         ClienteResponseDTO formalizado = clienteService.convertirEnCliente(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Prospecto formalizado como cliente regular", formalizado));

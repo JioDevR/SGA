@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.UnidadTransporteRequestDTO;
 import pe.sga.dto.response.ApiResponseDTO;
 import pe.sga.dto.response.UnidadTransporteResponseDTO;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/transporte/unidades")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_READ)
 public class UnidadTransporteController {
 
     private final IUnidadTransporteService unidadService;
@@ -47,6 +50,7 @@ public class UnidadTransporteController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<UnidadTransporteResponseDTO>> crear(@Valid @RequestBody UnidadTransporteRequestDTO dto) {
         UnidadTransporteResponseDTO creado = unidadService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -54,6 +58,7 @@ public class UnidadTransporteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<UnidadTransporteResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody UnidadTransporteRequestDTO dto) {
@@ -62,12 +67,14 @@ public class UnidadTransporteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         unidadService.eliminar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Unidad de transporte desactivada (borrado lógico)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         unidadService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Unidad de transporte reactivada exitosamente", null));

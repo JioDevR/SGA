@@ -7,7 +7,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.UsuarioCreateDTO;
 import pe.sga.dto.request.UsuarioUpdateDTO;
 import pe.sga.dto.response.ApiResponseDTO;
@@ -21,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/usuarios")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_USUARIOS_READ)
 public class UsuarioController {
 
     private final IUsuarioService usuarioService;
@@ -42,6 +45,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_USUARIOS_WRITE)
     public ResponseEntity<ApiResponseDTO<UsuarioResponseDTO>> crear(@Valid @RequestBody UsuarioCreateDTO dto) {
         UsuarioResponseDTO creado = usuarioService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -49,6 +53,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_USUARIOS_WRITE)
     public ResponseEntity<ApiResponseDTO<UsuarioResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody UsuarioUpdateDTO dto) {
@@ -57,12 +62,14 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_USUARIOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminarPorEstado(@PathVariable Integer id) {
         usuarioService.eliminarPorEstado(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Usuario desactivado exitosamente (eliminación lógica por estado)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @PreAuthorize(SecurityRoles.ACCESS_USUARIOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         usuarioService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Usuario reactivado exitosamente", null));

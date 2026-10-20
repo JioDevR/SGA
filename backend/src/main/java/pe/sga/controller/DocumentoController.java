@@ -17,6 +17,7 @@ import pe.sga.entity.enums.CategoriaDocumento;
 import pe.sga.entity.enums.EntidadDocumento;
 import pe.sga.service.IDocumentoService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/documentos")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 public class DocumentoController {
 
     private final IDocumentoService documentoService;

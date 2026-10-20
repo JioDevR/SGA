@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.ControlAlmacenRequestDTO;
 import pe.sga.dto.request.ControlAlmacenSalidaDTO;
 import pe.sga.dto.response.ApiResponseDTO;
@@ -16,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/almacen")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_READ)
 public class ControlAlmacenController {
 
     private final IControlAlmacenService controlAlmacenService;
@@ -46,6 +49,7 @@ public class ControlAlmacenController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ControlAlmacenResponseDTO>> registrarIngreso(@Valid @RequestBody ControlAlmacenRequestDTO dto) {
         ControlAlmacenResponseDTO creado = controlAlmacenService.registrarIngreso(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -53,6 +57,7 @@ public class ControlAlmacenController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ControlAlmacenResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody ControlAlmacenRequestDTO dto) {
@@ -61,6 +66,7 @@ public class ControlAlmacenController {
     }
 
     @PatchMapping("/{id}/autorizar-salida")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ControlAlmacenResponseDTO>> autorizarSalida(
             @PathVariable Integer id,
             @RequestBody ControlAlmacenSalidaDTO dto) {
@@ -69,6 +75,7 @@ public class ControlAlmacenController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         controlAlmacenService.anular(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Registro de almacén anulado (borrado lógico)", null));

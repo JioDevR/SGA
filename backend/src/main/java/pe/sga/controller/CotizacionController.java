@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.CotizacionEstadoDTO;
 import pe.sga.dto.request.CotizacionRequestDTO;
 import pe.sga.dto.request.CotizacionRevisionDTO;
@@ -18,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/cotizaciones")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_READ)
 public class CotizacionController {
 
     private final ICotizacionService cotizacionService;
@@ -51,6 +54,7 @@ public class CotizacionController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<CotizacionResponseDTO>> crear(@Valid @RequestBody CotizacionRequestDTO dto) {
         CotizacionResponseDTO creada = cotizacionService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -58,6 +62,7 @@ public class CotizacionController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<CotizacionResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody CotizacionRequestDTO dto) {
@@ -66,6 +71,7 @@ public class CotizacionController {
     }
 
     @PatchMapping("/{id}/revision")
+    @PreAuthorize(SecurityRoles.ACCESS_COTIZACION_APROBACION)
     public ResponseEntity<ApiResponseDTO<CotizacionResponseDTO>> revisarTecnicamente(
             @PathVariable Integer id,
             @Valid @RequestBody CotizacionRevisionDTO dto) {
@@ -74,6 +80,7 @@ public class CotizacionController {
     }
 
     @PatchMapping("/{id}/estado")
+    @PreAuthorize(SecurityRoles.ACCESS_COTIZACION_APROBACION)
     public ResponseEntity<ApiResponseDTO<CotizacionResponseDTO>> cambiarEstado(
             @PathVariable Integer id,
             @Valid @RequestBody CotizacionEstadoDTO dto) {
@@ -82,6 +89,7 @@ public class CotizacionController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_CLIENTE_COTIZACION_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         cotizacionService.anular(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Cotización anulada exitosamente (borrado lógico por estado)", null));

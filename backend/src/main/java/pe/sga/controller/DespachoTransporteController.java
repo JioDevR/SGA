@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.DespachoAsignarRecursosDTO;
 import pe.sga.dto.request.DespachoEntregaDTO;
 import pe.sga.dto.request.DespachoRutaDTO;
@@ -18,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/transporte/despachos")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_READ)
 public class DespachoTransporteController {
 
     private final IDespachoTransporteService despachoService;
@@ -54,6 +57,7 @@ public class DespachoTransporteController {
     }
 
     @GetMapping("/mi-despacho-activo")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> obtenerMiDespachoActivo(
             @org.springframework.security.core.annotation.AuthenticationPrincipal pe.sga.entity.Usuario usuarioAutenticado) {
         if (usuarioAutenticado == null) {
@@ -64,6 +68,7 @@ public class DespachoTransporteController {
     }
 
     @GetMapping("/mis-despachos")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponseDTO<List<DespachoTransporteResponseDTO>>> listarMisDespachos(
             @org.springframework.security.core.annotation.AuthenticationPrincipal pe.sga.entity.Usuario usuarioAutenticado) {
         if (usuarioAutenticado == null) {
@@ -74,6 +79,7 @@ public class DespachoTransporteController {
     }
 
     @PostMapping("/{id}/incidencia")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> reportarIncidencia(
             @PathVariable Integer id,
             @RequestBody java.util.Map<String, String> body) {
@@ -89,6 +95,7 @@ public class DespachoTransporteController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> programar(@Valid @RequestBody DespachoTransporteCrearDTO dto) {
         DespachoTransporteResponseDTO creado = despachoService.programar(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -96,6 +103,7 @@ public class DespachoTransporteController {
     }
 
     @PatchMapping("/{id}/asignar-recursos")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> asignarRecursos(
             @PathVariable Integer id,
             @Valid @RequestBody DespachoAsignarRecursosDTO dto) {
@@ -104,6 +112,7 @@ public class DespachoTransporteController {
     }
 
     @PatchMapping("/{id}/iniciar-ruta")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> iniciarRuta(
             @PathVariable Integer id,
             @RequestBody DespachoRutaDTO dto) {
@@ -112,6 +121,7 @@ public class DespachoTransporteController {
     }
 
     @PatchMapping("/{id}/confirmar-entrega")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> confirmarEntrega(
             @PathVariable Integer id,
             @RequestBody DespachoEntregaDTO dto) {
@@ -120,6 +130,7 @@ public class DespachoTransporteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_TRANSPORTE_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         despachoService.anular(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Despacho de transporte cancelado (borrado lógico)", null));
