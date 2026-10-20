@@ -88,6 +88,8 @@ router.beforeEach(async (to, from, next) => {
     navStore.setActiveModule('admin')
     if (to.path.includes('acerca-de')) {
       navStore.setAdminSubOption('about')
+    } else if (to.path.includes('logs')) {
+      navStore.setAdminSubOption('logs')
     } else {
       navStore.setAdminSubOption('users')
     }

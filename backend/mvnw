@@ -41,6 +41,12 @@ CYGWIN* | MINGW*)
   ;;
 esac
 
+# Auto-detect compatible JDK 21 LTS if available on system
+if [ -d "/usr/lib/jvm/java-21-openjdk" ] && { [ -z "${JAVA_HOME-}" ] || echo "${JAVA_HOME-}" | grep -q "java-27"; }; then
+  export JAVA_HOME="/usr/lib/jvm/java-21-openjdk"
+  export PATH="$JAVA_HOME/bin:$PATH"
+fi
+
 # set JAVACMD and JAVACCMD
 set_java_home() {
   # For Cygwin and MinGW, ensure paths are in Unix format before anything is touched

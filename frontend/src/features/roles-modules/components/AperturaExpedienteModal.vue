@@ -2,28 +2,59 @@
   <BaseModal
     :visible="visible"
     title="Apertura de Expediente Aduanero"
-    :subtitle="`Operación vinculada a la Cotización ${cotizacion?.codigoCotizacion || ''}`"
+    :subtitle="modalSubtitle"
     icon="pi pi-folder-open"
-    max-width="700px"
+    max-width="720px"
     :error-message="errorMessage"
     :busy="loading"
     @close="handleClose"
   >
     <form @submit.prevent="handleSubmit" class="form-body">
-      <!-- Resumen de Cotización -->
-      <div class="summary-pill-card">
+      <!-- Selector de Cotización si no viene predeterminada -->
+      <div v-if="!cotizacion" class="cotizacion-picker-card">
+        <label for="exp-cotizacion-select" class="picker-label">
+          <i class="pi pi-file-edit"></i>
+          <span>Seleccionar Cotización Aprobada Origen *</span>
+        </label>
+        
+        <div v-if="cotizacionesDisponibles && cotizacionesDisponibles.length > 0" class="select-wrap">
+          <select
+            id="exp-cotizacion-select"
+            v-model="selectedCotizacionId"
+            class="select-input select-highlight"
+            required
+            @change="onCotizacionSelect"
+          >
+            <option :value="null">-- Seleccione una cotización comercial aprobada --</option>
+            <option
+              v-for="c in cotizacionesDisponibles"
+              :key="c.idCotizacion"
+              :value="c.idCotizacion"
+            >
+              {{ c.codigoCotizacion }} — {{ c.clienteRazonSocial || 'Cliente s/n' }} (${{ Number(c.totalCotizado || 0).toLocaleString('en-US') }})
+            </option>
+          </select>
+        </div>
+        <div v-else class="picker-empty-alert">
+          <i class="pi pi-info-circle"></i>
+          <span>No hay cotizaciones aprobadas pendientes de apertura. Primero apruebe una propuesta en la Bandeja de Cotizaciones.</span>
+        </div>
+      </div>
+
+      <!-- Resumen de Cotización Activa -->
+      <div v-if="activeCotizacion" class="summary-pill-card">
         <div class="summary-col">
           <span class="summary-label">CLIENTE IMPORTADOR/EXPORTADOR</span>
-          <strong class="summary-val">{{ cotizacion?.clienteRazonSocial || '—' }}</strong>
-          <span class="summary-sub">{{ cotizacion?.clienteNumeroDocumento }}</span>
+          <strong class="summary-val">{{ activeCotizacion.clienteRazonSocial || '—' }}</strong>
+          <span class="summary-sub">RUC/Doc: {{ activeCotizacion.clienteNumeroDocumento }}</span>
         </div>
         <div class="summary-col">
           <span class="summary-label">RÉGIMEN ADUANERO</span>
-          <strong class="summary-val">{{ cotizacion?.regimenAduanero || 'IMPORTACION_DEFINITIVA' }}</strong>
+          <strong class="summary-val">{{ formatRegimen(activeCotizacion.regimenAduanero) }}</strong>
         </div>
         <div class="summary-col">
           <span class="summary-label">TOTAL COTIZADO</span>
-          <strong class="summary-val text-accent">${{ Number(cotizacion?.totalCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>
+          <strong class="summary-val text-accent">${{ Number(activeCotizacion.totalCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>
         </div>
       </div>
 
@@ -147,7 +178,11 @@
         <button type="button" class="btn-modal-cancel" @click="handleClose" :disabled="loading">
           Cancelar
         </button>
-        <button type="submit" class="btn-modal-save" :disabled="loading">
+        <button
+          type="submit"
+          class="btn-modal-save"
+          :disabled="loading || (!form.idCotizacion && !activeCotizacion)"
+        >
           <i v-if="loading" class="pi pi-spin pi-spinner"></i>
           <i v-else class="pi pi-folder-open"></i>
           <span>Aperturar Expediente</span>
@@ -158,7 +193,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, computed } from 'vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import { expedienteService } from '../services/expedienteService'
 import { userService } from '@/features/admin/users/services/userService'
@@ -172,6 +207,10 @@ const props = defineProps({
   cotizacion: {
     type: Object,
     default: null
+  },
+  cotizacionesDisponibles: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -181,6 +220,36 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const errorMessage = ref('')
 const agentesList = ref([])
+const selectedCotizacionId = ref(null)
+
+const activeCotizacion = computed(() => {
+  if (props.cotizacion) return props.cotizacion
+  if (selectedCotizacionId.value) {
+    return props.cotizacionesDisponibles.find(
+      (c) => c.idCotizacion === selectedCotizacionId.value
+    ) || null
+  }
+  return null
+})
+
+const modalSubtitle = computed(() => {
+  if (activeCotizacion.value?.codigoCotizacion) {
+    return `Operación vinculada a la Cotización ${activeCotizacion.value.codigoCotizacion}`
+  }
+  return 'Seleccione una cotización comercial aprobada para aperturar el expediente'
+})
+
+const formatRegimen = (reg) => {
+  if (!reg) return 'IMPORTACIÓN DEFINITIVA'
+  const labels = {
+    IMPORTACION_DEFINITIVA: 'Importación Definitiva (10)',
+    EXPORTACION_DEFINITIVA: 'Exportación Definitiva (40)',
+    DEPOSITO_ADUANERO: 'Depósito Aduanero (70)',
+    TRANSITO_ADUANERO: 'Tránsito Aduanero (80)',
+    ADMISION_TEMPORAL: 'Admisión Temporal (20)'
+  }
+  return labels[reg] || reg
+}
 
 const defaultForm = () => ({
   idCotizacion: null,
@@ -198,10 +267,17 @@ const defaultForm = () => ({
 
 const form = ref(defaultForm())
 
+const onCotizacionSelect = () => {
+  if (selectedCotizacionId.value) {
+    form.value.idCotizacion = selectedCotizacionId.value
+  } else {
+    form.value.idCotizacion = null
+  }
+}
+
 const loadAgentes = async () => {
   try {
     const users = await userService.getUsers(true)
-    // Filtramos usuarios con rol SUPERVISOR, SUPERVISION, LOGISTICA o ADMINISTRADOR
     agentesList.value = (users || []).filter(
       (u) => u.idUsuario !== authStore.user?.idUsuario
     )
@@ -216,9 +292,15 @@ watch(
     if (newVal) {
       errorMessage.value = ''
       form.value = defaultForm()
+      selectedCotizacionId.value = null
+
       if (props.cotizacion) {
         form.value.idCotizacion = props.cotizacion.idCotizacion
+      } else if (props.cotizacionesDisponibles && props.cotizacionesDisponibles.length > 0) {
+        selectedCotizacionId.value = props.cotizacionesDisponibles[0].idCotizacion
+        form.value.idCotizacion = props.cotizacionesDisponibles[0].idCotizacion
       }
+
       loadAgentes()
     }
   }
@@ -230,7 +312,8 @@ const handleClose = () => {
 
 const handleSubmit = async () => {
   errorMessage.value = ''
-  if (!form.value.idCotizacion || !form.value.idAgenteAduanero) {
+  const cotId = form.value.idCotizacion || activeCotizacion.value?.idCotizacion
+  if (!cotId || !form.value.idAgenteAduanero) {
     errorMessage.value = 'Debe especificar la cotización y el agente aduanero responsable.'
     return
   }
@@ -238,7 +321,7 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     const payload = {
-      idCotizacion: form.value.idCotizacion,
+      idCotizacion: cotId,
       idAgenteAduanero: form.value.idAgenteAduanero,
       contactoExteriorNombre: form.value.contactoExteriorNombre || null,
       contactoExteriorTelefono: form.value.contactoExteriorTelefono || null,
@@ -265,8 +348,49 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+.form-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.cotizacion-picker-card {
+  background: var(--color-bg-subtle, #f5f2eb);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.picker-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-accent-kicker, #9a7f60);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+}
+
+.select-highlight {
+  font-weight: 600;
+}
+
+.picker-empty-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-warning-text, #8c5b16);
+  background: var(--color-warning-bg, #fdf5e6);
+  border: 1px solid var(--color-warning-border, #f8dab3);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm, 6px);
+}
+
 .summary-pill-card {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   background: var(--color-bg-subtle, #f5f2eb);

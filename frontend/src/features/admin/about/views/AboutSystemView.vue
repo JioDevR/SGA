@@ -39,11 +39,11 @@
         <div class="info-card-body">
           <div class="spec-row">
             <span class="spec-label">Identificador de Build:</span>
-            <span class="spec-value mono">SGA-BUILD-2026-0.01r2-ALPHA</span>
+            <span class="spec-value mono">SGA-BUILD-2026-0.5.0-ALPHA</span>
           </div>
           <div class="spec-row">
             <span class="spec-label">Etiqueta de Versión:</span>
-            <span class="spec-value highlight">Developer preview Alpha 0.01r2</span>
+            <span class="spec-value highlight">Developer preview Alpha 0.5.0</span>
           </div>
           <div class="spec-row">
             <span class="spec-label">Entorno de Ejecución:</span>

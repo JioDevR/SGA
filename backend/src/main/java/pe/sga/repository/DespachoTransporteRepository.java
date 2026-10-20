@@ -25,4 +25,12 @@ public interface DespachoTransporteRepository extends JpaRepository<DespachoTran
     List<DespachoTransporte> findByConductor_IdConductor(Integer idConductor);
 
     List<DespachoTransporte> findByUnidad_IdUnidad(Integer idUnidad);
+
+    Optional<DespachoTransporte> findFirstByConductor_IdConductorAndEstadoTransporteInOrderByFechaProgramadaAsc(
+            Integer idConductor, List<String> estados);
+
+    Optional<DespachoTransporte> findFirstByConductor_Usuario_IdUsuarioAndEstadoTransporteInOrderByFechaProgramadaAsc(
+            Integer idUsuario, List<String> estados);
+
+    List<DespachoTransporte> findByConductor_Usuario_IdUsuarioOrderByFechaProgramadaDesc(Integer idUsuario);
 }

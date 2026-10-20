@@ -1,108 +1,471 @@
 <template>
   <div class="transporte-view">
-    <!-- 1. Hero Banner Card Editorial Cálido -->
-    <div class="hero-banner-card">
-      <div class="hero-content">
-        <span class="badge-kicker">TRANSPORTE & DISTRIBUCIÓN // FLOTA Y RUTAS LOCALES</span>
-        <h2 class="hero-title">Programación de Despachos, Flota Vehicular y Conductores MTC</h2>
-        <p class="hero-desc">
-          Planificación de traslados aduaneros con Guías de Remisión Electrónica (GRE-T), asignación de tractos y carretas autorizadas, monitoreo de ruta y confirmación de entrega en almacén de cliente.
-        </p>
-      </div>
-      <div class="hero-watermark">
-        <span>SGA</span>
-      </div>
-    </div>
+    <!-- Hero Banner Card -->
+    <HeroBannerCard
+      kicker="TRANSPORTE & DISTRIBUCIÓN // CABINA OPERATIVA DE RUTA"
+      :title="bannerTitle"
+      :description="bannerDesc"
+    />
 
-    <!-- 2. Pestañas de Navegación del Módulo -->
+    <!-- Pestañas de Navegación del Módulo de Transporte -->
     <div class="module-tabs-nav">
       <button
         type="button"
         class="tab-nav-btn"
-        :class="{ active: activeTab === 'despachos' }"
-        @click="activeTab = 'despachos'"
+        :class="{ active: activeTab === 'cabina' }"
+        @click="switchTab('cabina')"
       >
         <i class="pi pi-compass"></i>
-        <span>Despachos & Monitoreo</span>
-        <span class="tab-counter">{{ despachosList.length }}</span>
+        <span>Mi Trabajo Actual</span>
+        <span v-if="miDespachoActivo" class="tab-badge-pulse">1 ACTIVO</span>
       </button>
 
       <button
         type="button"
         class="tab-nav-btn"
-        :class="{ active: activeTab === 'unidades' }"
-        @click="activeTab = 'unidades'"
+        :class="{ active: activeTab === 'camion' }"
+        @click="switchTab('camion')"
       >
         <i class="pi pi-truck"></i>
-        <span>Flota de Unidades</span>
-        <span class="tab-counter">{{ unidadesList.length }}</span>
+        <span>Camión Asignado</span>
       </button>
 
       <button
         type="button"
         class="tab-nav-btn"
-        :class="{ active: activeTab === 'conductores' }"
-        @click="activeTab = 'conductores'"
+        :class="{ active: activeTab === 'viajes' }"
+        @click="switchTab('viajes')"
       >
-        <i class="pi pi-users"></i>
-        <span>Conductores MTC</span>
-        <span class="tab-counter">{{ conductoresList.length }}</span>
+        <i class="pi pi-history"></i>
+        <span>Historial de Mis Viajes</span>
+        <span class="tab-counter">{{ misViajesList.length }}</span>
+      </button>
+
+      <!-- Pestaña de Monitoreo Global (Visible para todos o para Supervisores/Gerentes) -->
+      <button
+        type="button"
+        class="tab-nav-btn"
+        :class="{ active: activeTab === 'despachos' }"
+        @click="switchTab('despachos')"
+      >
+        <i class="pi pi-chart-line"></i>
+        <span>Monitoreo Global</span>
+        <span class="tab-counter">{{ despachosGlobalList.length }}</span>
       </button>
     </div>
 
     <!-- ===================================================================== -->
-    <!-- TAB 1: DESPACHOS Y MONITOREO DE RUTA                                  -->
+    <!-- TAB 1: MI TRABAJO ACTUAL (CABINA DE RUTA DEL CHOFER)                  -->
+    <!-- ===================================================================== -->
+    <div v-if="activeTab === 'cabina'" class="tab-container">
+      <div v-if="loadingMiDespacho" class="loading-state-card">
+        <i class="pi pi-spin pi-spinner spinner-lg"></i>
+        <p>Sincronizando hoja de ruta y camión asignado...</p>
+      </div>
+
+      <!-- CASO A: TIENE UN TRABAJO ASIGNADO ACTIVO -->
+      <div v-else-if="miDespachoActivo" class="cabin-active-wrapper">
+        <!-- Banner de Orden Activa -->
+        <div class="cabin-order-header" :class="miDespachoActivo.estadoTransporte">
+          <div class="header-left">
+            <span class="status-indicator">
+              <span class="status-dot"></span>
+              {{ formatEstado(miDespachoActivo.estadoTransporte) }}
+            </span>
+            <div class="tracking-title-wrap">
+              <span class="tracking-code font-mono">{{ miDespachoActivo.codigoTracking }}</span>
+              <span class="exp-code font-mono">EXP: {{ miDespachoActivo.codigoExpediente || 'N/A' }}</span>
+              <span v-if="miDespachoActivo.numeroDam" class="dam-badge font-mono">DAM: {{ miDespachoActivo.numeroDam }}</span>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <span v-if="miDespachoActivo.canalSunat" :class="['canal-tag', getCanalClass(miDespachoActivo.canalSunat)]">
+              CANAL {{ miDespachoActivo.canalSunat }}
+            </span>
+            <button type="button" class="btn-refresh-cabin" @click="loadMiDespacho">
+              <i class="pi pi-sync"></i>
+              <span>Actualizar Ruta</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cuadrícula 2 Columnas: Camión vs Hoja de Ruta -->
+        <div class="cabin-grid-2">
+          <!-- Columna 1: Camión y Equipo Asignado -->
+          <div class="cabin-card">
+            <div class="card-top-title">
+              <i class="pi pi-truck card-icon"></i>
+              <div>
+                <span class="badge-kicker">EQUIPO DE TRANSPORTE</span>
+                <h4 class="card-heading">1. Camión y Carga Asignada</h4>
+              </div>
+            </div>
+
+            <div class="spec-list">
+              <div class="spec-row">
+                <span class="spec-label">Placa Tracto:</span>
+                <span class="spec-value font-mono font-bold">{{ miDespachoActivo.unidadPlacaTracto || 'PENDIENTE ASIGNAR' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Placa Carreta / Plataforma:</span>
+                <span class="spec-value font-mono">{{ miDespachoActivo.unidadPlacaCarreta || '— S/C —' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Marca y Modelo:</span>
+                <span class="spec-value">{{ miDespachoActivo.unidadMarcaModelo || 'Unidad de flota' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Capacidad de Carga:</span>
+                <span class="spec-value font-mono font-bold">{{ Number(miDespachoActivo.unidadCapacidadKg || 0).toLocaleString('es-PE') }} kg</span>
+              </div>
+              <div class="spec-divider"></div>
+              <div class="spec-row">
+                <span class="spec-label">Contenedor / Carga:</span>
+                <span class="spec-value font-mono text-accent">{{ miDespachoActivo.numeroContenedor || 'Carga Suelta / Palletizada' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Precinto Aduanero:</span>
+                <span class="spec-value font-mono">{{ miDespachoActivo.precintoAduanero || 'Sin precinto' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Mercancía Declarada:</span>
+                <span class="spec-value">{{ miDespachoActivo.mercanciaNombre || 'Mercancía según DAM' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Guía GRE-T SUNAT:</span>
+                <span class="spec-value font-mono font-bold">{{ miDespachoActivo.guiaRemisionTransporte || 'PENDIENTE DE EMISIÓN' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna 2: Hoja de Ruta y Entrega -->
+          <div class="cabin-card">
+            <div class="card-top-title">
+              <i class="pi pi-map-marker card-icon"></i>
+              <div>
+                <span class="badge-kicker">DESTINO Y CONTACTO</span>
+                <h4 class="card-heading">2. Hoja de Ruta y Entrega</h4>
+              </div>
+            </div>
+
+            <div class="spec-list">
+              <div class="spec-row">
+                <span class="spec-label">Punto de Partida (Origen):</span>
+                <span class="spec-value">{{ miDespachoActivo.direccionPartida || 'Puerto / Almacén Aduanero Callao' }}</span>
+              </div>
+              <div class="spec-row destination-highlight">
+                <span class="spec-label">Destino Final de Entrega:</span>
+                <span class="spec-value font-bold">{{ miDespachoActivo.direccionLlegada || 'Dirección de planta cliente' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Distrito / Zona:</span>
+                <span class="spec-value font-semibold">{{ miDespachoActivo.distritoLlegada || 'Lima / Callao' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Cliente Importador:</span>
+                <span class="spec-value">{{ miDespachoActivo.clienteRazonSocial || 'Cliente SGA' }} (RUC: {{ miDespachoActivo.clienteNumeroDocumento || 'N/A' }})</span>
+              </div>
+              <div class="spec-divider"></div>
+              <div class="spec-row">
+                <span class="spec-label">Contacto / Receptor:</span>
+                <span class="spec-value font-bold">{{ miDespachoActivo.contactoRecepcion || 'Encargado de almacén' }}</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Teléfono de Coordinación:</span>
+                <div class="phone-call-wrap">
+                  <span class="font-mono font-bold">{{ miDespachoActivo.clienteTelefono || '+51 987 112 233' }}</span>
+                  <a
+                    :href="'tel:' + (miDespachoActivo.clienteTelefono || '987112233')"
+                    class="btn-call-direct"
+                    title="Llamar directamente al contacto"
+                  >
+                    <i class="pi pi-phone"></i>
+                    <span>Llamar</span>
+                  </a>
+                </div>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">Fecha Programada:</span>
+                <span class="spec-value font-mono">{{ formatDateTime(miDespachoActivo.fechaProgramada) }}</span>
+              </div>
+              <div v-if="miDespachoActivo.fechaSalidaRuta" class="spec-row">
+                <span class="spec-label">Hora Salida a Ruta:</span>
+                <span class="spec-value font-mono text-success">{{ formatDateTime(miDespachoActivo.fechaSalidaRuta) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bitácora de Incidencias en Ruta si existen -->
+        <div v-if="miDespachoActivo.detalleIncidencia" class="incidencias-box">
+          <div class="incidencias-header">
+            <i class="pi pi-info-circle"></i>
+            <span>Historial de Incidencias Reportadas en Ruta</span>
+          </div>
+          <pre class="incidencias-text">{{ miDespachoActivo.detalleIncidencia }}</pre>
+        </div>
+
+        <!-- 3. Botones de Acción Rápida en Ruta -->
+        <div class="cabin-actions-bar">
+          <!-- Botón 1: Iniciar Salida a Ruta -->
+          <button
+            v-if="miDespachoActivo.estadoTransporte === 'PROGRAMADO' || miDespachoActivo.estadoTransporte === 'PENDIENTE_ASIGNACION'"
+            type="button"
+            class="btn-action-cabin btn-start-route"
+            @click="handleIniciarRuta(miDespachoActivo)"
+            :disabled="actionBusy"
+          >
+            <i class="pi pi-send"></i>
+            <span>Iniciar Salida a Ruta</span>
+          </button>
+
+          <!-- Botón 2: Reportar Incidencia -->
+          <button
+            type="button"
+            class="btn-action-cabin btn-incident"
+            @click="openReportarIncidenciaModal"
+            :disabled="actionBusy"
+          >
+            <i class="pi pi-exclamation-triangle"></i>
+            <span>Reportar Incidencia</span>
+          </button>
+
+          <!-- Botón 3: Documentos GRE-T -->
+          <button
+            type="button"
+            class="btn-action-cabin btn-docs"
+            @click="openDocsModal(miDespachoActivo)"
+          >
+            <i class="pi pi-file-pdf"></i>
+            <span>Ver Guía GRE-T / Docs</span>
+          </button>
+
+          <!-- Botón 4: Confirmar Entrega Conforme -->
+          <button
+            v-if="miDespachoActivo.estadoTransporte === 'EN_RUTA'"
+            type="button"
+            class="btn-action-cabin btn-confirm-delivery"
+            @click="openConfirmarEntrega(miDespachoActivo)"
+            :disabled="actionBusy"
+          >
+            <i class="pi pi-check-circle"></i>
+            <span>Confirmar Entrega Conforme</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CASO B: NO TIENE TRABAJO ASIGNADO (ESTADO EN DESCANSO) -->
+      <div v-else class="cabin-empty-state">
+        <div class="empty-cabin-card">
+          <div class="empty-icon-wrap">
+            <i class="pi pi-check-circle"></i>
+          </div>
+          <h3 class="empty-title">Sin traslados asignados actualmente</h3>
+          <p class="empty-desc">
+            Su unidad se encuentra disponible. Cuando el área de despacho o gerencia programe una orden de traslado a su camión, aparecerá aquí su hoja de ruta, datos del cliente y botones de viaje.
+          </p>
+          <div class="empty-actions">
+            <button type="button" class="btn-refresh-cabin" @click="loadMiDespacho">
+              <i class="pi pi-sync"></i>
+              <span>Comprobar Nuevas Asignaciones</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: CAMIÓN ASIGNADO (FICHA TÉCNICA DEL VEHÍCULO)                   -->
+    <!-- ===================================================================== -->
+    <div v-if="activeTab === 'camion'" class="tab-container">
+      <div v-if="miDespachoActivo && miDespachoActivo.unidadPlacaTracto" class="truck-detail-card">
+        <div class="truck-header">
+          <div class="truck-title-left">
+            <i class="pi pi-truck truck-big-icon"></i>
+            <div>
+              <span class="badge-kicker">VEHÍCULO ASIGNADO A SU RUTA</span>
+              <h3 class="truck-plate font-mono">{{ miDespachoActivo.unidadPlacaTracto }}</h3>
+              <span class="truck-model">{{ miDespachoActivo.unidadMarcaModelo || 'Camión Pesado' }} ({{ formatTipo(miDespachoActivo.unidadTipoVehiculo) }})</span>
+            </div>
+          </div>
+          <div class="truck-status-tag">
+            <Tag severity="success" value="UNIDAD AUTORIZADA MTC" rounded />
+          </div>
+        </div>
+
+        <div class="truck-specs-grid">
+          <div class="spec-box">
+            <span class="spec-label">Placa Tracto</span>
+            <span class="spec-val font-mono">{{ miDespachoActivo.unidadPlacaTracto }}</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-label">Placa Remolque / Carreta</span>
+            <span class="spec-val font-mono">{{ miDespachoActivo.unidadPlacaCarreta || '— S/C —' }}</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-label">Capacidad de Carga</span>
+            <span class="spec-val font-mono">{{ Number(miDespachoActivo.unidadCapacidadKg || 0).toLocaleString('es-PE') }} kg</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-label">Tipo de Unidad</span>
+            <span class="spec-val">{{ formatTipo(miDespachoActivo.unidadTipoVehiculo) }}</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-label">Conductor Asignado</span>
+            <span class="spec-val">{{ miDespachoActivo.conductorNombre || 'Usted (Conductor Principal)' }}</span>
+          </div>
+          <div class="spec-box">
+            <span class="spec-label">Licencia MTC</span>
+            <span class="spec-val font-mono">{{ miDespachoActivo.conductorLicencia || 'A-IIIc' }}</span>
+          </div>
+        </div>
+
+        <div class="truck-inspection-notice">
+          <i class="pi pi-shield"></i>
+          <div>
+            <strong>Revisión de Seguridad Pre-Viaje:</strong>
+            <span>Verifique el ajuste de pernos de carreta, presión de neumáticos a 110 PSI, extintor PQS vigente y sellos de seguridad antes de salir de garita.</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="cabin-empty-state">
+        <div class="empty-cabin-card">
+          <i class="pi pi-truck empty-icon-wrap"></i>
+          <h3 class="empty-title">No tiene un camión asignado en este momento</h3>
+          <p class="empty-desc">
+            Cuando se le programe una orden de traslado terrestre, los datos técnicos de la unidad vehicular, carreta y revisiones se visualizarán aquí.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: HISTORIAL DE MIS VIAJES REALIZADOS                             -->
+    <!-- ===================================================================== -->
+    <div v-if="activeTab === 'viajes'" class="tab-container">
+      <div class="flota-table-card">
+        <div class="card-header-bar">
+          <div>
+            <span class="badge-kicker">REGISTRO DE REPARTO</span>
+            <h3 class="section-title">Historial de Entregas Realizadas</h3>
+          </div>
+          <button type="button" class="btn-refresh" @click="loadMisViajes" :disabled="loadingMisViajes">
+            <i :class="['pi pi-sync', { 'pi-spin': loadingMisViajes }]"></i>
+            <span>Actualizar</span>
+          </button>
+        </div>
+
+        <div class="table-container">
+          <DataTable
+            :value="misViajesList"
+            :loading="loadingMisViajes"
+            responsiveLayout="scroll"
+            class="custom-datatable"
+            dataKey="idDespachoTransporte"
+          >
+            <template #empty>
+              <div class="empty-state">
+                <i class="pi pi-history empty-icon"></i>
+                <p class="empty-title">Sin historial de entregas</p>
+                <p class="empty-desc">Las órdenes de entrega concluidas se archivarán en este registro.</p>
+              </div>
+            </template>
+
+            <Column header="N° Tracking">
+              <template #body="{ data: d }">
+                <span class="font-mono font-bold">{{ d.codigoTracking }}</span>
+              </template>
+            </Column>
+
+            <Column header="Expediente / Cliente">
+              <template #body="{ data: d }">
+                <div class="client-cell">
+                  <span class="font-bold text-xs font-mono">{{ d.codigoExpediente }}</span>
+                  <span class="client-sub">{{ d.clienteRazonSocial }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Destino Entregado">
+              <template #body="{ data: d }">
+                <div class="client-cell">
+                  <span class="text-xs">{{ d.direccionLlegada }}</span>
+                  <span class="client-sub">{{ d.distritoLlegada }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Fecha Entrega">
+              <template #body="{ data: d }">
+                <span class="font-mono text-xs">{{ formatDateTime(d.fechaEntregaConforme || d.fechaProgramada) }}</span>
+              </template>
+            </Column>
+
+            <Column header="Receptor Almacén">
+              <template #body="{ data: d }">
+                <div class="client-cell">
+                  <span class="text-xs font-semibold">{{ d.receptorNombre || d.contactoRecepcion || 'Recepción' }}</span>
+                  <span v-if="d.receptorDni" class="client-sub font-mono">DNI: {{ d.receptorDni }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Estado">
+              <template #body="{ data: d }">
+                <Tag
+                  :severity="d.estadoTransporte === 'ENTREGADO' ? 'success' : 'secondary'"
+                  :value="formatEstado(d.estadoTransporte)"
+                  rounded
+                  class="tag-xs"
+                />
+              </template>
+            </Column>
+
+            <Column header="Comprobante" headerStyle="width: 100px; text-align: center;" bodyStyle="text-align: center;">
+              <template #body="{ data: d }">
+                <button
+                  type="button"
+                  class="btn-row-action"
+                  title="Ver Documentos y Guía GRE-T"
+                  @click="openDocsModal(d)"
+                >
+                  <i class="pi pi-file-pdf"></i>
+                </button>
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: MONITOREO GLOBAL (DESPACHOS GENERALES)                         -->
     <!-- ===================================================================== -->
     <div v-if="activeTab === 'despachos'" class="tab-container">
       <!-- Métricas Rápidas Despachos -->
       <div class="metrics-grid">
-        <div class="metric-card highlight-card">
-          <div class="metric-top">
-            <span class="metric-idx">01</span>
-            <span class="metric-label">En Tránsito / Ruta</span>
-          </div>
-          <div class="metric-val text-pending">{{ despachosEnTransitoCount }}</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">02</span>
-            <span class="metric-label">Programados</span>
-          </div>
-          <div class="metric-val text-warning">{{ despachosProgramadosCount }}</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">03</span>
-            <span class="metric-label">Entregados Conforme</span>
-          </div>
-          <div class="metric-val text-success">{{ despachosEntregadosCount }}</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">04</span>
-            <span class="metric-label">Total Operaciones</span>
-          </div>
-          <div class="metric-val text-accent">{{ despachosList.length }}</div>
-        </div>
+        <MetricCard index="01" label="En Ruta / Tránsito" :value="despachosEnRutaCount" severity="pending" highlight />
+        <MetricCard index="02" label="Programados" :value="despachosProgramadosCount" severity="warning" />
+        <MetricCard index="03" label="Entregados Conforme" :value="despachosEntregadosCount" severity="success" />
+        <MetricCard index="04" label="Total Operaciones" :value="despachosGlobalList.length" severity="accent" />
       </div>
 
       <!-- Barra de Filtros y Acciones -->
-      <div class="tab-content-section">
-        <div class="section-header-row">
+      <div class="flota-table-card">
+        <div class="card-header-bar">
           <div>
-            <span class="badge-kicker">ORDEN DE TRASLADO LOCAL</span>
-            <h3 class="section-title">Despachos Terrestres y Tracking Operativo</h3>
+            <span class="badge-kicker">LOGÍSTICA TERRESTRE</span>
+            <h3 class="section-title">Monitoreo Global de Despachos</h3>
           </div>
 
-          <div class="section-controls">
+          <div class="header-actions">
             <!-- Filtro Estado -->
-            <select v-model="filterDespachoEstado" class="filter-select">
+            <select v-model="filterEstado" class="filter-select">
               <option value="">Todos los Estados</option>
               <option value="PROGRAMADO">Programados</option>
-              <option value="EN_TRANSITO">En Tránsito</option>
+              <option value="EN_RUTA">En Ruta</option>
               <option value="ENTREGADO">Entregados</option>
               <option value="CANCELADO">Cancelados</option>
             </select>
@@ -111,33 +474,33 @@
             <div class="search-input-wrap">
               <i class="pi pi-search search-icon"></i>
               <input
-                v-model="searchDespachoQuery"
+                v-model="searchQuery"
                 type="text"
                 class="search-input"
-                placeholder="Buscar por tracking, exp o guía..."
+                placeholder="Buscar por tracking, DAM o exp..."
               />
             </div>
 
-            <button type="button" class="btn-outline-warm" @click="loadDespachos" :disabled="loadingDespachos">
-              <i :class="['pi pi-sync', { 'pi-spin': loadingDespachos }]"></i>
+            <button type="button" class="btn-refresh" @click="loadDespachosGlobal" :disabled="loadingGlobal">
+              <i :class="['pi pi-sync', { 'pi-spin': loadingGlobal }]"></i>
               <span>Actualizar</span>
             </button>
 
-            <button type="button" class="btn-primary-action" @click="showCrearDespachoModal = true">
+            <button type="button" class="btn-primary-add" @click="showCrearDespachoModal = true">
               <i class="pi pi-plus"></i>
               <span>+ Programar Despacho</span>
             </button>
           </div>
         </div>
 
-        <!-- Tabla Despachos -->
+        <!-- Tabla Global -->
         <div class="table-container">
           <DataTable
-            :value="filteredDespachos"
-            :loading="loadingDespachos"
+            :value="filteredDespachosGlobal"
+            :loading="loadingGlobal"
             responsiveLayout="scroll"
             class="custom-datatable"
-            dataKey="idDespacho"
+            dataKey="idDespachoTransporte"
           >
             <template #empty>
               <div class="empty-state">
@@ -149,60 +512,48 @@
 
             <Column header="N° Tracking">
               <template #body="{ data: d }">
-                <div class="ticket-cell">
-                  <i class="pi pi-compass"></i>
-                  <span class="font-mono font-bold">{{ d.numeroTracking || ('DSP-' + d.idDespacho) }}</span>
-                </div>
+                <span class="font-mono font-bold">{{ d.codigoTracking }}</span>
               </template>
             </Column>
 
             <Column header="Expediente / Cliente">
               <template #body="{ data: d }">
                 <div class="client-cell">
-                  <span class="font-bold text-xs font-mono">{{ d.codigoExpediente || 'EXP-SGA' }}</span>
-                  <span class="client-sub">{{ d.clienteRazonSocial || 'Cliente Importador' }}</span>
+                  <span class="font-bold text-xs font-mono">{{ d.codigoExpediente }}</span>
+                  <span class="client-sub">{{ d.clienteRazonSocial }}</span>
                 </div>
               </template>
             </Column>
 
             <Column header="Guía GRE-T">
               <template #body="{ data: d }">
-                <span class="font-mono text-xs font-semibold">{{ d.guiaRemisionTransporte || 'PENDIENTE' }}</span>
+                <span class="font-mono text-xs">{{ d.guiaRemisionTransporte || 'PENDIENTE' }}</span>
               </template>
             </Column>
 
             <Column header="Unidad & Conductor">
               <template #body="{ data: d }">
-                <div v-if="d.placaTracto" class="client-cell">
-                  <span class="font-bold text-xs">Tracto: {{ d.placaTracto }}</span>
-                  <span class="client-sub">{{ d.nombresConductor ? d.nombresConductor + ' ' + (d.apellidosConductor || '') : 'Sin conductor' }}</span>
+                <div v-if="d.unidadPlacaTracto" class="client-cell">
+                  <span class="font-bold text-xs font-mono">Tracto: {{ d.unidadPlacaTracto }}</span>
+                  <span class="client-sub">{{ d.conductorNombre || 'Sin conductor' }}</span>
                 </div>
                 <div v-else>
-                  <Tag severity="danger" value="Sin Recursos" rounded class="tag-xs" />
+                  <Tag severity="danger" value="Sin Asignación" rounded class="tag-xs" />
                 </div>
               </template>
             </Column>
 
-            <Column header="Destino / Entrega">
+            <Column header="Destino">
               <template #body="{ data: d }">
-                <div class="client-cell">
-                  <span class="client-name">{{ d.distritoLlegada || 'Lima' }}</span>
-                  <span class="client-sub truncate-text" :title="d.direccionLlegada">{{ d.direccionLlegada }}</span>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="Fecha Prog.">
-              <template #body="{ data: d }">
-                <span class="text-xs font-mono">{{ formatDateTime(d.fechaProgramada) }}</span>
+                <span class="text-xs">{{ d.distritoLlegada || d.direccionLlegada }}</span>
               </template>
             </Column>
 
             <Column header="Estado">
               <template #body="{ data: d }">
                 <Tag
-                  :severity="getDespachoSeverity(d.estadoDespacho)"
-                  :value="formatDespachoEstado(d.estadoDespacho)"
+                  :severity="getEstadoSeverity(d.estadoTransporte)"
+                  :value="formatEstado(d.estadoTransporte)"
                   rounded
                   class="tag-xs"
                 />
@@ -212,225 +563,43 @@
             <Column header="Acciones" headerStyle="width: 140px; text-align: right;" bodyStyle="text-align: right;">
               <template #body="{ data: d }">
                 <div class="action-buttons-cell">
-                  <!-- Botón Asignar Recursos si no tiene unidad o conductor -->
                   <button
-                    v-if="d.estadoDespacho === 'PROGRAMADO' && (!d.idConductor || !d.idUnidad)"
+                    v-if="!d.idConductor || !d.idUnidad"
                     type="button"
-                    class="btn-row-action btn-row-warning"
-                    title="Asignar Conductor y Tracto"
+                    class="btn-row-action"
+                    title="Asignar Recursos"
                     @click="openAsignarRecursos(d)"
                   >
                     <i class="pi pi-user-plus"></i>
                   </button>
 
-                  <!-- Botón Iniciar Ruta si está PROGRAMADO y tiene recursos -->
                   <button
-                    v-if="d.estadoDespacho === 'PROGRAMADO'"
+                    v-if="d.estadoTransporte === 'PROGRAMADO'"
                     type="button"
-                    class="btn-row-action btn-row-primary"
-                    title="Iniciar Ruta (Salida a destino)"
+                    class="btn-row-action text-info"
+                    title="Iniciar Salida a Ruta"
                     @click="handleIniciarRuta(d)"
                   >
-                    <i class="pi pi-play"></i>
+                    <i class="pi pi-send"></i>
                   </button>
 
-                  <!-- Botón Confirmar Entrega si está EN_TRANSITO -->
                   <button
-                    v-if="d.estadoDespacho === 'EN_TRANSITO'"
+                    v-if="d.estadoTransporte === 'EN_RUTA'"
                     type="button"
-                    class="btn-row-action btn-row-success"
+                    class="btn-row-action text-success"
                     title="Confirmar Entrega Conforme"
                     @click="openConfirmarEntrega(d)"
                   >
-                    <i class="pi pi-check-circle"></i>
+                    <i class="pi pi-check"></i>
                   </button>
 
-                  <!-- Badge Entregado -->
-                  <span v-if="d.estadoDespacho === 'ENTREGADO'" class="text-xs text-success font-semibold">
-                    <i class="pi pi-verified"></i> Entregado
-                  </span>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================================================================== -->
-    <!-- TAB 2: FLOTA DE UNIDADES (TRACTOS / CARRETAS)                         -->
-    <!-- ===================================================================== -->
-    <div v-if="activeTab === 'unidades'" class="tab-container">
-      <!-- Métricas Unidades -->
-      <div class="metrics-grid">
-        <div class="metric-card highlight-card">
-          <div class="metric-top">
-            <span class="metric-idx">01</span>
-            <span class="metric-label">Disponibles / Operativas</span>
-          </div>
-          <div class="metric-val text-success">{{ unidadesDisponiblesCount }}</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">02</span>
-            <span class="metric-label">En Mantenimiento</span>
-          </div>
-          <div class="metric-val text-warning">{{ unidadesMantenimientoCount }}</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">03</span>
-            <span class="metric-label">Capacidad Flota (Tn)</span>
-          </div>
-          <div class="metric-val text-accent">{{ capacidadTotalTn }} Tn</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">04</span>
-            <span class="metric-label">Total Unidades</span>
-          </div>
-          <div class="metric-val text-primary">{{ unidadesList.length }}</div>
-        </div>
-      </div>
-
-      <!-- Tabla Unidades -->
-      <div class="tab-content-section">
-        <div class="section-header-row">
-          <div>
-            <span class="badge-kicker">PARQUE AUTOMOTOR AUTORIZADO</span>
-            <h3 class="section-title">Flota de Tractos, Furgones y Plataformas</h3>
-          </div>
-
-          <div class="section-controls">
-            <select v-model="filterUnidadOperativo" class="filter-select">
-              <option value="">Cualquier Estado Operativo</option>
-              <option value="DISPONIBLE">Disponibles</option>
-              <option value="EN_MANTENIMIENTO">En Mantenimiento</option>
-              <option value="FUERA_DE_SERVICIO">Fuera de Servicio</option>
-            </select>
-
-            <div class="search-input-wrap">
-              <i class="pi pi-search search-icon"></i>
-              <input
-                v-model="searchUnidadQuery"
-                type="text"
-                class="search-input"
-                placeholder="Buscar por placa, modelo o tipo..."
-              />
-            </div>
-
-            <button type="button" class="btn-outline-warm" @click="loadUnidades" :disabled="loadingUnidades">
-              <i :class="['pi pi-sync', { 'pi-spin': loadingUnidades }]"></i>
-              <span>Actualizar</span>
-            </button>
-
-            <button type="button" class="btn-primary-action" @click="openCreateUnidad">
-              <i class="pi pi-plus"></i>
-              <span>+ Registrar Unidad</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <DataTable
-            :value="filteredUnidades"
-            :loading="loadingUnidades"
-            responsiveLayout="scroll"
-            class="custom-datatable"
-            dataKey="idUnidad"
-          >
-            <template #empty>
-              <div class="empty-state">
-                <i class="pi pi-car empty-icon"></i>
-                <p class="empty-title">No hay unidades vehiculares registradas</p>
-                <p class="empty-desc">Registre los tractos y plataformas autorizadas para iniciar despachos.</p>
-              </div>
-            </template>
-
-            <Column header="Placa Tracto">
-              <template #body="{ data: u }">
-                <div class="ticket-cell">
-                  <i class="pi pi-car"></i>
-                  <span class="font-mono font-bold">{{ u.placaTracto }}</span>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="Placa Carreta">
-              <template #body="{ data: u }">
-                <span class="font-mono text-xs">{{ u.placaCarreta || '— S/C —' }}</span>
-              </template>
-            </Column>
-
-            <Column header="Marca / Modelo">
-              <template #body="{ data: u }">
-                <div class="client-cell">
-                  <span class="client-name">{{ u.marcaModelo }}</span>
-                  <span class="client-sub">{{ formatTipoVehiculo(u.tipoVehiculo) }}</span>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="Capacidad">
-              <template #body="{ data: u }">
-                <span class="font-mono text-xs font-bold">{{ Number(u.capacidadCargaKg || 0).toLocaleString('es-PE') }} kg</span>
-              </template>
-            </Column>
-
-            <Column header="Condición">
-              <template #body="{ data: u }">
-                <Tag
-                  :severity="getUnidadOperativoSeverity(u.estadoOperativo)"
-                  :value="u.estadoOperativo || 'DISPONIBLE'"
-                  rounded
-                  class="tag-xs"
-                />
-              </template>
-            </Column>
-
-            <Column header="Estado">
-              <template #body="{ data: u }">
-                <Tag
-                  :severity="u.estadoActivo ? 'success' : 'danger'"
-                  :value="u.estadoActivo ? 'ACTIVO' : 'INACTIVO'"
-                  rounded
-                  class="tag-xs"
-                />
-              </template>
-            </Column>
-
-            <Column header="Acciones" headerStyle="width: 110px; text-align: right;" bodyStyle="text-align: right;">
-              <template #body="{ data: u }">
-                <div class="action-buttons-cell">
                   <button
                     type="button"
                     class="btn-row-action"
-                    title="Editar Unidad"
-                    @click="openEditUnidad(u)"
+                    title="Ver Documentos"
+                    @click="openDocsModal(d)"
                   >
-                    <i class="pi pi-pencil"></i>
-                  </button>
-
-                  <button
-                    v-if="u.estadoActivo"
-                    type="button"
-                    class="btn-row-action btn-row-danger"
-                    title="Desactivar Unidad"
-                    @click="handleToggleUnidad(u)"
-                  >
-                    <i class="pi pi-trash"></i>
-                  </button>
-                  <button
-                    v-else
-                    type="button"
-                    class="btn-row-action btn-row-success"
-                    title="Reactivar Unidad"
-                    @click="handleToggleUnidad(u)"
-                  >
-                    <i class="pi pi-refresh"></i>
+                    <i class="pi pi-file-pdf"></i>
                   </button>
                 </div>
               </template>
@@ -441,948 +610,986 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- TAB 3: CONDUCTORES AUTORIZADOS MTC                                    -->
+    <!-- MODAL: REPORTAR INCIDENCIA EN RUTA                                    -->
     <!-- ===================================================================== -->
-    <div v-if="activeTab === 'conductores'" class="tab-container">
-      <!-- Métricas Conductores -->
-      <div class="metrics-grid">
-        <div class="metric-card highlight-card">
-          <div class="metric-top">
-            <span class="metric-idx">01</span>
-            <span class="metric-label">Conductores Activos</span>
-          </div>
-          <div class="metric-val text-success">{{ conductoresActivosCount }}</div>
+    <Dialog
+      v-model:visible="showIncidenciaModal"
+      modal
+      header="REPORTAR INCIDENCIA // CABINA DE RUTA"
+      :style="{ width: '500px' }"
+      class="custom-modal-editorial"
+    >
+      <form @submit.prevent="submitIncidencia" class="modal-form">
+        <div class="form-group">
+          <label class="form-label">Detalle de la Novedad o Incidencia *</label>
+          <textarea
+            v-model="incidenciaTexto"
+            class="form-textarea"
+            rows="4"
+            placeholder="Describa la eventualidad en ruta (ej. congestión en garita de terminal portuario, control aduanero SUNAT, falla mecánica menor)..."
+            required
+          ></textarea>
         </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">02</span>
-            <span class="metric-label">Licencia A-IIIc</span>
-          </div>
-          <div class="metric-val text-primary">{{ conductoresA3cCount }}</div>
+        <div class="modal-footer-actions">
+          <button type="button" class="btn-cancel" @click="showIncidenciaModal = false">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-save" :disabled="savingIncidencia">
+            <i v-if="savingIncidencia" class="pi pi-spin pi-spinner"></i>
+            <span>Asentar Reporte</span>
+          </button>
         </div>
+      </form>
+    </Dialog>
 
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">03</span>
-            <span class="metric-label">Inactivos / Bajas</span>
-          </div>
-          <div class="metric-val text-muted">{{ conductoresInactivosCount }}</div>
-        </div>
-
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">04</span>
-            <span class="metric-label">Total Conductores</span>
-          </div>
-          <div class="metric-val text-accent">{{ conductoresList.length }}</div>
-        </div>
-      </div>
-
-      <!-- Tabla Conductores -->
-      <div class="tab-content-section">
-        <div class="section-header-row">
-          <div>
-            <span class="badge-kicker">PERSONAL DE OPERACIONES TERRESTRES</span>
-            <h3 class="section-title">Choferes Profesionales y Licencias MTC</h3>
-          </div>
-
-          <div class="section-controls">
-            <div class="search-input-wrap">
-              <i class="pi pi-search search-icon"></i>
-              <input
-                v-model="searchConductorQuery"
-                type="text"
-                class="search-input"
-                placeholder="Buscar por nombre, brevete o teléfono..."
-              />
-            </div>
-
-            <button type="button" class="btn-outline-warm" @click="loadConductores" :disabled="loadingConductores">
-              <i :class="['pi pi-sync', { 'pi-spin': loadingConductores }]"></i>
-              <span>Actualizar</span>
-            </button>
-
-            <button type="button" class="btn-primary-action" @click="openCreateConductor">
-              <i class="pi pi-plus"></i>
-              <span>+ Registrar Conductor</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <DataTable
-            :value="filteredConductores"
-            :loading="loadingConductores"
-            responsiveLayout="scroll"
-            class="custom-datatable"
-            dataKey="idConductor"
-          >
-            <template #empty>
-              <div class="empty-state">
-                <i class="pi pi-users empty-icon"></i>
-                <p class="empty-title">No hay conductores registrados</p>
-                <p class="empty-desc">Añada los choferes habilitados por el MTC para operar en el sistema SGA.</p>
-              </div>
-            </template>
-
-            <Column header="Nombres y Apellidos">
-              <template #body="{ data: c }">
-                <div class="client-cell">
-                  <span class="client-name font-bold">{{ c.nombres }} {{ c.apellidos }}</span>
-                  <span class="client-sub">ID Chofer: #{{ c.idConductor }}</span>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="N° Licencia / Brevete">
-              <template #body="{ data: c }">
-                <span class="font-mono text-xs font-bold">{{ c.numeroLicencia }}</span>
-              </template>
-            </Column>
-
-            <Column header="Categoría MTC">
-              <template #body="{ data: c }">
-                <Tag severity="info" :value="c.tipoLicencia || 'A-IIIc'" rounded class="tag-xs" />
-              </template>
-            </Column>
-
-            <Column header="Teléfono Móvil">
-              <template #body="{ data: c }">
-                <div class="text-xs">
-                  <i class="pi pi-phone text-muted mr-1"></i>
-                  <span>{{ c.telefono || 'Sin teléfono' }}</span>
-                </div>
-              </template>
-            </Column>
-
-            <Column header="Estado">
-              <template #body="{ data: c }">
-                <Tag
-                  :severity="c.estadoActivo ? 'success' : 'danger'"
-                  :value="c.estadoActivo ? 'ACTIVO' : 'INACTIVO'"
-                  rounded
-                  class="tag-xs"
-                />
-              </template>
-            </Column>
-
-            <Column header="Acciones" headerStyle="width: 110px; text-align: right;" bodyStyle="text-align: right;">
-              <template #body="{ data: c }">
-                <div class="action-buttons-cell">
-                  <button
-                    type="button"
-                    class="btn-row-action"
-                    title="Editar Conductor"
-                    @click="openEditConductor(c)"
-                  >
-                    <i class="pi pi-pencil"></i>
-                  </button>
-
-                  <button
-                    v-if="c.estadoActivo"
-                    type="button"
-                    class="btn-row-action btn-row-danger"
-                    title="Desactivar Conductor"
-                    @click="handleToggleConductor(c)"
-                  >
-                    <i class="pi pi-trash"></i>
-                  </button>
-                  <button
-                    v-else
-                    type="button"
-                    class="btn-row-action btn-row-success"
-                    title="Reactivar Conductor"
-                    @click="handleToggleConductor(c)"
-                  >
-                    <i class="pi pi-refresh"></i>
-                  </button>
-                </div>
-              </template>
-            </Column>
-          </DataTable>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===================================================================== -->
-    <!-- MODALES DE OPERACIÓN                                                  -->
-    <!-- ===================================================================== -->
-    <!-- Modal 1: Programar Despacho -->
+    <!-- Modales de Negocio -->
     <CrearDespachoModal
       :visible="showCrearDespachoModal"
       @close="showCrearDespachoModal = false"
-      @saved="onDespachoSaved"
+      @saved="onDespachoGlobalSaved"
     />
 
-    <!-- Modal 2: Asignar Recursos -->
     <AsignarRecursosModal
       :visible="showAsignarRecursosModal"
       :despacho="selectedDespacho"
       @close="showAsignarRecursosModal = false"
-      @saved="onDespachoSaved"
+      @saved="onDespachoGlobalSaved"
     />
 
-    <!-- Modal 3: Confirmar Entrega -->
     <ConfirmarEntregaModal
       :visible="showConfirmarEntregaModal"
       :despacho="selectedDespacho"
       @close="showConfirmarEntregaModal = false"
-      @saved="onDespachoSaved"
+      @saved="onEntregaConfirmada"
     />
 
-    <!-- Modal 4: Registrar / Editar Unidad -->
-    <UnidadFormModal
-      :visible="showUnidadModal"
-      :unidad="selectedUnidad"
-      @close="showUnidadModal = false"
-      @saved="onUnidadSaved"
-    />
-
-    <!-- Modal 5: Registrar / Editar Conductor -->
-    <ConductorFormModal
-      :visible="showConductorModal"
-      :conductor="selectedConductor"
-      @close="showConductorModal = false"
-      @saved="onConductorSaved"
+    <!-- Gestor Universal de Documentos para GRE-T -->
+    <DocumentosManagerModal
+      :visible="showDocsModal"
+      :entidad-tipo="'EXPEDIENTE'"
+      :id-entidad="selectedDocEntidadId"
+      :entidad-id="selectedDocEntidadId"
+      :codigo-entidad="selectedDocCodigo"
+      :titulo-entidad="selectedDocTitulo"
+      @close="showDocsModal = false"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import HeroBannerCard from '@/shared/components/HeroBannerCard.vue'
+import MetricCard from '@/shared/components/MetricCard.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
-
+import Dialog from 'primevue/dialog'
+import { useNavigationStore } from '@/core/stores/navigationStore'
+import { useAuthStore } from '@/features/auth/stores/authStore'
 import { transporteService } from '../services/transporteService'
 import CrearDespachoModal from '../components/CrearDespachoModal.vue'
 import AsignarRecursosModal from '../components/AsignarRecursosModal.vue'
 import ConfirmarEntregaModal from '../components/ConfirmarEntregaModal.vue'
-import UnidadFormModal from '../components/UnidadFormModal.vue'
-import ConductorFormModal from '../components/ConductorFormModal.vue'
+import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
+import { useNotification } from '@/shared/composables/useNotification'
 
-// ==========================================
-// ESTADO GENERAL
-// ==========================================
-const activeTab = ref('despachos')
+const { showSuccess, showError, showInfo } = useNotification()
+const navigationStore = useNavigationStore()
+const authStore = useAuthStore()
 
-// ==========================================
-// 1. DESPACHOS
-// ==========================================
-const despachosList = ref([])
-const loadingDespachos = ref(false)
-const filterDespachoEstado = ref('')
-const searchDespachoQuery = ref('')
+const activeTab = ref('cabina')
 
+// Estados para Cabina Conductor
+const miDespachoActivo = ref(null)
+const loadingMiDespacho = ref(false)
+const actionBusy = ref(false)
+
+// Estados para Mis Viajes
+const misViajesList = ref([])
+const loadingMisViajes = ref(false)
+
+// Estados para Monitoreo Global
+const despachosGlobalList = ref([])
+const loadingGlobal = ref(false)
+const filterEstado = ref('')
+const searchQuery = ref('')
+
+// Modales
 const showCrearDespachoModal = ref(false)
 const showAsignarRecursosModal = ref(false)
 const showConfirmarEntregaModal = ref(false)
+const showIncidenciaModal = ref(false)
+const incidenciaTexto = ref('')
+const savingIncidencia = ref(false)
 const selectedDespacho = ref(null)
 
-const despachosEnTransitoCount = computed(
-  () => despachosList.value.filter((d) => d.estadoDespacho === 'EN_TRANSITO').length
+// Gestor Documentos GRE-T
+const showDocsModal = ref(false)
+const selectedDocEntidadId = ref(null)
+const selectedDocCodigo = ref('')
+const selectedDocTitulo = ref('')
+
+// Textos dinámicos del banner
+const bannerTitle = computed(() => {
+  if (authStore.userRole === 'TRANSPORTE') {
+    return `Cabina de Operaciones // Chofer: ${authStore.userFullName || authStore.userName}`
+  }
+  return 'Cabina Operativa de Ruta y Monitoreo de Transporte'
+})
+
+const bannerDesc = computed(() => {
+  return 'Ejecución y seguimiento de traslados aduaneros terrestres, inspección de camión asignado, reporte de incidencias y entrega conforme con Guía GRE-T.'
+})
+
+// Métricas Globales
+const despachosEnRutaCount = computed(() =>
+  despachosGlobalList.value.filter(d => d.estadoTransporte === 'EN_RUTA').length
 )
-const despachosProgramadosCount = computed(
-  () => despachosList.value.filter((d) => d.estadoDespacho === 'PROGRAMADO').length
+const despachosProgramadosCount = computed(() =>
+  despachosGlobalList.value.filter(d => d.estadoTransporte === 'PROGRAMADO').length
 )
-const despachosEntregadosCount = computed(
-  () => despachosList.value.filter((d) => d.estadoDespacho === 'ENTREGADO').length
+const despachosEntregadosCount = computed(() =>
+  despachosGlobalList.value.filter(d => d.estadoTransporte === 'ENTREGADO').length
 )
 
-const filteredDespachos = computed(() => {
-  return despachosList.value.filter((d) => {
-    const matchesEstado = filterDespachoEstado.value
-      ? d.estadoDespacho === filterDespachoEstado.value
-      : true
-
-    const q = searchDespachoQuery.value.trim().toLowerCase()
-    const matchesQuery = !q
-      ? true
-      : (d.numeroTracking && d.numeroTracking.toLowerCase().includes(q)) ||
-        (d.codigoExpediente && d.codigoExpediente.toLowerCase().includes(q)) ||
-        (d.guiaRemisionTransporte && d.guiaRemisionTransporte.toLowerCase().includes(q)) ||
-        (d.direccionLlegada && d.direccionLlegada.toLowerCase().includes(q)) ||
-        (d.placaTracto && d.placaTracto.toLowerCase().includes(q))
-
-    return matchesEstado && matchesQuery
+const filteredDespachosGlobal = computed(() => {
+  return despachosGlobalList.value.filter(d => {
+    if (filterEstado.value && d.estadoTransporte !== filterEstado.value) return false
+    if (searchQuery.value) {
+      const q = searchQuery.value.toLowerCase().trim()
+      const trk = (d.codigoTracking || '').toLowerCase()
+      const exp = (d.codigoExpediente || '').toLowerCase()
+      const dam = (d.numeroDam || '').toLowerCase()
+      const cli = (d.clienteRazonSocial || '').toLowerCase()
+      if (!trk.includes(q) && !exp.includes(q) && !dam.includes(q) && !cli.includes(q)) return false
+    }
+    return true
   })
 })
 
-const loadDespachos = async () => {
-  loadingDespachos.value = true
-  try {
-    const data = await transporteService.getDespachos()
-    despachosList.value = data || []
-  } catch (err) {
-    console.error('Error al cargar despachos de transporte:', err)
-  } finally {
-    loadingDespachos.value = false
+// Sincronización con navigationStore
+watch(
+  () => [navigationStore.transporteSubOption, navigationStore.navTick],
+  ([sub]) => {
+    if (sub && ['cabina', 'camion', 'viajes', 'despachos'].includes(sub)) {
+      activeTab.value = sub
+    }
+  },
+  { immediate: true }
+)
+
+const switchTab = (tab) => {
+  activeTab.value = tab
+  navigationStore.setTransporteSubOption(tab)
+  if (tab === 'cabina' || tab === 'camion') {
+    loadMiDespacho()
+  } else if (tab === 'viajes') {
+    loadMisViajes()
+  } else if (tab === 'despachos') {
+    loadDespachosGlobal()
   }
 }
 
-const openAsignarRecursos = (despacho) => {
-  selectedDespacho.value = despacho
-  showAsignarRecursosModal.value = true
+// Cargar Mi Despacho Activo
+const loadMiDespacho = async () => {
+  loadingMiDespacho.value = true
+  try {
+    const data = await transporteService.getMiDespachoActivo()
+    miDespachoActivo.value = data || null
+  } catch (err) {
+    console.error('Error al cargar mi despacho activo:', err)
+  } finally {
+    loadingMiDespacho.value = false
+  }
 }
 
+// Cargar Historial de Mis Viajes
+const loadMisViajes = async () => {
+  loadingMisViajes.value = true
+  try {
+    const data = await transporteService.getMisDespachos()
+    misViajesList.value = data || []
+  } catch (err) {
+    console.error('Error al cargar historial de viajes:', err)
+  } finally {
+    loadingMisViajes.value = false
+  }
+}
+
+// Cargar Despachos Globales
+const loadDespachosGlobal = async () => {
+  loadingGlobal.value = true
+  try {
+    const data = await transporteService.getDespachos({ soloActivos: false })
+    despachosGlobalList.value = data || []
+  } catch (err) {
+    showError('Error al cargar monitoreo global de despachos')
+  } finally {
+    loadingGlobal.value = false
+  }
+}
+
+// Iniciar Salida a Ruta
+const handleIniciarRuta = async (despacho) => {
+  const id = despacho.idDespachoTransporte || despacho.idDespacho
+  if (!confirm(`¿Confirmar salida a ruta del despacho ${despacho.codigoTracking || id}?`)) return
+
+  actionBusy.value = true
+  try {
+    await transporteService.iniciarRuta(id, {
+      fechaSalidaRuta: new Date().toISOString()
+    })
+    showSuccess('Ruta de transporte iniciada exitosamente')
+    await loadMiDespacho()
+    if (activeTab.value === 'despachos') await loadDespachosGlobal()
+  } catch (err) {
+    showError(err.response?.data?.message || 'Error al iniciar ruta de transporte')
+  } finally {
+    actionBusy.value = false
+  }
+}
+
+// Reportar Incidencia
+const openReportarIncidenciaModal = () => {
+  incidenciaTexto.value = ''
+  showIncidenciaModal.value = true
+}
+
+const submitIncidencia = async () => {
+  if (!miDespachoActivo.value || !incidenciaTexto.value.trim()) return
+  savingIncidencia.value = true
+  try {
+    const id = miDespachoActivo.value.idDespachoTransporte || miDespachoActivo.value.idDespacho
+    await transporteService.reportarIncidencia(id, incidenciaTexto.value.trim())
+    showInfo('Incidencia en ruta registrada en la bitácora')
+    showIncidenciaModal.value = false
+    await loadMiDespacho()
+  } catch (err) {
+    showError(err.response?.data?.message || 'Error al reportar incidencia')
+  } finally {
+    savingIncidencia.value = false
+  }
+}
+
+// Confirmar Entrega
 const openConfirmarEntrega = (despacho) => {
   selectedDespacho.value = despacho
   showConfirmarEntregaModal.value = true
 }
 
-const handleIniciarRuta = async (despacho) => {
-  if (!confirm(`¿Iniciar la ruta para el despacho con tracking ${despacho.numeroTracking || despacho.idDespacho}?`)) {
-    return
-  }
-  try {
-    await transporteService.iniciarRuta(despacho.idDespacho, {
-      observaciones: 'Unidad parte a ruta con precinto verificado'
-    })
-    await loadDespachos()
-  } catch (err) {
-    alert(err.response?.data?.message || 'Error al iniciar ruta de transporte')
-  }
+const onEntregaConfirmada = async () => {
+  showSuccess('Entrega conforme asentada y unidad liberada')
+  await loadMiDespacho()
+  await loadMisViajes()
+  if (activeTab.value === 'despachos') await loadDespachosGlobal()
 }
 
-const onDespachoSaved = () => {
-  loadDespachos()
+// Asignar Recursos
+const openAsignarRecursos = (despacho) => {
+  selectedDespacho.value = despacho
+  showAsignarRecursosModal.value = true
 }
 
-// ==========================================
-// 2. UNIDADES DE TRANSPORTE
-// ==========================================
-const unidadesList = ref([])
-const loadingUnidades = ref(false)
-const filterUnidadOperativo = ref('')
-const searchUnidadQuery = ref('')
-
-const showUnidadModal = ref(false)
-const selectedUnidad = ref(null)
-
-const unidadesDisponiblesCount = computed(
-  () => unidadesList.value.filter((u) => u.estadoOperativo === 'DISPONIBLE' && u.estadoActivo).length
-)
-const unidadesMantenimientoCount = computed(
-  () => unidadesList.value.filter((u) => u.estadoOperativo === 'EN_MANTENIMIENTO').length
-)
-const capacidadTotalTn = computed(() => {
-  const totalKg = unidadesList.value.reduce((acc, u) => acc + Number(u.capacidadCargaKg || 0), 0)
-  return (totalKg / 1000).toFixed(1)
-})
-
-const filteredUnidades = computed(() => {
-  return unidadesList.value.filter((u) => {
-    const matchesOp = filterUnidadOperativo.value
-      ? u.estadoOperativo === filterUnidadOperativo.value
-      : true
-
-    const q = searchUnidadQuery.value.trim().toLowerCase()
-    const matchesQuery = !q
-      ? true
-      : (u.placaTracto && u.placaTracto.toLowerCase().includes(q)) ||
-        (u.placaCarreta && u.placaCarreta.toLowerCase().includes(q)) ||
-        (u.marcaModelo && u.marcaModelo.toLowerCase().includes(q)) ||
-        (u.tipoVehiculo && u.tipoVehiculo.toLowerCase().includes(q))
-
-    return matchesOp && matchesQuery
-  })
-})
-
-const loadUnidades = async () => {
-  loadingUnidades.value = true
-  try {
-    const data = await transporteService.getUnidades()
-    unidadesList.value = data || []
-  } catch (err) {
-    console.error('Error al cargar unidades:', err)
-  } finally {
-    loadingUnidades.value = false
-  }
+const onDespachoGlobalSaved = async () => {
+  await loadDespachosGlobal()
+  await loadMiDespacho()
 }
 
-const openCreateUnidad = () => {
-  selectedUnidad.value = null
-  showUnidadModal.value = true
+// Gestor de Documentos GRE-T
+const openDocsModal = (despacho) => {
+  selectedDocEntidadId.value = despacho.idExpediente || despacho.idDespachoTransporte
+  selectedDocCodigo.value = despacho.codigoTracking || despacho.codigoExpediente || 'TRK'
+  selectedDocTitulo.value = `Guía Remisión GRE-T y Docs: ${despacho.codigoTracking}`
+  showDocsModal.value = true
 }
 
-const openEditUnidad = (unidad) => {
-  selectedUnidad.value = unidad
-  showUnidadModal.value = true
-}
-
-const handleToggleUnidad = async (unidad) => {
-  try {
-    if (unidad.estadoActivo) {
-      if (!confirm(`¿Dar de baja temporalmente a la unidad ${unidad.placaTracto}?`)) return
-      await transporteService.deleteUnidad(unidad.idUnidad)
-    } else {
-      await transporteService.reactivarUnidad(unidad.idUnidad)
-    }
-    await loadUnidades()
-  } catch (err) {
-    alert(err.response?.data?.message || 'Error al cambiar estado de la unidad')
-  }
-}
-
-const onUnidadSaved = () => {
-  loadUnidades()
-}
-
-// ==========================================
-// 3. CONDUCTORES MTC
-// ==========================================
-const conductoresList = ref([])
-const loadingConductores = ref(false)
-const searchConductorQuery = ref('')
-
-const showConductorModal = ref(false)
-const selectedConductor = ref(null)
-
-const conductoresActivosCount = computed(
-  () => conductoresList.value.filter((c) => c.estadoActivo).length
-)
-const conductoresA3cCount = computed(
-  () => conductoresList.value.filter((c) => c.tipoLicencia === 'A-IIIc').length
-)
-const conductoresInactivosCount = computed(
-  () => conductoresList.value.filter((c) => !c.estadoActivo).length
-)
-
-const filteredConductores = computed(() => {
-  return conductoresList.value.filter((c) => {
-    const q = searchConductorQuery.value.trim().toLowerCase()
-    if (!q) return true
-    return (
-      (c.nombres && c.nombres.toLowerCase().includes(q)) ||
-      (c.apellidos && c.apellidos.toLowerCase().includes(q)) ||
-      (c.numeroLicencia && c.numeroLicencia.toLowerCase().includes(q)) ||
-      (c.telefono && c.telefono.toLowerCase().includes(q))
-    )
-  })
-})
-
-const loadConductores = async () => {
-  loadingConductores.value = true
-  try {
-    const data = await transporteService.getConductores()
-    conductoresList.value = data || []
-  } catch (err) {
-    console.error('Error al cargar conductores:', err)
-  } finally {
-    loadingConductores.value = false
-  }
-}
-
-const openCreateConductor = () => {
-  selectedConductor.value = null
-  showConductorModal.value = true
-}
-
-const openEditConductor = (conductor) => {
-  selectedConductor.value = conductor
-  showConductorModal.value = true
-}
-
-const handleToggleConductor = async (conductor) => {
-  try {
-    if (conductor.estadoActivo) {
-      if (!confirm(`¿Desactivar al conductor ${conductor.nombres} ${conductor.apellidos}?`)) return
-      await transporteService.deleteConductor(conductor.idConductor)
-    } else {
-      await transporteService.reactivarConductor(conductor.idConductor)
-    }
-    await loadConductores()
-  } catch (err) {
-    alert(err.response?.data?.message || 'Error al cambiar estado del conductor')
-  }
-}
-
-const onConductorSaved = () => {
-  loadConductores()
-}
-
-// ==========================================
-// HELPERS FORMATO
-// ==========================================
-const formatDateTime = (val) => {
-  if (!val) return '—'
-  const d = new Date(val)
-  return d.toLocaleDateString('es-PE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const formatDespachoEstado = (st) => {
+// Formateos
+const formatEstado = (estado) => {
   const map = {
+    PENDIENTE_ASIGNACION: 'Pendiente de Recursos',
     PROGRAMADO: 'Programado',
-    EN_TRANSITO: 'En Tránsito',
+    EN_RUTA: 'En Ruta',
     ENTREGADO: 'Entregado Conforme',
     CANCELADO: 'Cancelado'
   }
-  return map[st] || st || 'Programado'
+  return map[estado] || estado || 'Pendiente'
 }
 
-const getDespachoSeverity = (st) => {
-  switch (st) {
-    case 'PROGRAMADO':
-      return 'warning'
-    case 'EN_TRANSITO':
-      return 'info'
-    case 'ENTREGADO':
-      return 'success'
-    case 'CANCELADO':
-      return 'danger'
-    default:
-      return 'secondary'
+const getEstadoSeverity = (estado) => {
+  switch (estado) {
+    case 'EN_RUTA': return 'info'
+    case 'PROGRAMADO': return 'warning'
+    case 'ENTREGADO': return 'success'
+    case 'CANCELADO': return 'danger'
+    default: return 'secondary'
   }
 }
 
-const formatTipoVehiculo = (t) => {
+const getCanalClass = (canal) => {
+  switch (canal) {
+    case 'VERDE': return 'canal-verde'
+    case 'NARANJA': return 'canal-naranja'
+    case 'ROJO': return 'canal-rojo'
+    default: return ''
+  }
+}
+
+const formatTipo = (tipo) => {
   const map = {
-    TRACTO_PLATAFORMA: 'Tracto con Plataforma',
-    TRACTO_FURGON: 'Tracto Furgón Cerrado',
-    CAMION_BARANDA: 'Camión Baranda',
-    CAMION_FURGON: 'Camión Furgón',
-    PORTACONTENEDOR: 'Portacontenedor / Chasis'
+    TRACTO: 'Tracto Camión',
+    PLATAFORMA: 'Plataforma / Carreta',
+    FURGON: 'Furgón Cerrado',
+    CAMION_BARANDA: 'Camión Baranda'
   }
-  return map[t] || t || 'Tracto'
+  return map[tipo] || tipo || 'Tracto'
 }
 
-const getUnidadOperativoSeverity = (op) => {
-  switch (op) {
-    case 'DISPONIBLE':
-      return 'success'
-    case 'EN_MANTENIMIENTO':
-      return 'warning'
-    case 'FUERA_DE_SERVICIO':
-      return 'danger'
-    default:
-      return 'secondary'
+const formatDateTime = (val) => {
+  if (!val) return '—'
+  try {
+    const d = new Date(val)
+    return d.toLocaleString('es-PE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return val
   }
 }
 
 onMounted(() => {
-  loadDespachos()
-  loadUnidades()
-  loadConductores()
+  loadMiDespacho()
+  loadMisViajes()
+  loadDespachosGlobal()
 })
 </script>
 
 <style scoped>
 .transporte-view {
-  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* 1. Hero Banner */
-.hero-banner-card {
-  position: relative;
-  background: linear-gradient(135deg, #1c1917 0%, #292524 60%, #431407 100%);
-  border-radius: var(--radius-lg, 12px);
-  padding: 1.75rem 2rem;
-  color: #fafaf9;
-  overflow: hidden;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
-}
-
-.hero-content {
-  position: relative;
-  z-index: 2;
-  max-width: 780px;
-}
-
-.badge-kicker {
-  display: inline-block;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #ea580c;
-  margin-bottom: 0.5rem;
-}
-
-.hero-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.25;
-  margin: 0 0 0.5rem 0;
-  color: #fff;
-}
-
-.hero-desc {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: #d6d3d1;
-  margin: 0;
-}
-
-.hero-watermark {
-  position: absolute;
-  right: 1.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 7rem;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.03);
-  user-select: none;
-  pointer-events: none;
-}
-
-/* 2. Pestañas de Navegación */
+/* Tabs */
 .module-tabs-nav {
   display: flex;
-  gap: 0.75rem;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--color-border, #e2d9cd);
+  padding-bottom: 0.25rem;
+  flex-wrap: wrap;
 }
-
 .tab-nav-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-md, 8px);
-  border: 1px solid transparent;
+  padding: 0.65rem 1rem;
   background: transparent;
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -0.35rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7a7065;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
-
 .tab-nav-btn:hover {
-  background: var(--color-bg-alt);
-  color: var(--color-text-main);
+  color: var(--color-text-primary, #352f2a);
 }
-
 .tab-nav-btn.active {
-  background: var(--color-bg-surface);
-  border-color: var(--color-border);
-  color: #ea580c;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  color: var(--color-accent, #9a7f60);
+  border-bottom-color: var(--color-accent, #9a7f60);
 }
-
 .tab-counter {
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  padding: 0.1rem 0.45rem;
-  border-radius: 9999px;
+  background: #ede6db;
+  color: #352f2a;
   font-size: 0.7rem;
-  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 12px;
+  font-family: var(--font-mono, monospace);
+}
+.tab-badge-pulse {
+  background: #b42318;
+  color: #ffffff;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 12px;
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  animation: pulse-red 2s infinite;
+}
+@keyframes pulse-red {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
 }
 
-/* 3. Métricas Grid */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.metric-card {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  padding: 1.15rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-.highlight-card {
-  border-left: 3px solid #ea580c;
-}
-
-.metric-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.metric-idx {
-  font-size: 0.6875rem;
-  font-family: monospace;
-  color: var(--color-text-muted);
-}
-
-.metric-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.metric-val {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.text-pending { color: #f97316; }
-.text-warning { color: #eab308; }
-.text-success { color: #16a34a; }
-.text-accent  { color: #d97706; }
-.text-primary { color: #2563eb; }
-.text-muted   { color: #78716c; }
-
-/* 4. Sección de Contenido */
-.tab-content-section {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  padding: 1.25rem;
+.tab-container {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-.section-header-row {
+/* Cabina Activa */
+.cabin-active-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.cabin-order-header {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-left: 6px solid var(--color-accent, #9a7f60);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.cabin-order-header.EN_RUTA {
+  border-left-color: #027a48;
 }
 
-.section-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--color-text-main);
-  margin: 0;
-}
-
-.section-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-
-.filter-select {
-  padding: 0.5rem 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-bg-alt);
-  color: var(--color-text-main);
-  font-size: 0.8125rem;
-  outline: none;
-}
-
-.search-input-wrap {
-  position: relative;
-  min-width: 240px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.5rem 0.85rem 0.5rem 2.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-bg-alt);
-  color: var(--color-text-main);
-  font-size: 0.8125rem;
-}
-
-.btn-outline-warm {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.95rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md, 8px);
-  background: transparent;
-  color: var(--color-text-main);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-outline-warm:hover {
-  background: var(--color-bg-alt);
-  border-color: #ea580c;
-  color: #ea580c;
-}
-
-.btn-primary-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: var(--radius-md, 8px);
-  background: #ea580c;
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.25);
-  transition: all 0.2s;
-}
-
-.btn-primary-action:hover {
-  background: #c2410c;
-  transform: translateY(-1px);
-}
-
-/* 5. Tabla y Celdas */
-.table-container {
-  overflow-x: auto;
-}
-
-.custom-datatable {
-  font-size: 0.875rem;
-}
-
-.ticket-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ticket-cell i {
-  color: #ea580c;
-}
-
-.client-cell {
+.header-left {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-}
-
-.client-name {
-  font-weight: 600;
-  color: var(--color-text-main);
-  font-size: 0.85rem;
-}
-
-.client-sub {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-}
-
-.truncate-text {
-  max-width: 220px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tag-xs {
-  font-size: 0.6875rem !important;
-  padding: 0.15rem 0.55rem !important;
-}
-
-.action-buttons-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   gap: 0.4rem;
 }
 
-.btn-row-action {
-  width: 30px;
-  height: 30px;
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #027a48;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #027a48;
+  box-shadow: 0 0 0 3px rgba(2, 122, 72, 0.2);
+}
+
+.tracking-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.tracking-code {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-text-primary, #352f2a);
+}
+.exp-code {
+  font-size: 0.85rem;
+  background: #f6f3ee;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e2d9cd;
+}
+.dam-badge {
+  font-size: 0.85rem;
+  background: #fdf5ea;
+  color: #8c5b1b;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e8c697;
+  font-weight: 700;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.canal-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+}
+.canal-verde { background: #eef8f3; color: #027a48; border: 1px solid #a6dbbe; }
+.canal-naranja { background: #fdf5ea; color: #b54708; border: 1px solid #e8c697; }
+.canal-rojo { background: #faebeb; color: #b42318; border: 1px solid #e89797; }
+
+.btn-refresh-cabin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-refresh-cabin:hover {
+  background: #f6f3ee;
+}
+
+/* Grilla de Cabina */
+.cabin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.cabin-card {
+  background: var(--color-bg-card, #ede6db);
+  border: 1px solid var(--color-border, #e2d9cd);
   border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
-  color: var(--color-text-muted);
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-top-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e2d9cd;
+  padding-bottom: 0.75rem;
+}
+.card-icon {
+  font-size: 1.5rem;
+  color: var(--color-accent, #9a7f60);
+}
+.card-heading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #352f2a);
+}
+
+.spec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.825rem;
+  padding: 0.2rem 0;
+}
+.spec-label {
+  color: #6b635b;
+}
+.spec-value {
+  color: var(--color-text-primary, #352f2a);
+  text-align: right;
+  max-width: 60%;
+}
+.spec-divider {
+  height: 1px;
+  background: #e2d9cd;
+  margin: 0.25rem 0;
+}
+.destination-highlight {
+  background: #ffffff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #e2d9cd;
+}
+.phone-call-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btn-call-direct {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #027a48;
+  color: #ffffff;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.btn-call-direct:hover {
+  background: #02633a;
+}
+
+.incidencias-box {
+  background: #fdf5ea;
+  border: 1px solid #e8c697;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+.incidencias-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #8c5b1b;
+  margin-bottom: 0.35rem;
+}
+.incidencias-text {
+  font-size: 0.775rem;
+  color: #553b14;
+  white-space: pre-wrap;
+  margin: 0;
+  font-family: inherit;
+}
+
+/* Botones de Cabina */
+.cabin-actions-bar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 6px;
+  justify-content: flex-end;
+}
+.btn-action-cabin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-start-route {
+  background: #175cd3;
+  color: #ffffff;
+}
+.btn-start-route:hover {
+  background: #154fb7;
+}
+.btn-incident {
+  background: #b54708;
+  color: #ffffff;
+}
+.btn-incident:hover {
+  background: #93370d;
+}
+.btn-docs {
+  background: transparent;
+  border: 1px solid var(--color-border, #e2d9cd);
+  color: var(--color-text-primary, #352f2a);
+}
+.btn-docs:hover {
+  background: #f6f3ee;
+}
+.btn-confirm-delivery {
+  background: #027a48;
+  color: #ffffff;
+}
+.btn-confirm-delivery:hover {
+  background: #02633a;
+}
+
+/* Empty State Cabina */
+.cabin-empty-state {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+.empty-cabin-card {
+  max-width: 500px;
+  text-align: center;
+  background: var(--color-bg-card, #ede6db);
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 8px;
+  padding: 2.5rem 1.5rem;
+}
+.empty-icon-wrap {
+  font-size: 3rem;
+  color: #027a48;
+  margin-bottom: 1rem;
+}
+
+/* Ficha Camión Asignado */
+.truck-detail-card {
+  background: var(--color-bg-card, #ede6db);
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 6px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.truck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2d9cd;
+  padding-bottom: 1rem;
+}
+.truck-title-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.truck-big-icon {
+  font-size: 2.5rem;
+  color: var(--color-accent, #9a7f60);
+}
+.truck-plate {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.truck-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.spec-box {
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #e2d9cd;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.spec-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #352f2a);
+}
+.truck-inspection-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #eef8f3;
+  border: 1px solid #a6dbbe;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #02633a;
+}
+
+/* Tablas y métricas compartidas */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.flota-table-card {
+  background: var(--color-bg-card, #ede6db);
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+.card-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.badge-kicker {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--color-accent, #9a7f60);
+  font-weight: 700;
+  display: block;
+}
+.section-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #352f2a);
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.filter-select {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--color-border, #e2d9cd);
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+.search-input-wrap {
+  position: relative;
+}
+.search-icon {
+  position: absolute;
+  left: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8c827a;
+  font-size: 0.8rem;
+}
+.search-input {
+  padding: 0.45rem 0.65rem 0.45rem 1.8rem;
+  border: 1px solid var(--color-border, #e2d9cd);
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  width: 200px;
+}
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-primary-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--color-accent, #9a7f60);
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.table-container {
+  background: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border, #e2d9cd);
+}
+.client-cell {
+  display: flex;
+  flex-direction: column;
+}
+.client-sub {
+  font-size: 0.7rem;
+  color: #6b635b;
+}
+.action-buttons-cell {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+.btn-row-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #e2d9cd);
+  background: transparent;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s;
+  font-size: 0.75rem;
 }
-
 .btn-row-action:hover {
-  border-color: #ea580c;
-  color: #ea580c;
-  background: var(--color-bg-alt);
+  background: #f6f3ee;
 }
-
-.btn-row-primary {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
-  border-color: rgba(37, 99, 235, 0.2);
+.tag-xs {
+  font-size: 0.675rem;
+  padding: 0.15rem 0.4rem;
 }
-
-.btn-row-primary:hover {
-  background: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-}
-
-.btn-row-warning {
-  background: rgba(234, 88, 12, 0.1);
-  color: #ea580c;
-  border-color: rgba(234, 88, 12, 0.2);
-}
-
-.btn-row-warning:hover {
-  background: #ea580c;
-  color: #fff;
-  border-color: #ea580c;
-}
-
-.btn-row-success {
-  background: rgba(22, 163, 74, 0.1);
-  color: #16a34a;
-  border-color: rgba(22, 163, 74, 0.2);
-}
-
-.btn-row-success:hover {
-  background: #16a34a;
-  color: #fff;
-  border-color: #16a34a;
-}
-
-.btn-row-danger:hover {
-  border-color: #ef4444;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
-}
-
 .empty-state {
-  padding: 3rem 1rem;
   text-align: center;
+  padding: 2rem;
 }
-
 .empty-icon {
-  font-size: 2.5rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.75rem;
-  opacity: 0.5;
+  font-size: 2rem;
+  color: #8c827a;
+  margin-bottom: 0.5rem;
 }
 
-.empty-title {
+/* Modales */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.form-label {
+  font-size: 0.75rem;
   font-weight: 700;
-  font-size: 1rem;
-  color: var(--color-text-main);
-  margin: 0 0 0.25rem 0;
+  color: var(--color-text-primary, #352f2a);
 }
-
-.empty-desc {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  margin: 0;
+.form-textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border, #e2d9cd);
+  background: #ffffff;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  resize: vertical;
+}
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid var(--color-border, #e2d9cd);
+  padding-top: 0.75rem;
+}
+.btn-cancel {
+  padding: 0.45rem 0.85rem;
+  background: transparent;
+  border: 1px solid var(--color-border, #e2d9cd);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  background: var(--color-accent, #9a7f60);
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.loading-state-card {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e2d9cd;
+  color: #7a7065;
+}
+.spinner-lg {
+  font-size: 2rem;
+  color: var(--color-accent, #9a7f60);
+  margin-bottom: 0.5rem;
 }
 </style>

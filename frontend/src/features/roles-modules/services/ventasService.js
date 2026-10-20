@@ -85,6 +85,37 @@ export const ventasService = {
   async deleteCotizacion(id) {
     const response = await apiClient.delete(`/cotizaciones/${id}`)
     return response.data
+  },
+
+  // ==========================================
+  // EXPEDIENTES ADUANEROS OPERATIVOS
+  // ==========================================
+  async createExpediente(data) {
+    const response = await apiClient.post('/expedientes', data)
+    return response.data.data
+  },
+
+  async updateExpedienteEstado(id, data) {
+    const response = await apiClient.put(`/expedientes/${id}`, data)
+    return response.data.data
+  },
+
+  async deleteExpediente(id) {
+    const response = await apiClient.delete(`/expedientes/${id}`)
+    return response.data
+  },
+
+  // Alias de compatibilidad hacia atrás (deprecados)
+  createOrdenServicio(data) {
+    return this.createExpediente(data)
+  },
+
+  updateOrdenServicioEstado(id, data) {
+    return this.updateExpedienteEstado(id, data)
+  },
+
+  deleteOrdenServicio(id) {
+    return this.deleteExpediente(id)
   }
 }
 

@@ -122,6 +122,21 @@ export const transporteService = {
     return response.data.data
   },
 
+  async getMiDespachoActivo() {
+    const response = await apiClient.get('/transporte/despachos/mi-despacho-activo')
+    return response.data.data
+  },
+
+  async getMisDespachos() {
+    const response = await apiClient.get('/transporte/despachos/mis-despachos')
+    return response.data.data
+  },
+
+  async reportarIncidencia(id, incidencia) {
+    const response = await apiClient.post(`/transporte/despachos/${id}/incidencia`, { incidencia })
+    return response.data.data
+  },
+
   async deleteDespacho(id) {
     const response = await apiClient.delete(`/transporte/despachos/${id}`)
     return response.data

@@ -17,6 +17,8 @@ DELETE FROM despacho_transporte;
 
 DELETE FROM control_almacen;
 
+DELETE FROM documento_adjunto;
+
 DELETE FROM expediente;
 
 DELETE FROM cotizacion;

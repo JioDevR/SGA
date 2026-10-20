@@ -22,6 +22,16 @@ export const adminRoutes = [
       roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE'],
       title: 'Acerca del Sistema - SGA'
     }
+  },
+  {
+    path: '/admin/logs',
+    name: 'AdminLogs',
+    component: () => import('@/features/admin/views/SystemLogsView.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['ADMIN_TI', 'ADMINISTRADOR'],
+      title: 'Bitácora y Consola de Logs TI - SGA'
+    }
   }
 ]
 

@@ -49,12 +49,9 @@ public class SecurityConfig {
                         // Rutas públicas de autenticación y salud
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/health/**").permitAll()
-                        // Exportaciones PDF JasperReports accesibles con o sin token según necesidad
-                        .requestMatchers("/api/v1/usuarios/exportar-pdf").permitAll()
-                        .requestMatchers("/api/v1/sedes/exportar-pdf").permitAll()
                         // Catálogos públicos de lectura
                         .requestMatchers("/api/v1/catalogos/**").permitAll()
-                        // El resto de operaciones CRUD requiere autenticación
+                        // El resto de operaciones CRUD (incluyendo preview, descarga y reportes PDF) requiere autenticación
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

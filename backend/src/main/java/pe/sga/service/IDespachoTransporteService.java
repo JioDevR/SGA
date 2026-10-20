@@ -32,5 +32,11 @@ public interface IDespachoTransporteService {
 
     DespachoTransporteResponseDTO confirmarEntrega(Integer idDespachoTransporte, DespachoEntregaDTO dto);
 
+    DespachoTransporteResponseDTO obtenerDespachoActivoPorUsuario(Integer idUsuario);
+
+    List<DespachoTransporteResponseDTO> listarMisDespachos(Integer idUsuario);
+
+    DespachoTransporteResponseDTO reportarIncidencia(Integer idDespachoTransporte, String incidencia);
+
     void anular(Integer idDespachoTransporte);
 }

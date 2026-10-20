@@ -25,13 +25,13 @@ apiClient.interceptors.request.use(
 
 let isRedirecting = false
 
-// Interceptor de respuesta: Manejo centralizado de 401 y errores de red
+// Interceptor de respuesta: Manejo centralizado de 401 (no autenticado) y errores
 apiClient.interceptors.response.use(
   (response) => {
     return response
   },
   (error) => {
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !error.config?.url?.includes('/auth/login')) {
       // Token expirado o inválido: limpiar sesión y redirigir al login
       localStorage.removeItem('sga_token')
       localStorage.removeItem('sga_user')
@@ -40,6 +40,8 @@ apiClient.interceptors.response.use(
         window.location.replace('/login')
       }
     }
+    // Nota: Código 403 (Forbidden) indica falta de permisos sobre un recurso específico,
+    // por lo que NO se desloguea al usuario para permitir manejo de notificación visual en vista.
     return Promise.reject(error)
   }
 )

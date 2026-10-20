@@ -2,6 +2,7 @@ package pe.sga.dto.response;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -19,10 +20,17 @@ public class DespachoTransporteResponseDTO {
     private Integer idExpediente;
     private String codigoExpediente;
     private String numeroDam;
+    private String canalSunat;
     private String clienteRazonSocial;
+    private String clienteNumeroDocumento;
+    private String clienteTelefono;
+    private String numeroContenedor;
+    private String precintoAduanero;
+    private String mercanciaNombre;
 
     // Recursos Asignados 3NF
     private Integer idConductor;
+    private Integer idUsuarioConductor;
     private String conductorNombre;
     private String conductorLicencia;
     private String conductorTelefono;
@@ -31,13 +39,20 @@ public class DespachoTransporteResponseDTO {
     private String unidadPlacaTracto;
     private String unidadPlacaCarreta;
     private String unidadMarcaModelo;
+    private String unidadTipoVehiculo;
+    private BigDecimal unidadCapacidadKg;
 
     // Documentación y Ruta
     private String guiaRemisionTransporte;
+    private Integer idDocumentoRemision;
+    private String nombreDocumentoRemision;
+
     private String direccionPartida;
     private String direccionLlegada;
     private String distritoLlegada;
     private String contactoRecepcion;
+    private String receptorNombre;
+    private String receptorDni;
 
     // Control de Tiempos
     private LocalDateTime fechaProgramada;

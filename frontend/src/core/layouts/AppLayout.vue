@@ -202,7 +202,11 @@ const currentTitle = computed(() => {
     return vMap[navigationStore.ventasSubOption] || 'Módulo Comercial de Ventas'
   }
   if (navigationStore.currentModule === 'supervision') {
-    return 'Supervisión Aduanera y Aforos'
+    const sMap = {
+      cotizaciones: 'Bandeja de Cotizaciones para Revisión Técnica',
+      expedientes: 'Gestión Integral de Expedientes Aduaneros'
+    }
+    return sMap[navigationStore.supervisionSubOption] || 'Supervisión Aduanera'
   }
   if (navigationStore.currentModule === 'aduanas') {
     return 'Control de Almacén Aduanero y Despachos'

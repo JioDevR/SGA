@@ -33,15 +33,40 @@
           />
         </div>
 
+        <div class="field-item">
+          <label for="ent-receptor-nombre">Nombre Completo del Receptor *</label>
+          <input
+            id="ent-receptor-nombre"
+            v-model.trim="form.receptorNombre"
+            type="text"
+            placeholder="Ej. Ing. Carlos Mendoza"
+            class="text-input"
+            required
+            maxlength="150"
+          />
+        </div>
+
+        <div class="field-item">
+          <label for="ent-receptor-dni">DNI / Documento del Receptor *</label>
+          <input
+            id="ent-receptor-dni"
+            v-model.trim="form.receptorDni"
+            type="text"
+            placeholder="8 dígitos"
+            class="text-input font-mono font-bold"
+            required
+            maxlength="20"
+          />
+        </div>
+
         <div class="field-item full-width">
-          <label for="ent-contacto">Persona que Recibe la Carga *</label>
+          <label for="ent-contacto">Puesto / Área o Contacto de Recepción</label>
           <input
             id="ent-contacto"
             v-model.trim="form.contactoRecepcion"
             type="text"
-            placeholder="Ej. Ing. Carlos Mendoza (DNI 44891022)"
+            placeholder="Ej. Jefe de Almacén Planta Gambetta"
             class="text-input"
-            required
             maxlength="100"
           />
         </div>
@@ -58,12 +83,12 @@
         </div>
 
         <div class="field-item full-width">
-          <label for="ent-obs">Observaciones Finales / N° Sello</label>
+          <label for="ent-obs">Observaciones Finales / Sello GRE-T</label>
           <textarea
             id="ent-obs"
             v-model.trim="form.observaciones"
             rows="2"
-            placeholder="Guía de remisión firmada y sellada..."
+            placeholder="Guía de remisión firmada y sellada por el cliente..."
             class="textarea-input"
           ></textarea>
         </div>
@@ -108,6 +133,8 @@ const defaultForm = () => {
   const now = new Date().toISOString().slice(0, 16)
   return {
     fechaEntregaConforme: now,
+    receptorNombre: '',
+    receptorDni: '',
     contactoRecepcion: '',
     detalleIncidencia: 'Sin incidencias. Carga recibida conforme y precintos intactos.',
     observaciones: 'Guía de remisión firmada y sellada por el cliente.'
@@ -125,6 +152,12 @@ watch(
       if (props.despacho?.contactoRecepcion) {
         form.value.contactoRecepcion = props.despacho.contactoRecepcion
       }
+      if (props.despacho?.receptorNombre) {
+        form.value.receptorNombre = props.despacho.receptorNombre
+      }
+      if (props.despacho?.receptorDni) {
+        form.value.receptorDni = props.despacho.receptorDni
+      }
     }
   }
 )
@@ -136,8 +169,8 @@ const handleClose = () => {
 const handleSubmit = async () => {
   if (!props.despacho) return
   errorMessage.value = ''
-  if (!form.value.fechaEntregaConforme || !form.value.contactoRecepcion) {
-    errorMessage.value = 'Por favor complete la fecha y el contacto receptor'
+  if (!form.value.fechaEntregaConforme || !form.value.receptorNombre || !form.value.receptorDni) {
+    errorMessage.value = 'Por favor complete la fecha, el nombre y el DNI del receptor'
     return
   }
 
@@ -145,12 +178,15 @@ const handleSubmit = async () => {
   try {
     const payload = {
       fechaEntregaConforme: form.value.fechaEntregaConforme,
-      contactoRecepcion: form.value.contactoRecepcion,
+      receptorNombre: form.value.receptorNombre,
+      receptorDni: form.value.receptorDni,
+      contactoRecepcion: form.value.contactoRecepcion || null,
       detalleIncidencia: form.value.detalleIncidencia || null,
       observaciones: form.value.observaciones || null
     }
 
-    const res = await transporteService.confirmarEntrega(props.despacho.idDespacho, payload)
+    const despachoId = props.despacho.idDespachoTransporte || props.despacho.idDespacho
+    const res = await transporteService.confirmarEntrega(despachoId, payload)
     emit('saved', res)
     handleClose()
   } catch (err) {

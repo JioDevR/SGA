@@ -1,55 +1,14 @@
 <template>
   <div class="cotizacion-registration-form-view">
-    <!-- 1. Header Bar de Navegación y Acciones -->
-    <div class="form-header-bar">
-      <div class="header-titles">
-        <button
-          type="button"
-          class="btn-back-link"
-          @click="$emit('cancel')"
-          title="Regresar al panel de cotizaciones"
-        >
-          <i class="pi pi-arrow-left"></i>
-          <span>Volver al Registro de Cotizaciones</span>
-        </button>
-
-        <div class="kicker-row">
-          <span class="badge-kicker">PROPUESTAS ADUANERAS // EMISIÓN COMERCIAL</span>
-          <span :class="['mode-pill', isEditMode ? 'mode-edit' : 'mode-create']">
-            <i :class="isEditMode ? 'pi pi-pencil' : 'pi pi-plus'"></i>
-            <span>{{ isEditMode ? 'MODO EDICIÓN' : 'MODO REGISTRO' }}</span>
-          </span>
-        </div>
-
-        <h2 class="form-main-title">
-          {{ isEditMode ? `Editar Cotización: ${form.codigoCotizacion}` : 'Emitir Nueva Cotización Comercial' }}
-        </h2>
-        <p class="form-main-desc">
-          Estructure la propuesta comercial paso a paso: asigne el cliente o prospecto, especifique el régimen de aduanas y liquide los costos estimados de flete, honorarios y aranceles.
-        </p>
-      </div>
-
-      <div class="header-actions">
-        <button
-          type="button"
-          class="btn-outline-warm"
-          @click="$emit('cancel')"
-          :disabled="submitting"
-        >
-          <span>Cancelar</span>
-        </button>
-        <button
-          type="button"
-          class="btn-espresso"
-          @click="handleSubmit"
-          :disabled="submitting || !isFormReady"
-        >
-          <i v-if="submitting" class="pi pi-spin pi-spinner"></i>
-          <i v-else class="pi pi-check"></i>
-          <span>{{ isEditMode ? 'Guardar Cambios' : 'Emitir Cotización' }}</span>
-        </button>
-      </div>
-    </div>
+    <!-- 1. Header Bar Modular de Navegación y Acciones -->
+    <CotizacionFormHeader
+      :is-edit-mode="isEditMode"
+      :codigo-cotizacion="form.codigoCotizacion"
+      :submitting="submitting"
+      :is-form-ready="isFormReady"
+      @cancel="$emit('cancel')"
+      @submit="handleSubmit"
+    />
 
     <!-- Banner de Error si la validación falla -->
     <div v-if="errorMessage" class="error-banner">
@@ -74,57 +33,11 @@
       </div>
     </div>
 
-    <!-- Barra de Pasos / Stepper Interactivo -->
-    <div class="stepper-nav-bar">
-      <button
-        type="button"
-        :class="['stepper-step-btn', { active: currentStep === 1, completed: currentStep > 1 || !!form.idCliente }]"
-        @click="currentStep = 1"
-      >
-        <span class="step-badge">
-          <i v-if="form.idCliente" class="pi pi-check"></i>
-          <span v-else>1</span>
-        </span>
-        <div class="step-info">
-          <span class="step-label">PASO 01</span>
-          <span class="step-title">Cliente Solicitante</span>
-        </div>
-      </button>
-
-      <div class="stepper-divider"></div>
-
-      <button
-        type="button"
-        :class="['stepper-step-btn', { active: currentStep === 2, completed: currentStep > 2 || !!form.regimenAduanero }]"
-        @click="currentStep = 2"
-      >
-        <span class="step-badge">
-          <i v-if="form.regimenAduanero && currentStep > 2" class="pi pi-check"></i>
-          <span v-else>2</span>
-        </span>
-        <div class="step-info">
-          <span class="step-label">PASO 02</span>
-          <span class="step-title">Régimen & Plazos</span>
-        </div>
-      </button>
-
-      <div class="stepper-divider"></div>
-
-      <button
-        type="button"
-        :class="['stepper-step-btn', { active: currentStep === 3, completed: form.totalCotizado > 0 }]"
-        @click="currentStep = 3"
-      >
-        <span class="step-badge">
-          <i v-if="form.totalCotizado > 0" class="pi pi-check"></i>
-          <span v-else>3</span>
-        </span>
-        <div class="step-info">
-          <span class="step-label">PASO 03</span>
-          <span class="step-title">Costos & Liquidación</span>
-        </div>
-      </button>
-    </div>
+    <!-- Barra de Pasos / Stepper Interactivo Modular -->
+    <CotizacionStepperNav
+      v-model:current-step="currentStep"
+      :form="form"
+    />
 
     <!-- 2. Grid Principal -->
     <div class="form-content-grid">
@@ -886,148 +799,22 @@
         </section>
       </div>
 
-      <!-- Columna Lateral Sticky: Previsualización en Vivo de la Proforma -->
-      <aside class="form-sidebar-column">
-        <!-- Tarjeta de Proforma Comercial en Vivo -->
-        <div class="preview-proforma-card">
-          <div class="card-ribbon">
-            <i class="pi pi-file-edit"></i>
-            <span>PROFORMA COMERCIAL OFICIAL</span>
-          </div>
-
-          <div class="proforma-code-row">
-            <span class="doc-code-lg">{{ form.codigoCotizacion || 'COT-2026-BORRADOR' }}</span>
-          </div>
-
-          <div class="proforma-client-snippet">
-            <span class="proforma-sub-label">CLIENTE DESTINATARIO:</span>
-            <h4 class="proforma-client-name">
-              {{ selectedClientObject ? selectedClientObject.razonSocial : 'Seleccione un cliente en Paso 1' }}
-            </h4>
-            <span v-if="selectedClientObject" class="proforma-client-doc">
-              {{ selectedClientObject.tipoDocumento }}: {{ selectedClientObject.numeroDocumento }}
-            </span>
-          </div>
-
-          <div class="proforma-details-list">
-            <div class="proforma-row">
-              <span class="p-label">Régimen Aduanero:</span>
-              <span class="p-val">{{ getRegimenLabel(form.regimenAduanero) }}</span>
-            </div>
-
-            <div v-if="selectedPuertoEnvio || selectedPuertoDestino" class="proforma-row">
-              <span class="p-label">Ruta Aduanera:</span>
-              <span class="p-val">{{ selectedPuertoEnvio?.codigoPuerto || 'Origen' }} ➔ {{ selectedPuertoDestino?.codigoPuerto || 'Destino' }}</span>
-            </div>
-
-            <div v-if="selectedTipoCarga" class="proforma-row">
-              <span class="p-label">Tipo de Carga:</span>
-              <span class="p-val">{{ selectedTipoCarga.codigo }}</span>
-            </div>
-
-            <div v-if="selectedMercancia" class="proforma-row">
-              <span class="p-label">Mercancía:</span>
-              <div class="p-val-col">
-                <span class="merc-code-text">{{ selectedMercancia.codigo }}</span>
-                <span v-if="selectedMercancia.requierePermiso" class="badge-restringida-mini">
-                  Req: {{ selectedMercancia.entidadReguladora }}
-                </span>
-                <span v-else class="badge-libre-mini">Libre</span>
-              </div>
-            </div>
-
-            <div class="proforma-row">
-              <span class="p-label">Transporte SGA:</span>
-              <span :class="['p-val', form.servicioTransporte ? 'text-accent' : '']">
-                {{ form.servicioTransporte ? '✓ Interno SGA' : 'Externo' }}
-              </span>
-            </div>
-
-            <div class="proforma-row">
-              <span class="p-label">Vigencia:</span>
-              <span class="p-val">{{ form.validezDias }} Días Calendario</span>
-            </div>
-
-            <div class="proforma-divider"></div>
-
-            <div class="proforma-row">
-              <span class="p-label">Flete Estimado:</span>
-              <span class="p-val">${{ formatNumber(form.montoFleteEstimado) }}</span>
-            </div>
-
-            <div class="proforma-row">
-              <span class="p-label">Honorarios:</span>
-              <span class="p-val">${{ formatNumber(form.montoHonorariosEstimado) }}</span>
-            </div>
-
-            <div class="proforma-row">
-              <span class="p-label">Tributos Totales:</span>
-              <span class="p-val">${{ formatNumber(form.montoTributosEstimado) }}</span>
-            </div>
-
-            <div class="proforma-divider"></div>
-
-            <div class="proforma-row total-row">
-              <span class="p-label-total">TOTAL ESTIMADO:</span>
-              <span class="p-val-total">${{ formatNumber(form.totalCotizado) }} USD</span>
-            </div>
-          </div>
-
-          <div class="card-footer-stamp">
-            <i class="pi pi-check-circle"></i>
-            <span>SISTEMA DE GESTIÓN ADUANERA • MÓDULO COMERCIAL</span>
-          </div>
-        </div>
-
-        <!-- Tarjeta de Control de Calidad y Validación -->
-        <div class="checklist-card">
-          <h4 class="checklist-title">
-            <i class="pi pi-list-check"></i>
-            <span>Requisitos para Emisión</span>
-          </h4>
-
-          <ul class="checklist-items">
-            <li :class="['checklist-row', { valid: !!form.idCliente }]">
-              <i :class="form.idCliente ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-              <span>Cliente o prospecto asignado</span>
-            </li>
-            <li :class="['checklist-row', { valid: !!form.regimenAduanero }]">
-              <i :class="form.regimenAduanero ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-              <span>Régimen aduanero determinado</span>
-            </li>
-            <li :class="['checklist-row', { valid: form.validezDias > 0 }]">
-              <i :class="form.validezDias > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-              <span>Plazo de validez especificado</span>
-            </li>
-            <li :class="['checklist-row', { valid: form.totalCotizado > 0 }]">
-              <i :class="form.totalCotizado > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-              <span>Monto total cotizado (> $0.00 USD)</span>
-            </li>
-          </ul>
-
-          <div class="sidebar-action-buttons">
-            <button
-              type="button"
-              class="btn-espresso full-width"
-              @click="handleSubmit"
-              :disabled="submitting || !isFormReady"
-            >
-              <i v-if="submitting" class="pi pi-spin pi-spinner"></i>
-              <i v-else class="pi pi-save"></i>
-              <span>{{ isEditMode ? 'Guardar Cambios' : 'Emitir Cotización' }}</span>
-            </button>
-
-            <button
-              type="button"
-              class="btn-outline-warm full-width"
-              @click="$emit('cancel')"
-              :disabled="submitting"
-            >
-              <span>Descartar y Regresar</span>
-            </button>
-          </div>
-        </div>
-      </aside>
+      <!-- Columna Lateral Sticky: Previsualización en Vivo de la Proforma Modular -->
+      <CotizacionProformaPreview
+        :form="form"
+        :selected-client-object="selectedClientObject"
+        :selected-puerto-envio="selectedPuertoEnvio"
+        :selected-puerto-destino="selectedPuertoDestino"
+        :selected-tipo-carga="selectedTipoCarga"
+        :selected-mercancia="selectedMercancia"
+        :is-edit-mode="isEditMode"
+        :submitting="submitting"
+        :is-form-ready="isFormReady"
+        :get-regimen-label="getRegimenLabel"
+        :format-number="formatNumber"
+        @submit="handleSubmit"
+        @cancel="$emit('cancel')"
+      />
     </div>
   </div>
 </template>
@@ -1039,6 +826,9 @@ import Tag from 'primevue/tag'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { ventasService } from '../services/ventasService'
 import { catalogoService } from '@/features/admin/catalogos/services/catalogoService'
+import CotizacionFormHeader from './CotizacionFormHeader.vue'
+import CotizacionStepperNav from './CotizacionStepperNav.vue'
+import CotizacionProformaPreview from './CotizacionProformaPreview.vue'
 
 const props = defineProps({
   cotizacionToEdit: {

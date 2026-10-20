@@ -12,7 +12,13 @@ public interface ConductorRepository extends JpaRepository<Conductor, Integer> {
 
     Optional<Conductor> findByNumeroLicencia(String numeroLicencia);
 
+    Optional<Conductor> findByUsuario_IdUsuario(Integer idUsuario);
+
     boolean existsByNumeroLicencia(String numeroLicencia);
 
+    boolean existsByUsuario_IdUsuario(Integer idUsuario);
+
     List<Conductor> findByEstadoActivo(Boolean estadoActivo);
+
+    List<Conductor> findByEstadoOperativo(String estadoOperativo);
 }

@@ -28,6 +28,7 @@ public class CotizacionServiceImpl implements ICotizacionService {
     private final CatalogoMercanciaRepository mercanciaRepository;
     private final CatalogoTipoCargaRepository tipoCargaRepository;
     private final CatalogoPuertoRepository puertoRepository;
+    private final ExpedienteRepository expedienteRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -269,6 +270,19 @@ public class CotizacionServiceImpl implements ICotizacionService {
     }
 
     private CotizacionResponseDTO mapToResponse(Cotizacion c) {
+        boolean tieneExpediente = false;
+        Integer idExpediente = null;
+        String codigoExpediente = null;
+
+        if (c.getIdCotizacion() != null) {
+            var expOpt = expedienteRepository.findByCotizacion_IdCotizacion(c.getIdCotizacion());
+            if (expOpt.isPresent()) {
+                tieneExpediente = true;
+                idExpediente = expOpt.get().getIdExpediente();
+                codigoExpediente = expOpt.get().getCodigoExpediente();
+            }
+        }
+
         return CotizacionResponseDTO.builder()
                 .idCotizacion(c.getIdCotizacion())
                 .codigoCotizacion(c.getCodigoCotizacion())
@@ -300,7 +314,9 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .fechaRevision(c.getFechaRevision())
                 .motivoObservacion(c.getMotivoObservacion())
                 .observaciones(c.getObservaciones())
-                .tieneExpediente(false)
+                .tieneExpediente(tieneExpediente)
+                .idExpediente(idExpediente)
+                .codigoExpediente(codigoExpediente)
                 .build();
     }
 }

@@ -1,52 +1,25 @@
 <template>
   <div class="supervision-view">
-    <!-- 1. Hero Banner Editorial Cálido -->
-    <div class="hero-banner-card">
-      <div class="hero-content">
-        <span class="badge-kicker">SUPERVISIÓN ADUANERA // AUDITORÍA & CONTROL OPERATIVO</span>
-        <h2 class="hero-title">Bandeja de Supervisión Aduanera y Emisión de Servicios</h2>
-        <p class="hero-desc">
-          Auditoría técnica de propuestas comerciales, control de partidas arancelarias, validación de regímenes aduaneros, aprobación con generación de Órdenes de Servicio y solicitud de revisiones.
-        </p>
-      </div>
-      <div class="hero-watermark">
-        <span>SGA</span>
-      </div>
+    <!-- 1. Hero Banner Editorial Cálido Reutilizable -->
+    <HeroBannerCard
+      kicker="SUPERVISIÓN ADUANERA // AUDITORÍA & CONTROL OPERATIVO"
+      title="Bandeja de Supervisión Aduanera y Gestión de Expedientes"
+      description="Auditoría técnica de propuestas comerciales, control de partidas arancelarias, validación de regímenes aduaneros, apertura de Expedientes Aduaneros y control de canales SUNAT."
+    />
+
+    <!-- 2. Métricas Dinámicas según Pestaña Activa Reutilizando MetricCard -->
+    <div v-if="activeTab === 'cotizaciones'" class="metrics-grid">
+      <MetricCard index="01" label="Por Revisar (Enviadas)" :value="enviadasCount" severity="pending" highlight />
+      <MetricCard index="02" label="En Observación (Revisión)" :value="revisionCount" severity="warning" />
+      <MetricCard index="03" label="Cotizaciones Aprobadas" :value="aprobadasCount" severity="success" />
+      <MetricCard index="04" label="Pendientes de Expediente" :value="cotizacionesAprobadasSinExpediente.length" severity="accent" />
     </div>
 
-    <!-- 2. Métricas de Supervisión (01, 02, 03, 04) -->
-    <div class="metrics-grid">
-      <div class="metric-card highlight-card">
-        <div class="metric-top">
-          <span class="metric-idx">01</span>
-          <span class="metric-label">Por Revisar (Enviadas)</span>
-        </div>
-        <div class="metric-val text-pending">{{ enviadasCount }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">02</span>
-          <span class="metric-label">En Observación (Revisión)</span>
-        </div>
-        <div class="metric-val text-warning">{{ revisionCount }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">03</span>
-          <span class="metric-label">Cotizaciones Aprobadas</span>
-        </div>
-        <div class="metric-val text-success">{{ aprobadasCount }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">04</span>
-          <span class="metric-label">Órdenes de Servicio (OS)</span>
-        </div>
-        <div class="metric-val text-accent">{{ ordenesServicio.length }}</div>
-      </div>
+    <div v-else class="metrics-grid">
+      <MetricCard index="01" label="Expedientes Registrados" :value="expedientes.length" severity="pending" highlight />
+      <MetricCard index="02" label="Canal SUNAT Pendiente" :value="expedientesPendienteCanalCount" severity="warning" />
+      <MetricCard index="03" label="Con Canal Asignado" :value="expedientesConCanalCount" severity="accent" />
+      <MetricCard index="04" label="Levante Autorizado" :value="expedientesConLevanteCount" severity="success" />
     </div>
 
     <!-- 3. Barra de Navegación de Pestañas Principales -->
@@ -54,7 +27,7 @@
       <button
         type="button"
         :class="['tab-btn', { active: activeTab === 'cotizaciones' }]"
-        @click="activeTab = 'cotizaciones'"
+        @click="switchTab('cotizaciones')"
       >
         <i class="pi pi-inbox"></i>
         <span>Bandeja de Cotizaciones ({{ cotizaciones.length }})</span>
@@ -62,11 +35,11 @@
 
       <button
         type="button"
-        :class="['tab-btn', { active: activeTab === 'ordenes' }]"
-        @click="activeTab = 'ordenes'"
+        :class="['tab-btn', { active: activeTab === 'expedientes' }]"
+        @click="switchTab('expedientes')"
       >
         <i class="pi pi-folder-open"></i>
-        <span>Expedientes Aduaneros del Sistema ({{ ordenesServicio.length }})</span>
+        <span>Gestión de Expedientes Aduaneros ({{ expedientes.length }})</span>
       </button>
     </div>
 
@@ -181,7 +154,7 @@
 
           <Column header="Expediente Aduanero">
             <template #body="{ data: c }">
-              <div v-if="c.tieneExpediente" class="os-linked-tag">
+              <div v-if="c.tieneExpediente" class="exp-linked-tag">
                 <i class="pi pi-folder"></i>
                 <span>{{ c.codigoExpediente }}</span>
               </div>
@@ -204,12 +177,23 @@
                   <span>Auditar</span>
                 </button>
 
+                <!-- Botón de Documentos Adjuntos -->
+                <button
+                  type="button"
+                  class="action-btn-outline"
+                  title="Gestionar Documentos y Anexos"
+                  @click="openDocumentosCotizacion(c)"
+                >
+                  <i class="pi pi-paperclip"></i>
+                  <span>Docs</span>
+                </button>
+
                 <!-- Botón Rápido de Aprobación -->
                 <button
                   v-if="c.estado === 'PENDIENTE' || c.estado === 'EN_REVISION' || c.estado === 'ENVIADA' || c.estado === 'REVISION' || c.estado === 'OBSERVADA'"
                   type="button"
                   class="action-btn-outline approve"
-                  title="Aprobar y Generar Orden de Servicio"
+                  title="Aprobar técnicamente para apertura de Expediente Aduanero"
                   @click="confirmApprove(c)"
                 >
                   <i class="pi pi-check"></i>
@@ -259,27 +243,81 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- PESTAÑA 2: EXPEDIENTES ADUANEROS EN TRÁMITE                     -->
+    <!-- PESTAÑA 2: GESTIÓN INTEGRAL DE EXPEDIENTES ADUANEROS            -->
     <!-- ============================================================== -->
-    <div v-else-if="activeTab === 'ordenes'" class="tab-content-section">
+    <div v-else-if="activeTab === 'expedientes'" class="tab-content-section">
+      <!-- Alerta de Cotizaciones Aprobadas Pendientes de Apertura -->
+      <div v-if="cotizacionesAprobadasSinExpediente.length > 0" class="exp-pending-alert-banner">
+        <div class="alert-icon-box">
+          <i class="pi pi-bell"></i>
+        </div>
+        <div class="alert-text-content">
+          <strong>{{ cotizacionesAprobadasSinExpediente.length }} Cotización(es) Aprobada(s) Pendiente(s) de Expediente</strong>
+          <p>Existen propuestas comerciales con aprobación técnica formal listas para generar su expediente aduanero operativo.</p>
+        </div>
+        <button
+          type="button"
+          class="btn-alert-action"
+          @click="openAperturaModal(null)"
+        >
+          <i class="pi pi-plus-circle"></i>
+          <span>Aperturar Expediente Ahora</span>
+        </button>
+      </div>
+
       <div class="section-header-row">
         <div>
-          <span class="badge-kicker">OPERACIONES ADUANERAS // CONTROL DAM</span>
-          <h3 class="section-title">Expedientes Aduaneros y Canales SUNAT</h3>
+          <span class="badge-kicker">OPERACIONES ADUANERAS // CONTROL DAM & LEVANTE</span>
+          <h3 class="section-title">Directorio y Gestión Integral de Expedientes Aduaneros</h3>
         </div>
 
         <div class="section-controls">
+          <!-- Filtro por Canal SUNAT -->
           <select v-model="filterCanalExpediente" class="filter-select">
             <option value="">Todos los Canales SUNAT</option>
             <option value="PENDIENTE">Canal Pendiente</option>
             <option value="VERDE">Canal VERDE (Levante Inmediato)</option>
             <option value="NARANJA">Canal NARANJA (Documentario)</option>
-            <option value="ROJO">Canal ROJO (Físico)</option>
+            <option value="ROJO">Canal ROJO (Reconocimiento Físico)</option>
           </select>
 
+          <!-- Filtro por Estado de Expediente -->
+          <select v-model="filterEstadoExpediente" class="filter-select">
+            <option value="">Todos los Estados</option>
+            <option value="ASIGNADO">Asignado</option>
+            <option value="EN_TRAMITE">En Trámite</option>
+            <option value="CON_CANAL">Con Canal Asignado</option>
+            <option value="LEVANTE_AUTORIZADO">Levante Autorizado</option>
+            <option value="CERRADO">Cerrado / Concluido</option>
+            <option value="ANULADO">Anulado</option>
+          </select>
+
+          <!-- Búsqueda Rápida de Expedientes -->
+          <div class="search-input-wrap">
+            <i class="pi pi-search search-icon"></i>
+            <input
+              v-model="searchExpedienteQuery"
+              type="text"
+              class="search-input"
+              placeholder="Buscar por código, DAM, cliente o contenedor..."
+            />
+          </div>
+
+          <!-- Botón de Recarga -->
           <button type="button" class="btn-outline-warm" @click="loadData" :disabled="loading">
             <i :class="['pi pi-sync', { 'pi-spin': loading }]"></i>
             <span>Actualizar</span>
+          </button>
+
+          <!-- Botón Principal: + Aperturar Expediente -->
+          <button
+            type="button"
+            class="btn-primary-action"
+            @click="openAperturaModal(null)"
+            title="Aperturar un nuevo expediente aduanero a partir de una cotización aprobada"
+          >
+            <i class="pi pi-plus"></i>
+            <span>+ Aperturar Expediente</span>
           </button>
         </div>
       </div>
@@ -301,9 +339,16 @@
             </div>
           </template>
 
+          <template #loading>
+            <div class="loading-state">
+              <i class="pi pi-spin pi-spinner"></i>
+              <span>Cargando expedientes aduaneros...</span>
+            </div>
+          </template>
+
           <Column header="Código Expediente">
             <template #body="{ data: exp }">
-              <div class="os-code-badge">
+              <div class="exp-code-badge" @click="openDetalleExpediente(exp)" title="Clic para ver ficha completa">
                 <i class="pi pi-folder"></i>
                 <span class="font-bold font-mono">{{ exp.codigoExpediente }}</span>
               </div>
@@ -323,7 +368,7 @@
             <template #body="{ data: exp }">
               <div class="client-cell">
                 <span class="client-name">{{ exp.clienteRazonSocial || '—' }}</span>
-                <span class="client-sub">{{ exp.clienteNumeroDocumento }}</span>
+                <span class="client-sub">Doc: {{ exp.clienteNumeroDocumento }}</span>
               </div>
             </template>
           </Column>
@@ -331,7 +376,7 @@
           <Column header="DAM & Canal SUNAT">
             <template #body="{ data: exp }">
               <div class="client-cell">
-                <span class="font-mono text-xs">{{ exp.numeroDam || 'Sin DAM aún' }}</span>
+                <span class="font-mono text-xs font-bold">{{ exp.numeroDam || 'Sin DAM aún' }}</span>
                 <Tag
                   :value="exp.canalSunat || 'PENDIENTE'"
                   :severity="getCanalSeverity(exp.canalSunat)"
@@ -369,9 +414,29 @@
             </template>
           </Column>
 
-          <Column header="Acciones" headerClass="text-right" bodyClass="text-right">
+          <Column header="Acciones de Gestión" headerClass="text-right" bodyClass="text-right">
             <template #body="{ data: exp }">
               <div class="actions-wrapper">
+                <button
+                  type="button"
+                  class="action-btn-primary"
+                  title="Ver Ficha y Auditoría Completa del Expediente"
+                  @click="openDetalleExpediente(exp)"
+                >
+                  <i class="pi pi-eye"></i>
+                  <span>Detalle</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="action-btn-outline"
+                  title="Gestionar Documentos del Expediente (BL, Factura, DAM, etc.)"
+                  @click="openDocumentosExpediente(exp)"
+                >
+                  <i class="pi pi-paperclip"></i>
+                  <span>Docs</span>
+                </button>
+
                 <button
                   type="button"
                   class="action-btn-outline"
@@ -420,7 +485,7 @@
                 :severity="getEstadoSeverity(inspectedCotizacion.estado)"
                 rounded
               />
-              <span v-if="inspectedCotizacion.tieneExpediente" class="os-badge-header">
+              <span v-if="inspectedCotizacion.tieneExpediente" class="exp-badge-header">
                 <i class="pi pi-check-circle"></i> Expediente Aduanero: {{ inspectedCotizacion.codigoExpediente }}
               </span>
             </div>
@@ -521,6 +586,16 @@
 
       <template #footer>
         <div class="dialog-actions-row">
+          <button
+            type="button"
+            class="btn-outline-warm"
+            style="border-color: var(--color-accent-copper, #c2410c); color: var(--color-accent-copper, #c2410c);"
+            @click="openDocumentosCotizacion(inspectedCotizacion)"
+          >
+            <i class="pi pi-paperclip"></i>
+            <span>Documentos</span>
+          </button>
+
           <button type="button" class="btn-outline-warm" @click="showInspectModal = false">
             <span>Cerrar</span>
           </button>
@@ -653,8 +728,17 @@
     <AperturaExpedienteModal
       :visible="showAperturaModal"
       :cotizacion="selectedCotizacionParaExpediente"
+      :cotizaciones-disponibles="cotizacionesAprobadasSinExpediente"
       @close="showAperturaModal = false"
       @saved="onExpedienteAperturado"
+    />
+
+    <!-- Modal: Detalle Integral del Expediente Aduanero -->
+    <DetalleExpedienteModal
+      :visible="showDetalleModal"
+      :expediente="selectedExpedienteParaDetalle"
+      @close="showDetalleModal = false"
+      @open-docs="openDocumentosExpediente"
     />
 
     <!-- Modal: Asignación de Canal SUNAT / Levante Aduanero -->
@@ -665,11 +749,22 @@
       @close="showCanalLevanteModal = false"
       @saved="onCanalLevanteSaved"
     />
+
+    <!-- Modal: Gestión Integral de Documentos Adjuntos -->
+    <DocumentosManagerModal
+      :visible="showDocumentosModal"
+      :entidad-tipo="selectedDocEntidadTipo"
+      :id-entidad="selectedDocEntidadId"
+      :entidad-id="selectedDocEntidadId"
+      :codigo-entidad="selectedDocCodigoEntidad"
+      :titulo-entidad="selectedDocTituloEntidad"
+      @close="showDocumentosModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
@@ -678,33 +773,69 @@ import Textarea from 'primevue/textarea'
 import { supervisionService } from '../services/supervisionService'
 import { expedienteService } from '../services/expedienteService'
 import { useAuthStore } from '@/features/auth/stores/authStore'
+import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useConfirmation } from '@/shared/composables/useConfirmation'
 import AperturaExpedienteModal from '../components/AperturaExpedienteModal.vue'
+import DetalleExpedienteModal from '../components/DetalleExpedienteModal.vue'
 import CanalLevanteModal from '../components/CanalLevanteModal.vue'
+import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
+import HeroBannerCard from '@/shared/components/HeroBannerCard.vue'
+import MetricCard from '@/shared/components/MetricCard.vue'
 
 const authStore = useAuthStore()
+const navigationStore = useNavigationStore()
 
 const { showSuccess, showError, showInfo } = useNotification()
 const { confirmAction } = useConfirmation()
 
 const loading = ref(false)
-const activeTab = ref('cotizaciones') // 'cotizaciones' | 'ordenes'
+const activeTab = ref('cotizaciones') // 'cotizaciones' | 'expedientes'
 const cotizaciones = ref([])
-const ordenesServicio = ref([])
+const expedientes = ref([])
 
 // Filtros y Búsqueda
 const filterEstado = ref('')
 const searchQuery = ref('')
 const filterCanalExpediente = ref('')
+const filterEstadoExpediente = ref('')
+const searchExpedienteQuery = ref('')
 
 // Modales Operativos
 const showAperturaModal = ref(false)
 const selectedCotizacionParaExpediente = ref(null)
 
+const showDetalleModal = ref(false)
+const selectedExpedienteParaDetalle = ref(null)
+
 const showCanalLevanteModal = ref(false)
 const selectedExpedienteParaTramite = ref(null)
 const canalLevanteActionType = ref('canal')
+
+// Modal de Gestión de Documentos Adjuntos
+const showDocumentosModal = ref(false)
+const selectedDocEntidadTipo = ref('COTIZACION')
+const selectedDocEntidadId = ref(null)
+const selectedDocCodigoEntidad = ref('')
+const selectedDocTituloEntidad = ref('')
+
+const openDocumentosCotizacion = (cotizacion) => {
+  if (!cotizacion) return
+  selectedDocEntidadTipo.value = 'COTIZACION'
+  selectedDocEntidadId.value = cotizacion.idCotizacion
+  selectedDocCodigoEntidad.value = cotizacion.codigoCotizacion || `COT-${cotizacion.idCotizacion}`
+  selectedDocTituloEntidad.value = `${cotizacion.codigoCotizacion || 'Cotización'} — ${cotizacion.clienteRazonSocial || 'Cliente'}`
+  showDocumentosModal.value = true
+}
+
+const openDocumentosExpediente = (expediente) => {
+  if (!expediente) return
+  selectedDocEntidadTipo.value = 'EXPEDIENTE'
+  selectedDocEntidadId.value = expediente.idExpediente
+  selectedDocCodigoEntidad.value = expediente.codigoExpediente || `EXP-${expediente.idExpediente}`
+  selectedDocTituloEntidad.value = `${expediente.codigoExpediente || 'Expediente'} — ${expediente.clienteRazonSocial || 'Cliente'}`
+  showDocumentosModal.value = true
+}
 
 // Modales
 const showInspectModal = ref(false)
@@ -719,6 +850,22 @@ const rejectReason = ref('')
 const actionCotizacion = ref(null)
 const processingAction = ref(false)
 
+// Sincronización reactiva con el menú lateral (Sidebar)
+const switchTab = (tabName) => {
+  activeTab.value = tabName
+  navigationStore.setSupervisionSubOption(tabName)
+}
+
+watch(
+  () => [navigationStore.supervisionSubOption, navigationStore.navTick],
+  ([newSub]) => {
+    if (newSub && ['cotizaciones', 'expedientes'].includes(newSub)) {
+      activeTab.value = newSub
+    }
+  },
+  { immediate: true }
+)
+
 // Métricas Computadas
 const enviadasCount = computed(() => {
   return cotizaciones.value.filter((c) => c.estado === 'ENVIADA' || c.estado === 'PENDIENTE').length
@@ -730,6 +877,23 @@ const revisionCount = computed(() => {
 
 const aprobadasCount = computed(() => {
   return cotizaciones.value.filter((c) => c.estado === 'APROBADA').length
+})
+
+const cotizacionesAprobadasSinExpediente = computed(() => {
+  return cotizaciones.value.filter((c) => c.estado === 'APROBADA' && !c.tieneExpediente)
+})
+
+// Métricas de Expedientes
+const expedientesPendienteCanalCount = computed(() => {
+  return expedientes.value.filter((e) => !e.canalSunat || e.canalSunat === 'PENDIENTE').length
+})
+
+const expedientesConCanalCount = computed(() => {
+  return expedientes.value.filter((e) => e.canalSunat && e.canalSunat !== 'PENDIENTE').length
+})
+
+const expedientesConLevanteCount = computed(() => {
+  return expedientes.value.filter((e) => !!e.fechaLevanteAutorizacion).length
 })
 
 // Filtrado de Cotizaciones
@@ -754,7 +918,7 @@ const filteredCotizaciones = computed(() => {
         c.clienteRazonSocial?.toLowerCase().includes(q) ||
         c.clienteNumeroDocumento?.toLowerCase().includes(q) ||
         c.usuarioComercialNombre?.toLowerCase().includes(q) ||
-        c.codigoOrdenServicio?.toLowerCase().includes(q)
+        c.codigoExpediente?.toLowerCase().includes(q)
       if (!match) return false
     }
 
@@ -762,13 +926,42 @@ const filteredCotizaciones = computed(() => {
   })
 })
 
-// Filtrado de Órdenes de Servicio
+// Filtrado de Expedientes Aduaneros
 const filteredExpedientes = computed(() => {
-  if (!filterCanalExpediente.value) return ordenesServicio.value
-  return ordenesServicio.value.filter((e) => e.canalSunat === filterCanalExpediente.value)
+  return expedientes.value.filter((e) => {
+    // Filtro por Canal SUNAT
+    if (filterCanalExpediente.value) {
+      if (filterCanalExpediente.value === 'PENDIENTE') {
+        if (e.canalSunat && e.canalSunat !== 'PENDIENTE') return false
+      } else if (e.canalSunat !== filterCanalExpediente.value) {
+        return false
+      }
+    }
+
+    // Filtro por Estado del Expediente
+    if (filterEstadoExpediente.value) {
+      if (e.estadoExpediente !== filterEstadoExpediente.value) return false
+    }
+
+    // Filtro por Búsqueda
+    if (searchExpedienteQuery.value) {
+      const q = searchExpedienteQuery.value.toLowerCase().trim()
+      const match =
+        e.codigoExpediente?.toLowerCase().includes(q) ||
+        e.codigoCotizacion?.toLowerCase().includes(q) ||
+        e.clienteRazonSocial?.toLowerCase().includes(q) ||
+        e.clienteNumeroDocumento?.toLowerCase().includes(q) ||
+        e.numeroDam?.toLowerCase().includes(q) ||
+        e.numeroContenedor?.toLowerCase().includes(q) ||
+        e.agenteAduaneroNombre?.toLowerCase().includes(q)
+      if (!match) return false
+    }
+
+    return true
+  })
 })
 
-const openAperturaModal = (cotizacion) => {
+const openAperturaModal = (cotizacion = null) => {
   selectedCotizacionParaExpediente.value = cotizacion
   showAperturaModal.value = true
 }
@@ -777,6 +970,11 @@ const onExpedienteAperturado = (expedienteCreado) => {
   showAperturaModal.value = false
   showSuccess(`¡Expediente ${expedienteCreado.codigoExpediente} aperturado exitosamente!`)
   loadData()
+}
+
+const openDetalleExpediente = (exp) => {
+  selectedExpedienteParaDetalle.value = exp
+  showDetalleModal.value = true
 }
 
 const openCanalModal = (exp) => {
@@ -806,12 +1004,18 @@ const loadData = async () => {
       expedienteService.getExpedientes()
     ])
     cotizaciones.value = cots || []
-    ordenesServicio.value = exps || []
+    expedientes.value = exps || []
 
     // Si había una cotización inspeccionada, refrescar su dato
     if (inspectedCotizacion.value) {
       const updated = cotizaciones.value.find((c) => c.idCotizacion === inspectedCotizacion.value.idCotizacion)
       if (updated) inspectedCotizacion.value = updated
+    }
+
+    // Si había un expediente en detalle, refrescar su dato
+    if (selectedExpedienteParaDetalle.value) {
+      const updatedExp = expedientes.value.find((e) => e.idExpediente === selectedExpedienteParaDetalle.value.idExpediente)
+      if (updatedExp) selectedExpedienteParaDetalle.value = updatedExp
     }
   } catch (err) {
     showError(err.response?.data?.message || 'Error al sincronizar datos de Supervisión.')
@@ -1287,6 +1491,7 @@ const formatDateTime = (dtStr) => {
   font-size: 0.9375rem;
 }
 
+.exp-linked-tag,
 .os-linked-tag {
   display: inline-flex;
   align-items: center;
@@ -1301,7 +1506,8 @@ const formatDateTime = (dtStr) => {
   font-family: var(--font-mono, monospace);
 }
 
-.os-code-badge {
+.os-code-badge,
+.exp-code-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -1312,6 +1518,99 @@ const formatDateTime = (dtStr) => {
   font-weight: 700;
   font-family: var(--font-mono, monospace);
   color: var(--color-text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.2s ease);
+}
+
+.exp-code-badge:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-muted);
+}
+
+.btn-primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
+  background: var(--color-accent-kicker, #c2410c);
+  border: 1px solid var(--color-accent-kicker, #c2410c);
+  border-radius: var(--radius-md, 8px);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.2s ease);
+  white-space: nowrap;
+}
+
+.btn-primary-action:hover {
+  background: var(--color-primary, #352f2a);
+  border-color: var(--color-primary, #352f2a);
+  transform: translateY(-1px);
+}
+
+.exp-pending-alert-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background: var(--color-warning-bg, #fdf5e6);
+  border: 1px solid var(--color-warning-border, #f8dab3);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.alert-icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-warning-border, #f8dab3);
+  color: var(--color-warning-text, #8c5b16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.alert-text-content {
+  flex: 1;
+  min-width: 240px;
+}
+
+.alert-text-content strong {
+  font-size: 0.9375rem;
+  color: var(--color-warning-text, #8c5b16);
+  display: block;
+}
+
+.alert-text-content p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.btn-alert-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-warning-text, #8c5b16);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  padding: 0.625rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-alert-action:hover {
+  background: #71460e;
+  transform: translateY(-1px);
 }
 
 .text-muted-dash {
@@ -1477,6 +1776,7 @@ const formatDateTime = (dtStr) => {
   gap: var(--space-3, 0.75rem);
 }
 
+.exp-badge-header,
 .os-badge-header {
   display: inline-flex;
   align-items: center;

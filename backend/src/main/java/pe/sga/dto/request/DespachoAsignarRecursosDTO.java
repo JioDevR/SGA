@@ -20,5 +20,7 @@ public class DespachoAsignarRecursosDTO {
     @Size(max = 30, message = "La guía de remisión no puede exceder 30 caracteres")
     private String guiaRemisionTransporte;
 
+    private java.time.LocalDateTime fechaProgramada;
+
     private String observaciones;
 }

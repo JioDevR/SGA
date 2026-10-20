@@ -53,6 +53,35 @@ public class DespachoTransporteController {
         return ResponseEntity.ok(ApiResponseDTO.ok(dto));
     }
 
+    @GetMapping("/mi-despacho-activo")
+    public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> obtenerMiDespachoActivo(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal pe.sga.entity.Usuario usuarioAutenticado) {
+        if (usuarioAutenticado == null) {
+            return ResponseEntity.ok(ApiResponseDTO.ok("Usuario no autenticado", null));
+        }
+        DespachoTransporteResponseDTO dto = despachoService.obtenerDespachoActivoPorUsuario(usuarioAutenticado.getIdUsuario());
+        return ResponseEntity.ok(ApiResponseDTO.ok("Despacho activo del conductor", dto));
+    }
+
+    @GetMapping("/mis-despachos")
+    public ResponseEntity<ApiResponseDTO<List<DespachoTransporteResponseDTO>>> listarMisDespachos(
+            @org.springframework.security.core.annotation.AuthenticationPrincipal pe.sga.entity.Usuario usuarioAutenticado) {
+        if (usuarioAutenticado == null) {
+            return ResponseEntity.ok(ApiResponseDTO.ok("Usuario no autenticado", List.of()));
+        }
+        List<DespachoTransporteResponseDTO> lista = despachoService.listarMisDespachos(usuarioAutenticado.getIdUsuario());
+        return ResponseEntity.ok(ApiResponseDTO.ok("Historial de despachos del conductor", lista));
+    }
+
+    @PostMapping("/{id}/incidencia")
+    public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> reportarIncidencia(
+            @PathVariable Integer id,
+            @RequestBody java.util.Map<String, String> body) {
+        String incidencia = body.getOrDefault("incidencia", "Incidencia no detallada");
+        DespachoTransporteResponseDTO actualizado = despachoService.reportarIncidencia(id, incidencia);
+        return ResponseEntity.ok(ApiResponseDTO.ok("Incidencia reportada correctamente", actualizado));
+    }
+
     @GetMapping("/expediente/{idExpediente}")
     public ResponseEntity<ApiResponseDTO<DespachoTransporteResponseDTO>> buscarPorExpediente(@PathVariable Integer idExpediente) {
         DespachoTransporteResponseDTO dto = despachoService.buscarPorExpediente(idExpediente);

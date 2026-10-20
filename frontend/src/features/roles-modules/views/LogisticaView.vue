@@ -1,52 +1,18 @@
 <template>
   <div class="logistica-view">
-    <!-- 1. Hero Banner Card Editorial Cálido -->
-    <div class="hero-banner-card">
-      <div class="hero-content">
-        <span class="badge-kicker">LOGÍSTICA ADUANERA // DEPÓSITOS TEMPORALES & VGM</span>
-        <h2 class="hero-title">Custodia de Carga, Control de Pesaje y Retiro de Terminal</h2>
-        <p class="hero-desc">
-          Supervisión de ingresos a depósitos autorizados, certificación de masa bruta verificada (SOLAS VGM), alerta de días libres sin sobrestadía y autorización de salida tras levante.
-        </p>
-      </div>
-      <div class="hero-watermark">
-        <span>SGA</span>
-      </div>
-    </div>
+    <!-- 1. Hero Banner Card Editorial Cálido Reutilizable -->
+    <HeroBannerCard
+      kicker="LOGÍSTICA ADUANERA // DEPÓSITOS TEMPORALES & VGM"
+      title="Custodia de Carga, Control de Pesaje y Retiro de Terminal"
+      description="Supervisión de ingresos a depósitos autorizados, certificación de masa bruta verificada (SOLAS VGM), alerta de días libres sin sobrestadía y autorización de salida tras levante."
+    />
 
-    <!-- 2. Métricas de Almacén -->
+    <!-- 2. Métricas de Almacén Reutilizando MetricCard -->
     <div class="metrics-grid">
-      <div class="metric-card highlight-card">
-        <div class="metric-top">
-          <span class="metric-idx">01</span>
-          <span class="metric-label">En Custodia / Patio</span>
-        </div>
-        <div class="metric-val text-pending">{{ enCustodiaCount }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">02</span>
-          <span class="metric-label">Salidas Autorizadas</span>
-        </div>
-        <div class="metric-val text-success">{{ salidasCount }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">03</span>
-          <span class="metric-label">Días Libres por Vencer</span>
-        </div>
-        <div class="metric-val text-warning">{{ proximosAVencerCount }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">04</span>
-          <span class="metric-label">Total Registros VGM</span>
-        </div>
-        <div class="metric-val text-accent">{{ inventario.length }}</div>
-      </div>
+      <MetricCard index="01" label="En Custodia / Patio" :value="enCustodiaCount" severity="pending" highlight />
+      <MetricCard index="02" label="Salidas Autorizadas" :value="salidasCount" severity="success" />
+      <MetricCard index="03" label="Días Libres por Vencer" :value="proximosAVencerCount" severity="warning" />
+      <MetricCard index="04" label="Total Registros VGM" :value="inventario.length" severity="accent" />
     </div>
 
     <!-- 3. Contenedor de Listado y Controles -->
@@ -218,15 +184,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import { almacenService } from '../services/almacenService'
+import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useConfirmation } from '@/shared/composables/useConfirmation'
 import IngresoAlmacenModal from '../components/IngresoAlmacenModal.vue'
+import HeroBannerCard from '@/shared/components/HeroBannerCard.vue'
+import MetricCard from '@/shared/components/MetricCard.vue'
 
+const navigationStore = useNavigationStore()
 const { showSuccess, showError, showInfo } = useNotification()
 const { confirmAction, confirmDelete } = useConfirmation()
 
@@ -235,6 +205,20 @@ const inventario = ref([])
 const filterEstado = ref('')
 const searchQuery = ref('')
 const showIngresoModal = ref(false)
+
+watch(
+  () => [navigationStore.aduanasSubOption, navigationStore.navTick],
+  ([sub]) => {
+    if (sub === 'recepcion') {
+      filterEstado.value = 'EN_CUSTODIA'
+    } else if (sub === 'bultos') {
+      filterEstado.value = 'SALIDA_AUTORIZADA'
+    } else {
+      filterEstado.value = ''
+    }
+  },
+  { immediate: true }
+)
 
 // Métricas
 const enCustodiaCount = computed(() => {

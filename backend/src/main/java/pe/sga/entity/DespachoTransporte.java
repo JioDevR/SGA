@@ -41,6 +41,10 @@ public class DespachoTransporte {
     @Column(name = "guia_remision_transporte", length = 30)
     private String guiaRemisionTransporte;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_documento_remision")
+    private DocumentoAdjunto documentoRemision;
+
     @Column(name = "direccion_partida", nullable = false, length = 255)
     private String direccionPartida;
 
@@ -52,6 +56,12 @@ public class DespachoTransporte {
 
     @Column(name = "contacto_recepcion", length = 100)
     private String contactoRecepcion;
+
+    @Column(name = "receptor_nombre", length = 120)
+    private String receptorNombre;
+
+    @Column(name = "receptor_dni", length = 15)
+    private String receptorDni;
 
     @Column(name = "fecha_programada", nullable = false)
     private LocalDateTime fechaProgramada;

@@ -4,11 +4,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pe.sga.dto.request.LiquidacionFinancieraRequestDTO;
 import pe.sga.dto.request.LiquidacionPagoDTO;
 import pe.sga.dto.response.ApiResponseDTO;
+import pe.sga.dto.response.FinanzasMetricasResponseDTO;
+import pe.sga.dto.response.LiquidacionEstimadoResponseDTO;
 import pe.sga.dto.response.LiquidacionFinancieraResponseDTO;
+import pe.sga.entity.Usuario;
 import pe.sga.service.ILiquidacionFinancieraService;
 
 import java.util.List;
@@ -33,6 +37,18 @@ public class LiquidacionFinancieraController {
         return ResponseEntity.ok(ApiResponseDTO.ok("Lista de liquidaciones financieras recuperada", lista));
     }
 
+    @GetMapping("/metricas")
+    public ResponseEntity<ApiResponseDTO<FinanzasMetricasResponseDTO>> obtenerMetricas() {
+        FinanzasMetricasResponseDTO metricas = liquidacionService.obtenerMetricas();
+        return ResponseEntity.ok(ApiResponseDTO.ok("Métricas financieras consolidadas", metricas));
+    }
+
+    @GetMapping("/calcular-estimado/{idExpediente}")
+    public ResponseEntity<ApiResponseDTO<LiquidacionEstimadoResponseDTO>> calcularEstimado(@PathVariable Integer idExpediente) {
+        LiquidacionEstimadoResponseDTO estimado = liquidacionService.calcularEstimado(idExpediente);
+        return ResponseEntity.ok(ApiResponseDTO.ok("Estimado de liquidación calculado exitosamente", estimado));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<LiquidacionFinancieraResponseDTO>> buscarPorId(@PathVariable Integer id) {
         LiquidacionFinancieraResponseDTO dto = liquidacionService.buscarPorId(id);
@@ -52,8 +68,11 @@ public class LiquidacionFinancieraController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponseDTO<LiquidacionFinancieraResponseDTO>> emitir(@Valid @RequestBody LiquidacionFinancieraRequestDTO dto) {
-        LiquidacionFinancieraResponseDTO creada = liquidacionService.emitir(dto);
+    public ResponseEntity<ApiResponseDTO<LiquidacionFinancieraResponseDTO>> emitir(
+            @Valid @RequestBody LiquidacionFinancieraRequestDTO dto,
+            @AuthenticationPrincipal Usuario usuarioAutenticado) {
+        Integer idUsuario = usuarioAutenticado != null ? usuarioAutenticado.getIdUsuario() : null;
+        LiquidacionFinancieraResponseDTO creada = liquidacionService.emitir(dto, idUsuario);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponseDTO.ok("Liquidación financiera emitida exitosamente", creada));
     }

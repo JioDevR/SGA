@@ -11,10 +11,18 @@ export const useNavigationStore = defineStore('navigation', {
     gerenciaSubOption: 'sedes',
     // Sub-opciones en Ventas: 'cotizaciones' | 'clientes' | 'ordenes'
     ventasSubOption: 'cotizaciones',
-    // Sub-opciones en Supervisión Aduanera: 'cotizaciones' | 'ordenes'
+    // Sub-opciones en Supervisión Aduanera: 'cotizaciones' | 'expedientes'
     supervisionSubOption: 'cotizaciones',
     // Sub-opciones en Agente Aduanero: 'almacen' | 'expedientes' | 'despacho'
     aduanasSubOption: 'almacen',
+    // Sub-opciones en Transporte: 'despachos' | 'unidades' | 'conductores'
+    transporteSubOption: 'despachos',
+    // Sub-opciones en Liquidador: 'declaraciones' | 'clasificacion' | 'tributos'
+    liquidadorSubOption: 'declaraciones',
+    // Sub-opciones en Legal: 'expedientes' | 'auditorias'
+    legalSubOption: 'expedientes',
+    // Sub-opciones en Finanzas: 'liquidacion' | 'facturacion'
+    finanzasSubOption: 'liquidacion',
     // Disparador de acciones modales directas
     ventasActionTrigger: null,
     adminActionTrigger: null,
@@ -94,6 +102,26 @@ export const useNavigationStore = defineStore('navigation', {
 
     setAduanasSubOption(option) {
       this.aduanasSubOption = option
+      this.navTick++
+    },
+
+    setTransporteSubOption(option) {
+      this.transporteSubOption = option
+      this.navTick++
+    },
+
+    setLiquidadorSubOption(option) {
+      this.liquidadorSubOption = option
+      this.navTick++
+    },
+
+    setLegalSubOption(option) {
+      this.legalSubOption = option
+      this.navTick++
+    },
+
+    setFinanzasSubOption(option) {
+      this.finanzasSubOption = option
       this.navTick++
     },
 

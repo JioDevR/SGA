@@ -33,7 +33,7 @@ export const supervisionService = {
   },
 
   // ==========================================
-  // EXPEDIENTES ADUANEROS (Sustituto de Orden de Servicio)
+  // GESTIÓN DE EXPEDIENTES ADUANEROS
   // ==========================================
   async getExpedientes(params = {}) {
     const response = await apiClient.get('/expedientes', { params })

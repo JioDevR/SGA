@@ -22,84 +22,69 @@
     <!-- Vista Principal: Tablero Comercial y Listados -->
     <div v-else class="ventas-master-container">
 
-      <!-- 1. Hero Banner Card con Estilo Editorial Cálido -->
-      <div class="hero-banner-card">
-        <div class="hero-content">
-          <span class="badge-kicker">MÓDULO DE MARKETING & GESTIÓN COMERCIAL</span>
-          <h2 class="hero-title">Control de Cotizaciones, Clientes y Servicios</h2>
-          <p class="hero-desc">
-            Supervisión de prospectos comerciales, emisión de presupuestos de despacho aduanero y formalización de órdenes de servicio.
-          </p>
-        </div>
-        <div class="hero-watermark">
-          <span>SGA</span>
-        </div>
-      </div>
+      <!-- 1. Hero Banner Card con Estilo Editorial Cálido Reutilizable -->
+      <HeroBannerCard
+        kicker="MÓDULO DE MARKETING & GESTIÓN COMERCIAL"
+        title="Control de Cotizaciones, Clientes y Expedientes"
+        description="Supervisión de prospectos comerciales, emisión de presupuestos de despacho aduanero y formalización de expedientes operativos."
+      />
 
-      <!-- 2. Métricas Comerciales Rápidas (01, 02, 03, 04) -->
+      <!-- 2. Métricas Comerciales Rápidas Reutilizando MetricCard -->
       <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-top">
-            <span class="metric-idx">01</span>
-            <span class="metric-label">Cotizaciones Emitidas</span>
-          </div>
-          <div class="metric-val">{{ cotizaciones.length }}</div>
+        <MetricCard
+          index="01"
+          label="Cotizaciones Emitidas"
+          :value="cotizaciones.length"
+          severity="accent"
+        />
+        <MetricCard
+          index="02"
+          label="Propuestas Aprobadas"
+          :value="aprobadasCount"
+          severity="success"
+        />
+        <MetricCard
+          index="03"
+          label="Clientes & Prospectos"
+          :value="clientes.length"
+        />
+        <MetricCard
+          index="04"
+          label="Expedientes Aduaneros"
+          :value="ordenesServicio.length"
+          severity="pending"
+        />
       </div>
 
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">02</span>
-          <span class="metric-label">Propuestas Aprobadas</span>
-        </div>
-        <div class="metric-val">{{ aprobadasCount }}</div>
+      <!-- 3. Selector de Pestañas Principales -->
+      <div class="tabs-nav-bar">
+        <button
+          type="button"
+          :class="['tab-btn', { active: activeTab === 'cotizaciones' }]"
+          @click="switchTab('cotizaciones')"
+        >
+          <i class="pi pi-file-edit"></i>
+          <span>Cotizaciones ({{ cotizaciones.length }})</span>
+        </button>
+
+        <button
+          type="button"
+          :class="['tab-btn', { active: activeTab === 'clientes' }]"
+          @click="switchTab('clientes')"
+        >
+          <i class="pi pi-building"></i>
+          <span>Clientes & Prospectos ({{ clientes.length }})</span>
+        </button>
+
+        <button
+          type="button"
+          :class="['tab-btn', { active: activeTab === 'ordenes' }]"
+          @click="switchTab('ordenes')"
+        >
+          <i class="pi pi-send"></i>
+          <span>Expedientes Aduaneros ({{ ordenesServicio.length }})</span>
+        </button>
       </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">03</span>
-          <span class="metric-label">Clientes & Prospectos</span>
-        </div>
-        <div class="metric-val">{{ clientes.length }}</div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-top">
-          <span class="metric-idx">04</span>
-          <span class="metric-label">Órdenes de Servicio (OS)</span>
-        </div>
-        <div class="metric-val">{{ ordenesServicio.length }}</div>
-      </div>
-    </div>
-
-    <!-- 3. Selector de Pestañas Principales -->
-    <div class="tabs-nav-bar">
-      <button
-        type="button"
-        :class="['tab-btn', { active: activeTab === 'cotizaciones' }]"
-        @click="switchTab('cotizaciones')"
-      >
-        <i class="pi pi-file-edit"></i>
-        <span>Cotizaciones ({{ cotizaciones.length }})</span>
-      </button>
-
-      <button
-        type="button"
-        :class="['tab-btn', { active: activeTab === 'clientes' }]"
-        @click="switchTab('clientes')"
-      >
-        <i class="pi pi-building"></i>
-        <span>Clientes & Prospectos ({{ clientes.length }})</span>
-      </button>
-
-      <button
-        type="button"
-        :class="['tab-btn', { active: activeTab === 'ordenes' }]"
-        @click="switchTab('ordenes')"
-      >
-        <i class="pi pi-send"></i>
-        <span>Órdenes de Servicio ({{ ordenesServicio.length }})</span>
-      </button>
-    </div>
 
     <!-- TAB 1: COTIZACIONES -->
     <div v-if="activeTab === 'cotizaciones'" class="tab-content-section">
@@ -224,6 +209,16 @@
           <Column header="Acciones" headerClass="text-right" bodyClass="text-right">
             <template #body="{ data: c }">
               <div class="actions-wrapper">
+                <button
+                  type="button"
+                  class="action-btn-outline"
+                  title="Ver / Adjuntar Documentos de la Cotización"
+                  @click="openDocumentosCotizacion(c)"
+                >
+                  <i class="pi pi-paperclip"></i>
+                  <span>Docs</span>
+                </button>
+
                 <button
                   v-if="c.estado === 'REVISION' || c.estado === 'OBSERVADA'"
                   type="button"
@@ -378,12 +373,12 @@
       </div>
     </div>
 
-    <!-- TAB 3: ÓRDENES DE SERVICIO -->
+    <!-- TAB 3: EXPEDIENTES ADUANEROS -->
     <div v-if="activeTab === 'ordenes'" class="tab-content-section">
       <div class="section-header-row">
         <div>
           <span class="badge-kicker">SEGUIMIENTO OPERATIVO</span>
-          <h3 class="section-title">Órdenes de Servicio Generadas</h3>
+          <h3 class="section-title">Expedientes Aduaneros Generados</h3>
         </div>
 
         <div class="section-controls">
@@ -401,7 +396,7 @@
         </div>
       </div>
 
-      <!-- Tabla de Órdenes de Servicio con PrimeVue DataTable -->
+      <!-- Tabla de Expedientes Aduaneros con PrimeVue DataTable -->
       <div class="table-container">
         <DataTable
           :value="filteredOrdenes"
@@ -412,13 +407,13 @@
         >
           <template #empty>
             <div class="empty-state">
-              <i class="pi pi-send empty-icon"></i>
-              <p class="empty-title">No hay órdenes de servicio</p>
-              <p class="empty-desc">Las órdenes de servicio se generan aprobando cotizaciones comerciales.</p>
+              <i class="pi pi-folder-open empty-icon"></i>
+              <p class="empty-title">No hay expedientes aduaneros</p>
+              <p class="empty-desc">Los expedientes operativos se gestionan a partir de cotizaciones comerciales aprobadas.</p>
             </div>
           </template>
 
-          <Column header="Código OS">
+          <Column header="Código Expediente">
             <template #body="{ data: os }">
               <span class="doc-code-os">{{ os.codigoOs }}</span>
             </template>
@@ -537,6 +532,17 @@
         </div>
       </template>
     </Dialog>
+
+    <!-- Modal: Gestión Integral de Documentos Adjuntos -->
+    <DocumentosManagerModal
+      :visible="showDocumentosModal"
+      :entidad-tipo="'COTIZACION'"
+      :id-entidad="selectedDocCotizacionId"
+      :entidad-id="selectedDocCotizacionId"
+      :codigo-entidad="selectedDocCotizacionCodigo"
+      :titulo-entidad="selectedDocCotizacionTitulo"
+      @close="showDocumentosModal = false"
+    />
     </div>
   </div>
 </template>
@@ -554,6 +560,9 @@ import { useNotification } from '@/shared/composables/useNotification'
 import { useConfirmation } from '@/shared/composables/useConfirmation'
 import ClienteRegistrationForm from '../components/ClienteRegistrationForm.vue'
 import CotizacionRegistrationForm from '../components/CotizacionRegistrationForm.vue'
+import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
+import HeroBannerCard from '@/shared/components/HeroBannerCard.vue'
+import MetricCard from '@/shared/components/MetricCard.vue'
 
 const navigationStore = useNavigationStore()
 const { showSuccess, showError, showInfo } = useNotification()
@@ -570,6 +579,20 @@ const selectedCotizacion = ref(null)
 
 const showObservationDialog = ref(false)
 const selectedObservationCotizacion = ref(null)
+
+// Modal de Gestión de Documentos
+const showDocumentosModal = ref(false)
+const selectedDocCotizacionId = ref(null)
+const selectedDocCotizacionCodigo = ref('')
+const selectedDocCotizacionTitulo = ref('')
+
+const openDocumentosCotizacion = (cotizacion) => {
+  if (!cotizacion) return
+  selectedDocCotizacionId.value = cotizacion.idCotizacion
+  selectedDocCotizacionCodigo.value = cotizacion.codigoCotizacion || `COT-${cotizacion.idCotizacion}`
+  selectedDocCotizacionTitulo.value = `${cotizacion.codigoCotizacion || 'Cotización'} — ${cotizacion.clienteRazonSocial || 'Cliente'}`
+  showDocumentosModal.value = true
+}
 
 const openViewObservation = (cotizacion) => {
   selectedObservationCotizacion.value = cotizacion
@@ -701,7 +724,13 @@ const loadData = async () => {
     ])
     cotizaciones.value = cots || []
     clientes.value = cls || []
-    ordenesServicio.value = exps || []
+    ordenesServicio.value = (exps || []).map((exp) => ({
+      ...exp,
+      idOrdenServicio: exp.idExpediente,
+      codigoOs: exp.codigoExpediente,
+      estadoServicio: exp.estadoExpediente,
+      fechaEmision: exp.fechaApertura
+    }))
   } catch (err) {
     showToast(err.response?.data?.message || 'Error al conectar con la API de ventas.', 'error')
   } finally {
@@ -856,6 +885,7 @@ const handleGenerarOS = async (cotizacion) => {
   try {
     await ventasService.createOrdenServicio({
       idCotizacion: cotizacion.idCotizacion,
+      idAgenteAduanero: cotizacion.idAgenteRevisor || 1,
       observaciones: `Servicio formalizado desde propuesta ${cotizacion.codigoCotizacion}`
     })
     showToast('¡Orden de Servicio generada con éxito!')

@@ -32,6 +32,26 @@ export const gerenciaRoutes = [
       roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
       title: 'Panel Ejecutivo - Gerencia SGA'
     }
+  },
+  {
+    path: '/gerencia/flota',
+    name: 'GerenciaFlota',
+    component: () => import('@/features/gerencia/views/GerenciaFlotaView.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
+      title: 'Parque Automotor & Flota - Gerencia SGA'
+    }
+  },
+  {
+    path: '/gerencia/conductores',
+    name: 'GerenciaConductores',
+    component: () => import('@/features/gerencia/views/GerenciaConductoresView.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
+      title: 'Plantilla de Conductores MTC - Gerencia SGA'
+    }
   }
 ]
 

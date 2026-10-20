@@ -9,6 +9,8 @@ USE SGAdb;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS documento_adjunto;
+
 DROP TABLE IF EXISTS liquidacion_financiera;
 
 DROP TABLE IF EXISTS despacho_transporte;
@@ -282,14 +284,20 @@ CREATE TABLE control_almacen (
 
 CREATE TABLE conductor (
     id_conductor INT NOT NULL AUTO_INCREMENT,
+    id_usuario INT NULL,
     nombres VARCHAR(100) NOT NULL,
     apellidos VARCHAR(100) NOT NULL,
+    numero_documento VARCHAR(15) NULL,
     tipo_licencia VARCHAR(10) NOT NULL DEFAULT 'A-IIIc',
     numero_licencia VARCHAR(20) NOT NULL,
+    fecha_vencimiento_licencia DATE NULL,
     telefono VARCHAR(20) NULL,
+    estado_operativo VARCHAR(20) NOT NULL DEFAULT 'DISPONIBLE',
     estado_activo BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id_conductor),
-    CONSTRAINT uq_conductor_licencia UNIQUE (numero_licencia)
+    CONSTRAINT uq_conductor_usuario UNIQUE (id_usuario),
+    CONSTRAINT uq_conductor_licencia UNIQUE (numero_licencia),
+    CONSTRAINT fk_conductor_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 CREATE TABLE unidad_transporte (
@@ -297,8 +305,12 @@ CREATE TABLE unidad_transporte (
     placa_tracto VARCHAR(15) NOT NULL,
     placa_carreta VARCHAR(15) NULL,
     marca_modelo VARCHAR(100) NOT NULL,
+    ano_fabricacion INT NULL,
     tipo_vehiculo VARCHAR(50) NOT NULL DEFAULT 'TRACTO_PLATAFORMA',
     capacidad_carga_kg DECIMAL(10, 2) NOT NULL DEFAULT 30000.00,
+    soat_vencimiento DATE NULL,
+    citv_vencimiento DATE NULL,
+    kilometraje_actual INT NOT NULL DEFAULT 0,
     estado_operativo VARCHAR(20) NOT NULL DEFAULT 'DISPONIBLE',
     estado_activo BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id_unidad),
@@ -316,10 +328,13 @@ CREATE TABLE despacho_transporte (
     id_unidad INT NULL,
     -- Documentación de Tránsito y Ruta
     guia_remision_transporte VARCHAR(30) NULL,
+    id_documento_remision INT NULL,
     direccion_partida VARCHAR(255) NOT NULL,
     direccion_llegada VARCHAR(255) NOT NULL,
     distrito_llegada VARCHAR(100) NOT NULL,
     contacto_recepcion VARCHAR(100) NULL,
+    receptor_nombre VARCHAR(120) NULL,
+    receptor_dni VARCHAR(15) NULL,
     -- Fechas y Control de Traslado
     fecha_programada DATETIME NOT NULL,
     fecha_salida_ruta DATETIME NULL,
@@ -334,7 +349,8 @@ CREATE TABLE despacho_transporte (
     CONSTRAINT uq_transporte_tracking UNIQUE (codigo_tracking),
     CONSTRAINT fk_transporte_expediente FOREIGN KEY (id_expediente) REFERENCES expediente (id_expediente) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT fk_transporte_conductor FOREIGN KEY (id_conductor) REFERENCES conductor (id_conductor) ON UPDATE CASCADE ON DELETE SET NULL,
-    CONSTRAINT fk_transporte_unidad FOREIGN KEY (id_unidad) REFERENCES unidad_transporte (id_unidad) ON UPDATE CASCADE ON DELETE SET NULL
+    CONSTRAINT fk_transporte_unidad FOREIGN KEY (id_unidad) REFERENCES unidad_transporte (id_unidad) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_despacho_doc_remision FOREIGN KEY (id_documento_remision) REFERENCES documento_adjunto (id_documento) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 ---------------------------------------------------------------------------------
 
@@ -347,18 +363,28 @@ CREATE TABLE liquidacion_financiera (
     id_liquidacion INT NOT NULL AUTO_INCREMENT,
     codigo_liquidacion VARCHAR(30) NOT NULL,
     id_expediente INT NOT NULL,
+    id_usuario_liquidador INT NULL,
     -- Desglose de Cobranza Consolidada
     total_tributos_sunat DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     gastos_almacen_puerto DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     flete_transporte_local DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     honorarios_agencia DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    subtotal_imponible DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    igv_monto DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    aplica_detraccion BOOLEAN NOT NULL DEFAULT TRUE,
+    porcentaje_detraccion DECIMAL(5, 2) NOT NULL DEFAULT 12.00,
+    monto_detraccion DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     total_general_pen DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    total_general_usd DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     tipo_cambio DECIMAL(8, 4) NOT NULL DEFAULT 3.7500,
     -- Columnas Secundarias (Control y Estado del Sistema)
     estado_pago VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
     numero_factura VARCHAR(30) NULL,
+    id_documento_factura INT NULL,
     metodo_pago VARCHAR(50) NULL,
+    banco_destino VARCHAR(80) NULL,
     numero_operacion VARCHAR(50) NULL,
+    id_documento_voucher INT NULL,
     fecha_emision DATE NOT NULL,
     fecha_pago DATETIME NULL,
     observaciones TEXT NULL,
@@ -366,11 +392,43 @@ CREATE TABLE liquidacion_financiera (
     PRIMARY KEY (id_liquidacion),
     CONSTRAINT uq_liquidacion_codigo UNIQUE (codigo_liquidacion),
     CONSTRAINT uq_liquidacion_expediente UNIQUE (id_expediente),
-    CONSTRAINT fk_liquidacion_expediente FOREIGN KEY (id_expediente) REFERENCES expediente (id_expediente) ON UPDATE CASCADE ON DELETE RESTRICT
+    CONSTRAINT fk_liquidacion_expediente FOREIGN KEY (id_expediente) REFERENCES expediente (id_expediente) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_liquidacion_usuario FOREIGN KEY (id_usuario_liquidador) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_liquidacion_doc_factura FOREIGN KEY (id_documento_factura) REFERENCES documento_adjunto (id_documento) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_liquidacion_doc_voucher FOREIGN KEY (id_documento_voucher) REFERENCES documento_adjunto (id_documento) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 
 -- =============================================================================
--- 7. ÍNDICES COMPLEMENTARIOS
+-- 7. MÓDULO DE GESTIÓN DOCUMENTAL
+-- =============================================================================
+
+CREATE TABLE documento_adjunto (
+    id_documento INT NOT NULL AUTO_INCREMENT,
+    nombre_original VARCHAR(255) NOT NULL,
+    nombre_almacenado VARCHAR(255) NOT NULL,
+    formato_mime VARCHAR(120) NOT NULL,
+    extension VARCHAR(20) NOT NULL,
+    tamano_bytes BIGINT NOT NULL,
+    ruta_almacenamiento VARCHAR(500) NOT NULL,
+    categoria VARCHAR(50) NOT NULL DEFAULT 'GENERAL',
+    descripcion VARCHAR(255) NULL,
+    entidad_tipo VARCHAR(40) NOT NULL DEFAULT 'GENERAL',
+    id_cotizacion INT NULL,
+    id_expediente INT NULL,
+    id_cliente INT NULL,
+    id_usuario_creador INT NOT NULL,
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    PRIMARY KEY (id_documento),
+    CONSTRAINT uq_doc_nombre_almacenado UNIQUE (nombre_almacenado),
+    CONSTRAINT fk_doc_cotizacion FOREIGN KEY (id_cotizacion) REFERENCES cotizacion (id_cotizacion) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_doc_expediente FOREIGN KEY (id_expediente) REFERENCES expediente (id_expediente) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_doc_cliente FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_doc_usuario FOREIGN KEY (id_usuario_creador) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- =============================================================================
+-- 8. ÍNDICES COMPLEMENTARIOS
 -- =============================================================================
 
 CREATE INDEX idx_usuario_rol ON usuario (id_rol);
@@ -413,8 +471,22 @@ CREATE INDEX idx_almacen_estado ON control_almacen (estado_almacen);
 
 CREATE INDEX idx_conductor_licencia ON conductor (numero_licencia);
 
+CREATE INDEX idx_conductor_usuario ON conductor (id_usuario);
+
+CREATE INDEX idx_conductor_estado_operativo ON conductor (estado_operativo);
+
 CREATE INDEX idx_unidad_placa ON unidad_transporte (placa_tracto);
+
+CREATE INDEX idx_unidad_vencimientos ON unidad_transporte (soat_vencimiento, citv_vencimiento);
 
 CREATE INDEX idx_transporte_estado ON despacho_transporte (estado_transporte);
 
 CREATE INDEX idx_liquidacion_estado_pago ON liquidacion_financiera (estado_pago);
+
+CREATE INDEX idx_liquidacion_liquidador ON liquidacion_financiera (id_usuario_liquidador);
+
+CREATE INDEX idx_doc_entidad ON documento_adjunto (entidad_tipo, id_cotizacion, id_expediente, id_cliente);
+
+CREATE INDEX idx_doc_categoria ON documento_adjunto (categoria);
+
+CREATE INDEX idx_doc_activo ON documento_adjunto (activo);

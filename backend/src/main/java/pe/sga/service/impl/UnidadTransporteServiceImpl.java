@@ -71,8 +71,12 @@ public class UnidadTransporteServiceImpl implements IUnidadTransporteService {
                 .placaTracto(placa)
                 .placaCarreta(dto.getPlacaCarreta() != null ? dto.getPlacaCarreta().trim().toUpperCase() : null)
                 .marcaModelo(dto.getMarcaModelo().trim())
+                .anoFabricacion(dto.getAnoFabricacion())
                 .tipoVehiculo(dto.getTipoVehiculo() != null ? dto.getTipoVehiculo().trim().toUpperCase() : "TRACTO_PLATAFORMA")
                 .capacidadCargaKg(dto.getCapacidadCargaKg())
+                .soatVencimiento(dto.getSoatVencimiento())
+                .citvVencimiento(dto.getCitvVencimiento())
+                .kilometrajeActual(dto.getKilometrajeActual() != null ? dto.getKilometrajeActual() : 0)
                 .estadoOperativo(dto.getEstadoOperativo() != null ? dto.getEstadoOperativo().trim().toUpperCase() : "DISPONIBLE")
                 .estadoActivo(dto.getEstadoActivo() != null ? dto.getEstadoActivo() : true)
                 .build();
@@ -96,8 +100,12 @@ public class UnidadTransporteServiceImpl implements IUnidadTransporteService {
 
         if (dto.getPlacaCarreta() != null) unidad.setPlacaCarreta(dto.getPlacaCarreta().trim().toUpperCase());
         if (dto.getMarcaModelo() != null) unidad.setMarcaModelo(dto.getMarcaModelo().trim());
+        if (dto.getAnoFabricacion() != null) unidad.setAnoFabricacion(dto.getAnoFabricacion());
         if (dto.getTipoVehiculo() != null) unidad.setTipoVehiculo(dto.getTipoVehiculo().trim().toUpperCase());
         if (dto.getCapacidadCargaKg() != null) unidad.setCapacidadCargaKg(dto.getCapacidadCargaKg());
+        if (dto.getSoatVencimiento() != null) unidad.setSoatVencimiento(dto.getSoatVencimiento());
+        if (dto.getCitvVencimiento() != null) unidad.setCitvVencimiento(dto.getCitvVencimiento());
+        if (dto.getKilometrajeActual() != null) unidad.setKilometrajeActual(dto.getKilometrajeActual());
         if (dto.getEstadoOperativo() != null) unidad.setEstadoOperativo(dto.getEstadoOperativo().trim().toUpperCase());
         if (dto.getEstadoActivo() != null) unidad.setEstadoActivo(dto.getEstadoActivo());
 
@@ -129,8 +137,12 @@ public class UnidadTransporteServiceImpl implements IUnidadTransporteService {
                 .placaTracto(u.getPlacaTracto())
                 .placaCarreta(u.getPlacaCarreta())
                 .marcaModelo(u.getMarcaModelo())
+                .anoFabricacion(u.getAnoFabricacion())
                 .tipoVehiculo(u.getTipoVehiculo())
                 .capacidadCargaKg(u.getCapacidadCargaKg())
+                .soatVencimiento(u.getSoatVencimiento())
+                .citvVencimiento(u.getCitvVencimiento())
+                .kilometrajeActual(u.getKilometrajeActual())
                 .estadoOperativo(u.getEstadoOperativo())
                 .estadoActivo(u.getEstadoActivo())
                 .build();
