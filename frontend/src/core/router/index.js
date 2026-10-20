@@ -84,38 +84,40 @@ router.beforeEach(async (to, from, next) => {
 
   // Sincronizar activeModule con la ruta actual
   const navStore = useNavigationStore()
-  if (to.path.startsWith('/admin')) {
-    navStore.setActiveModule('admin')
+  if (to.path.startsWith('/administracion-ti') || to.path.startsWith('/admin')) {
+    navStore.setActiveModule('administracion-ti')
     if (to.path.includes('acerca-de')) {
-      navStore.setAdminSubOption('about')
+      navStore.setAdministracionTiSubOption('about')
     } else if (to.path.includes('logs')) {
-      navStore.setAdminSubOption('logs')
+      navStore.setAdministracionTiSubOption('logs')
     } else {
-      navStore.setAdminSubOption('users')
+      navStore.setAdministracionTiSubOption('users')
     }
-  } else if (to.path.startsWith('/gerencia')) {
-    navStore.setActiveModule('gerencia')
+  } else if (to.path.startsWith('/gerencia-general') || to.path.startsWith('/gerencia')) {
+    navStore.setActiveModule('gerencia-general')
     if (to.path.includes('sedes')) {
-      navStore.setGerenciaSubOption('sedes')
+      navStore.setGerenciaGeneralSubOption('sedes')
     } else if (to.path.includes('catalogos')) {
-      navStore.setGerenciaSubOption('catalogos')
+      navStore.setGerenciaGeneralSubOption('catalogos')
     } else if (to.path.includes('resumen')) {
-      navStore.setGerenciaSubOption('overview')
+      navStore.setGerenciaGeneralSubOption('overview')
+    } else if (to.path.includes('flota')) {
+      navStore.setGerenciaGeneralSubOption('flota')
+    } else if (to.path.includes('conductores')) {
+      navStore.setGerenciaGeneralSubOption('conductores')
     }
-  } else if (to.path.startsWith('/ventas')) {
-    navStore.setActiveModule('ventas')
-  } else if (to.path.startsWith('/supervision')) {
-    navStore.setActiveModule('supervision')
-  } else if (to.path.startsWith('/aduanas') || to.path.startsWith('/logistica')) {
-    navStore.setActiveModule('aduanas')
-  } else if (to.path.startsWith('/liquidador')) {
-    navStore.setActiveModule('liquidador')
-  } else if (to.path.startsWith('/legal')) {
-    navStore.setActiveModule('legal')
+  } else if (to.path.startsWith('/recepcion-comercial') || to.path.startsWith('/ventas')) {
+    navStore.setActiveModule('comercial')
+  } else if (to.path.startsWith('/gestion-aduanera') || to.path.startsWith('/supervision') || to.path.startsWith('/liquidador')) {
+    navStore.setActiveModule('gestion-aduanera')
+  } else if (to.path.startsWith('/agente-aduanero') || to.path.startsWith('/aduanas') || to.path.startsWith('/logistica')) {
+    navStore.setActiveModule('agente-aduanero')
+  } else if (to.path.startsWith('/transporte-flota') || to.path.startsWith('/transporte')) {
+    navStore.setActiveModule('transporte-flota')
+  } else if (to.path.startsWith('/legal-auditoria') || to.path.startsWith('/legal')) {
+    navStore.setActiveModule('legal-auditoria')
   } else if (to.path.startsWith('/finanzas')) {
     navStore.setActiveModule('finanzas')
-  } else if (to.path.startsWith('/transporte')) {
-    navStore.setActiveModule('transporte')
   }
 
   next()

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { authService } from '../services/authService'
+import { ROLES, ROLE_HOME_PATH } from '@/core/auth/roles'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -12,30 +13,20 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.token,
     userRole: (state) => state.user?.rol || '',
-    isAdminTI: (state) => ['ADMIN_TI', 'ADMINISTRADOR'].includes(state.user?.rol),
-    isGerente: (state) => state.user?.rol === 'GERENTE',
-    isAdmin: (state) => ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE'].includes(state.user?.rol),
-    canSwitchModules: (state) => ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE'].includes(state.user?.rol),
+    isAdministradorTI: (state) => state.user?.rol === ROLES.ADMINISTRADOR_TI,
+    isGerenteGeneral: (state) => state.user?.rol === ROLES.GERENTE_GENERAL,
+    // Compatibilidad
+    isAdminTI: (state) => state.user?.rol === ROLES.ADMINISTRADOR_TI,
+    isGerente: (state) => state.user?.rol === ROLES.GERENTE_GENERAL,
+    isAdmin: (state) => [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL].includes(state.user?.rol),
+    canSwitchModules: (state) => [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL].includes(state.user?.rol),
     userFullName: (state) => {
       if (!state.user) return ''
       return `${state.user.nombres || ''} ${state.user.apellidos || ''}`.trim()
     },
     homePath: (state) => {
       const rol = state.user?.rol
-      if (rol === 'ADMIN_TI' || rol === 'ADMINISTRADOR') return '/admin/usuarios'
-      if (rol === 'GERENTE') return '/gerencia/sedes'
-      const roleMap = {
-        VENTAS: '/ventas',
-        SUPERVISION: '/supervision',
-        SUPERVISOR: '/supervision',
-        AGENTE_ADUANERO: '/aduanas',
-        LOGISTICA: '/aduanas',
-        LIQUIDADOR: '/aduanas',
-        LEGAL: '/legal',
-        FINANZAS: '/finanzas',
-        TRANSPORTE: '/transporte'
-      }
-      return roleMap[rol] || '/admin/usuarios'
+      return ROLE_HOME_PATH[rol] || '/administracion-ti/usuarios'
     }
   },
 
