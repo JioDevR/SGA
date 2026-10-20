@@ -3,13 +3,14 @@
     <template #icon>
       <i :class="roleIcon"></i>
     </template>
-    <span>{{ roleName || 'SIN ROL' }}</span>
+    <span>{{ displayRoleName }}</span>
   </Tag>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import Tag from 'primevue/tag'
+import { ROLES, ROLE_LABELS } from '@/core/auth/roles'
 
 const props = defineProps({
   roleName: {
@@ -19,19 +20,19 @@ const props = defineProps({
 })
 
 const roleConfig = {
-  ADMINISTRADOR: { icon: 'pi pi-shield', severity: 'contrast' },
-  ADMIN_TI: { icon: 'pi pi-shield', severity: 'contrast' },
-  GERENTE: { icon: 'pi pi-briefcase', severity: 'contrast' },
-  VENTAS: { icon: 'pi pi-briefcase', severity: 'success' },
-  SUPERVISION: { icon: 'pi pi-verified', severity: 'info' },
-  SUPERVISOR: { icon: 'pi pi-verified', severity: 'info' },
-  LOGISTICA: { icon: 'pi pi-box', severity: 'info' },
-  AGENTE_ADUANERO: { icon: 'pi pi-compass', severity: 'info' },
-  LIQUIDADOR: { icon: 'pi pi-chart-pie', severity: 'warn' },
-  LEGAL: { icon: 'pi pi-bookmark', severity: 'danger' },
-  FINANZAS: { icon: 'pi pi-dollar', severity: 'success' },
-  TRANSPORTE: { icon: 'pi pi-truck', severity: 'warn' }
+  [ROLES.ADMINISTRADOR_TI]: { icon: 'pi pi-shield', severity: 'contrast' },
+  [ROLES.GERENTE_GENERAL]: { icon: 'pi pi-briefcase', severity: 'contrast' },
+  [ROLES.AGENTE_COMERCIAL]: { icon: 'pi pi-shopping-bag', severity: 'success' },
+  [ROLES.SUPERVISOR_ADUANERO]: { icon: 'pi pi-verified', severity: 'info' },
+  [ROLES.AGENTE_ADUANERO]: { icon: 'pi pi-compass', severity: 'info' },
+  [ROLES.SUPERVISOR_TRANSPORTE]: { icon: 'pi pi-truck', severity: 'warn' },
+  [ROLES.CONTADOR]: { icon: 'pi pi-dollar', severity: 'success' },
+  [ROLES.ASESOR_LEGAL]: { icon: 'pi pi-bookmark', severity: 'danger' }
 }
+
+const displayRoleName = computed(() => {
+  return ROLE_LABELS[props.roleName] || props.roleName || 'SIN ROL'
+})
 
 const roleSeverity = computed(() => {
   return roleConfig[props.roleName]?.severity || 'secondary'

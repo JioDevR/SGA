@@ -443,7 +443,7 @@
                 >
                   <div class="role-card-top">
                     <span :class="['role-badge-tag', getRoleClass(r.nombreRol)]">
-                      {{ r.nombreRol }}
+                      {{ ROLE_LABELS[r.nombreRol] || r.nombreRol }}
                     </span>
                     <span class="radio-indicator">
                       <i v-if="Number(form.idRol) === Number(r.idRol)" class="pi pi-check"></i>
@@ -534,7 +534,7 @@
                 <span class="cred-k">Perfil Rol:</span>
                 <span class="cred-v">
                   <span :class="['role-badge-tag-mini', getRoleClass(selectedRoleName)]">
-                    {{ selectedRoleName || 'NO ASIGNADO' }}
+                    {{ ROLE_LABELS[selectedRoleName] || selectedRoleName || 'NO ASIGNADO' }}
                   </span>
                 </span>
               </div>
@@ -632,6 +632,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
+import { ROLES, ROLE_LABELS } from '@/core/auth/roles'
 
 const props = defineProps({
   userToEdit: {
@@ -879,34 +880,28 @@ const isFormReady = computed(() => {
 
 const getRoleClass = (roleName) => {
   const map = {
-    ADMIN_TI: 'role-admin',
-    ADMINISTRADOR: 'role-admin',
-    GERENTE: 'role-gerente',
-    VENTAS: 'role-ventas',
-    SUPERVISION: 'role-supervision',
-    AGENTE_ADUANERO: 'role-agente',
-    LOGISTICA: 'role-logistica',
-    LIQUIDADOR: 'role-liquidador',
-    LEGAL: 'role-legal',
-    FINANZAS: 'role-finanzas',
-    TRANSPORTE: 'role-transporte'
+    [ROLES.ADMINISTRADOR_TI]: 'role-admin',
+    [ROLES.GERENTE_GENERAL]: 'role-gerente',
+    [ROLES.AGENTE_COMERCIAL]: 'role-ventas',
+    [ROLES.SUPERVISOR_ADUANERO]: 'role-supervision',
+    [ROLES.AGENTE_ADUANERO]: 'role-agente',
+    [ROLES.SUPERVISOR_TRANSPORTE]: 'role-transporte',
+    [ROLES.CONTADOR]: 'role-finanzas',
+    [ROLES.ASESOR_LEGAL]: 'role-legal'
   }
   return map[roleName] || 'role-default'
 }
 
 const getRoleDescription = (roleName) => {
   const map = {
-    ADMIN_TI: 'Administración técnica, soporte de infraestructura y cuentas de usuario.',
-    GERENTE: 'Supervisión ejecutiva integral, gestión de sedes y catálogos auxiliares.',
-    VENTAS: 'Cotizaciones comerciales, prospectos y directorio de clientes.',
-    SUPERVISION: 'Aforo aduanero, inspecciones físicas y validación documentaria.',
-    AGENTE_ADUANERO: 'Gestión aduanera, control de almacén, bultos y despachos.',
-    ADMINISTRADOR: 'Acceso total y configuración de todo el sistema SGA.',
-    LOGISTICA: 'Recepción de contenedores, almacén y control de expedientes.',
-    LIQUIDADOR: 'Declaraciones DAM, clasificación arancelaria y tributos.',
-    LEGAL: 'Auditoría aduanera, recursos de reclamación y cumplimiento normativo.',
-    FINANZAS: 'Cobranza, facturación, cuentas por pagar y reportes contables.',
-    TRANSPORTE: 'Despacho terrestre, guías de remisión y control de flota de carga.'
+    [ROLES.ADMINISTRADOR_TI]: 'Administración técnica, soporte de infraestructura y cuentas de usuario.',
+    [ROLES.GERENTE_GENERAL]: 'Supervisión ejecutiva integral, gestión de sedes y catálogos auxiliares.',
+    [ROLES.AGENTE_COMERCIAL]: 'Cotizaciones comerciales, prospectos y directorio de clientes.',
+    [ROLES.SUPERVISOR_ADUANERO]: 'Aforo aduanero, liquidación tributaria y revisión técnica.',
+    [ROLES.AGENTE_ADUANERO]: 'Gestión aduanera, control de almacén, bultos y despachos.',
+    [ROLES.SUPERVISOR_TRANSPORTE]: 'Despacho terrestre, guías de remisión y control de flota de carga.',
+    [ROLES.CONTADOR]: 'Cobranza, facturación, cuentas por pagar y reportes contables.',
+    [ROLES.ASESOR_LEGAL]: 'Auditoría aduanera, recursos de reclamación y cumplimiento normativo.'
   }
   return map[roleName] || 'Operador especializado del sistema aduanero.'
 }

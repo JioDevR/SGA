@@ -26,7 +26,7 @@
         <select v-model="selectedRoleFilter" class="filter-select">
           <option value="">Todos los Roles</option>
           <option v-for="rol in roles" :key="rol.idRol" :value="rol.nombreRol">
-            {{ rol.nombreRol }}
+            {{ ROLE_LABELS[rol.nombreRol] || rol.nombreRol }}
           </option>
         </select>
 
@@ -202,6 +202,7 @@ import Tag from 'primevue/tag'
 import UserRoleBadge from './UserRoleBadge.vue'
 import BasePagination from '@/shared/components/BasePagination.vue'
 import { usePagination } from '@/shared/composables/usePagination'
+import { ROLE_LABELS } from '@/core/auth/roles'
 
 const props = defineProps({
   users: {

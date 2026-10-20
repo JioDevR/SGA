@@ -686,6 +686,7 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useAuthStore } from '@/features/auth/stores/authStore'
+import { ROLES } from '@/core/auth/roles'
 import { transporteFlotaService } from '../services/transporteFlotaService'
 import CrearDespachoModal from '../components/CrearDespachoModal.vue'
 import AsignarRecursosModal from '../components/AsignarRecursosModal.vue'
@@ -731,7 +732,7 @@ const selectedDocTitulo = ref('')
 
 // Textos dinámicos del banner
 const bannerTitle = computed(() => {
-  if (authStore.userRole === 'TRANSPORTE') {
+  if (authStore.userRole === ROLES.SUPERVISOR_TRANSPORTE) {
     return `Cabina de Operaciones // Chofer: ${authStore.userFullName || authStore.userName}`
   }
   return 'Cabina Operativa de Ruta y Monitoreo de Transporte'

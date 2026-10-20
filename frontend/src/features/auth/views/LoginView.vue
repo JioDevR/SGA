@@ -78,14 +78,14 @@
         <div class="quick-credentials">
           <p class="quick-title">Accesos Rápidos de Prueba por Rol</p>
           <div class="credentials-group">
-            <div class="credentials-tag" @click="fillAdminCredentials" title="Acceso con rol ADMINISTRADOR (todos los módulos)">
-              <span>Admin: <strong>admin</strong></span>
+            <div class="credentials-tag" @click="fillAdminCredentials" title="Acceso con rol ADMINISTRADOR_TI (todos los módulos)">
+              <span>Admin TI: <strong>admin</strong></span>
               <span class="sep">•</span>
               <span><strong>Password123!</strong></span>
               <i class="pi pi-shield copy-icon"></i>
             </div>
-            <div class="credentials-tag" @click="fillVentasCredentials" title="Acceso con rol VENTAS (solo módulo Ventas)">
-              <span>Ventas: <strong>ventas_callao</strong></span>
+            <div class="credentials-tag" @click="fillComercialCredentials" title="Acceso con rol AGENTE_COMERCIAL (Recepción Comercial)">
+              <span>Comercial: <strong>comercial</strong></span>
               <span class="sep">•</span>
               <span><strong>Password123!</strong></span>
               <i class="pi pi-briefcase copy-icon"></i>
@@ -129,8 +129,8 @@ const fillAdminCredentials = () => {
   errorMessage.value = ''
 }
 
-const fillVentasCredentials = () => {
-  form.username = 'ventas_callao'
+const fillComercialCredentials = () => {
+  form.username = 'comercial'
   form.password = 'Password123!'
   errorMessage.value = ''
 }

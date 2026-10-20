@@ -146,6 +146,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch, defineAsyncComponent } from 'vue'
 import { userService } from '../services/userService'
+import { ROLES } from '@/core/auth/roles'
 import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useConfirmation } from '@/shared/composables/useConfirmation'
@@ -189,7 +190,7 @@ const inactiveUsersCount = computed(() => {
 })
 
 const adminCount = computed(() => {
-  return users.value.filter((u) => u.nombreRol === 'ADMINISTRADOR').length
+  return users.value.filter((u) => u.nombreRol === ROLES.ADMINISTRADOR_TI).length
 })
 
 const loadData = async () => {
@@ -215,12 +216,12 @@ const loadData = async () => {
 
 const openCreateDialog = () => {
   selectedUser.value = null
-  navigationStore.setAdminSubOption('create-user')
+  navigationStore.setAdministracionTiSubOption('create-user')
 }
 
 const openEditDialog = (user) => {
   selectedUser.value = { ...user }
-  navigationStore.setAdminSubOption('create-user')
+  navigationStore.setAdministracionTiSubOption('create-user')
 }
 
 const handleUserSaved = async ({ isEdit, userId, payload }) => {
@@ -232,7 +233,7 @@ const handleUserSaved = async ({ isEdit, userId, payload }) => {
       await userService.createUser(payload)
       showToast('Nuevo operador registrado y acreditado exitosamente.')
     }
-    navigationStore.setAdminSubOption('users')
+    navigationStore.setAdministracionTiSubOption('users')
     await loadData()
   } catch (err) {
     const errorMsg =
@@ -245,7 +246,7 @@ const handleUserSaved = async ({ isEdit, userId, payload }) => {
 
 // Escuchar acciones desde el Sidebar (ej. Exportar PDF)
 watch(
-  () => navigationStore.adminActionTrigger,
+  () => navigationStore.administracionTiActionTrigger,
   (action) => {
     if (action === 'export-pdf') {
       handleExportPdf()
