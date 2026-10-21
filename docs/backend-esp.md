@@ -116,7 +116,7 @@ A continuación se detalla cada una de las librerías declaradas en el [`pom.xml
 
 El backend organiza la operativa del Sistema de Gestión Aduanera en los siguientes dominios:
 
-1. **Seguridad y Usuarios:** Autenticación JWT, gestión de roles (`ADMIN`, `OPERADOR_ADUANAS`, `SUPERVISOR`, `LIQUIDADOR`, `CLIENTE`), usuarios y sedes.
+1. **Seguridad y Usuarios:** Autenticación JWT, control de accesos RBAC con 8 roles institucionales (`ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, `SUPERVISOR_ADUANERO`, `AGENTE_ADUANERO`, `SUPERVISOR_TRANSPORTE`, `CONTADOR`, `ASESOR_LEGAL`), usuarios y sedes.
 2. **Catálogos Maestros:** Puertos aduaneros (`CatalogoPuerto`), tipos de mercancías (`CatalogoMercancia`) y tipos de carga (`CatalogoTipoCarga`).
 3. **Comercial:** Gestión de clientes (`Cliente`) y emisión/seguimiento de cotizaciones (`Cotizacion`).
 4. **Operaciones y Trámites Aduaneros:** Gestión integral de expedientes aduaneros (`Expediente`), asignación de canales SUNAT (Verde, Naranja, Rojo) y regímenes aduaneros (Importación, Exportación, Tránsito).

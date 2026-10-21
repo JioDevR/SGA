@@ -421,7 +421,7 @@ const alertasLicencias = computed(() => {
 })
 
 const usuariosDisponibles = computed(() => {
-  // Retornar usuarios con rol TRANSPORTE o sin conductor asignado, o el que ya está editando
+  // Retornar usuarios con rol SUPERVISOR_TRANSPORTE o sin conductor asignado, o el que ya está editando
   return usuariosList.value.filter(u => {
     if (!u.estadoActivo) return false
     return true

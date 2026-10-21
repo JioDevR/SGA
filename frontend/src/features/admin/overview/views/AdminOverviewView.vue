@@ -80,7 +80,7 @@
         </div>
 
         <p class="suboption-desc">
-          Administración de cuentas de operadores, asignación de roles de acceso (Ventas, Logística, Liquidación, Legal, etc.) y auditoría de accesos.
+          Administración de cuentas de operadores, asignación de roles institucionales (Comercial, Aduanas, Transporte, Legal, etc.) y auditoría de accesos.
         </p>
 
         <div class="suboption-stats">

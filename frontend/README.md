@@ -40,17 +40,18 @@ SGA/frontend/
 │   │   │       │   ├── UserFormDialog.vue         # Modal para crear, editar y cambiar rol
 │   │   │       │   └── UserRoleBadge.vue          # Badges estilizados por rol
 │   │   │       ├── services/userService.js        # Consumo de /api/v1/usuarios, /roles, /sedes
-│   │   │       └── routes/admin.routes.js         # Rutas protegidas para rol ADMINISTRADOR
+│   │   │       └── routes/admin.routes.js         # Rutas protegidas para rol ADMINISTRADOR_TI
 │   │   │
-│   │   └── roles-modules/              # Vistas de los demás roles (en blanco / placeholder)
+│   │   └── roles-modules/              # Vistas operativas por rol institucional
 │   │       ├── views/
-│   │       │   ├── VentasView.vue      # Rol: VENTAS
-│   │       │   ├── LogisticaView.vue   # Rol: LOGISTICA
-│   │       │   ├── LiquidadorView.vue  # Rol: LIQUIDADOR
-│   │       │   ├── LegalView.vue       # Rol: LEGAL
-│   │       │   ├── FinanzasView.vue    # Rol: FINANZAS
-│   │       │   └── TransporteView.vue  # Rol: TRANSPORTE
-│   │       └── routes/roles.routes.js  # Rutas por rol
+│   │       │   ├── RecepcionComercialView.vue     # Rol: AGENTE_COMERCIAL (/recepcion-comercial)
+│   │       │   ├── GestionAduaneraView.vue        # Rol: SUPERVISOR_ADUANERO (/gestion-aduanera)
+│   │       │   ├── LiquidacionAduaneraView.vue    # Rol: SUPERVISOR_ADUANERO (/gestion-aduanera/liquidacion)
+│   │       │   ├── AgenteAduaneroView.vue         # Roles: AGENTE_ADUANERO, SUPERVISOR_ADUANERO (/agente-aduanero)
+│   │       │   ├── TransporteFlotaView.vue        # Rol: SUPERVISOR_TRANSPORTE (/transporte-flota)
+│   │       │   ├── FinanzasView.vue               # Rol: CONTADOR (/finanzas)
+│   │       │   └── LegalAuditoriaView.vue         # Rol: ASESOR_LEGAL (/legal-auditoria)
+│   │       └── routes/roles.routes.js             # Rutas por rol
 │   │
 │   └── shared/                         # Componentes reutilizables
 │       ├── components/
@@ -71,7 +72,7 @@ SGA/frontend/
 2. **Barra Vertical a la Izquierda (Sidebar)**:
    - Diseño limpio y minimalista.
    - Identificador del sistema (SGA) y badge del rol activo del usuario conectado.
-   - Acceso a todos los apartados (Gestor de Usuarios para el Admin, Ventas, Logística, Liquidación, Legal, Finanzas, Transporte).
+   - Selector modular y sub-opciones para los 8 roles institucionales (`ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, `SUPERVISOR_ADUANERO`, `AGENTE_ADUANERO`, `SUPERVISOR_TRANSPORTE`, `CONTADOR`, `ASESOR_LEGAL`).
    - Botón de colapso rápido para optimizar espacio en pantalla.
    - Perfil de usuario en la base y botón para cerrar sesión (`Logout`).
 
@@ -83,15 +84,15 @@ SGA/frontend/
    - **Desactivación / Reactivación Lógica**: Botones de baja lógica (`DELETE /api/v1/usuarios/{id}`) y reactivación (`PATCH /api/v1/usuarios/{id}/reactivar`).
    - **Exportación PDF**: Botón directo para descargar el reporte oficial generado por JasperReports en el backend.
 
-4. **Vistas en Blanco por Rol**:
-   - Vistas limpias y sobrias para `VENTAS`, `LOGISTICA`, `LIQUIDADOR`, `LEGAL`, `FINANZAS` y `TRANSPORTE`, con indicación de estado ("En preparación") y alcance del rol.
+4. **Módulos Operativos por Rol**:
+   - Interfaces operativas completas para los 8 roles institucionales con diseño editorial y responsivo.
 
 ---
 
 ## 3. Instrucciones de Ejecución
 
 ### Requisitos
-- Backend Spring Boot de SGA ejecutándose en el puerto `8080` (`mvn spring-boot:run` dentro de `SGA/backend`).
+- Backend Spring Boot de SGA ejecutándose en el puerto `8085` (`./mvnw spring-boot:run` dentro de `SGA/backend`).
 
 ### Iniciar el Frontend
 ```bash
