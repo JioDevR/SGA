@@ -59,7 +59,7 @@
       </div>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 00 ADMINISTRACIÓN & CONTROL TI -->
+      <!-- SUB-OPCIONES: 00 ADMINISTRACIÓN TI -->
       <!-- ======================================================== -->
       <ul v-if="navigationStore.currentModule === 'administracion-ti'" class="nav-list">
         <!-- Sub-opción 01: Usuarios -->
@@ -103,7 +103,7 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 01 GERENCIA GENERAL & SEDES -->
+      <!-- SUB-OPCIONES: 01 GERENCIA GENERAL -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'gerencia-general'" class="nav-list">
         <!-- Sub-opción 01: Vista General (KPIs) -->
@@ -173,7 +173,7 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 02 RECEPCIÓN COMERCIAL & VENTAS -->
+      <!-- SUB-OPCIONES: 02 RECEPCIÓN COMERCIAL -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'comercial'" class="nav-list">
         <!-- Sub-opción 01: Cotizaciones -->
@@ -243,7 +243,7 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 03 GESTIÓN ADUANERA & OPERACIONES -->
+      <!-- SUB-OPCIONES: 03 GESTIÓN ADUANERA -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'gestion-aduanera'" class="nav-list">
         <!-- Sub-opción 01: Bandeja de Cotizaciones -->
@@ -313,7 +313,7 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 04 AGENTE ADUANERO & OPERACIONES -->
+      <!-- SUB-OPCIONES: 04 AGENTE ADUANERO -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'agente-aduanero'" class="nav-list">
         <!-- Sub-opción 01: Dashboard de Almacén -->
@@ -355,7 +355,7 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 05 TRANSPORTE & FLOTA -->
+      <!-- SUB-OPCIONES: 05 TRANSPORTE Y FLOTA -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'transporte-flota'" class="nav-list">
         <li class="nav-item">
@@ -433,7 +433,7 @@
       </ul>
 
       <!-- ======================================================== -->
-      <!-- SUB-OPCIONES: 07 LEGAL & AUDITORÍA -->
+      <!-- SUB-OPCIONES: 07 LEGAL Y AUDITORÍA -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'legal-auditoria'" class="nav-list">
         <li class="nav-item">
