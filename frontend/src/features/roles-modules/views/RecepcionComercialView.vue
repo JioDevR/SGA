@@ -50,8 +50,8 @@
         />
         <MetricCard
           index="04"
-          label="Expedientes Aduaneros"
-          :value="ordenesServicio.length"
+          label="Expedientes (Seguimiento)"
+          :value="expedientesList.length"
           severity="pending"
         />
       </div>
@@ -81,8 +81,8 @@
           :class="['tab-btn', { active: activeTab === 'ordenes' }]"
           @click="switchTab('ordenes')"
         >
-          <i class="pi pi-send"></i>
-          <span>Expedientes Aduaneros ({{ ordenesServicio.length }})</span>
+          <i class="pi pi-folder-open"></i>
+          <span>Expedientes Aduaneros ({{ expedientesList.length }})</span>
         </button>
       </div>
 
@@ -194,13 +194,35 @@
             </template>
           </Column>
 
+          <Column header="Pago / Anticipo">
+            <template #body="{ data: c }">
+              <div v-if="c.estado === 'APROBADA'" class="client-cell">
+                <Tag
+                  :value="getEstadoPagoLabel(c.estadoPago)"
+                  :severity="getEstadoPagoSeverity(c.estadoPago)"
+                  rounded
+                />
+                <span v-if="c.totalAbonado > 0" class="client-sub" style="color: #15803d; font-weight: 600;">
+                  Abono: ${{ Number(c.totalAbonado).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                </span>
+                <span v-else class="client-sub text-muted">
+                  Sin abono confirmado
+                </span>
+              </div>
+              <span v-else class="text-muted-dash">—</span>
+            </template>
+          </Column>
+
           <Column header="Expediente Aduanero">
             <template #body="{ data: c }">
               <span v-if="c.tieneExpediente" class="os-linked-tag">
                 <i class="pi pi-folder"></i> {{ c.codigoExpediente }}
               </span>
-              <span v-else-if="c.estado === 'APROBADA'" class="text-muted-dash">
-                Aprobada (Listo para Expediente)
+              <span v-else-if="c.estado === 'APROBADA' && c.tienePagoAprobado" class="text-muted-dash" style="color: #15803d; font-weight: 600;">
+                Aprobada (Pago Validado)
+              </span>
+              <span v-else-if="c.estado === 'APROBADA'" class="text-muted-dash" style="color: #b45309;">
+                Aprobada (Requiere Pago Finanzas)
               </span>
               <span v-else class="text-muted-dash">—</span>
             </template>
@@ -218,6 +240,7 @@
                   <i class="pi pi-paperclip"></i>
                   <span>Docs</span>
                 </button>
+
 
                 <button
                   v-if="c.estado === 'REVISION' || c.estado === 'OBSERVADA'"
@@ -363,21 +386,32 @@
       </div>
     </div>
 
-    <!-- TAB 3: EXPEDIENTES ADUANEROS -->
+    <!-- TAB 3: EXPEDIENTES ADUANEROS (SOLO LECTURA) -->
     <div v-if="activeTab === 'ordenes'" class="tab-content-section">
       <div class="section-header-row">
         <div>
-          <span class="badge-kicker">SEGUIMIENTO OPERATIVO</span>
-          <h3 class="section-title">Expedientes Aduaneros Generados</h3>
+          <span class="badge-kicker">SEGUIMIENTO OPERATIVO // VISIBILIDAD GLOBAL</span>
+          <h3 class="section-title">Expedientes Aduaneros (Modo Consulta)</h3>
         </div>
 
         <div class="section-controls">
-          <select v-model="filterEstadoOs" class="filter-select">
+          <select v-model="filterEstadoExpediente" class="filter-select">
             <option value="">Todos los Estados</option>
-            <option value="GENERADA">GENERADA</option>
-            <option value="EN_OPERACIONES">EN OPERACIONES</option>
-            <option value="CONCLUIDA">CONCLUIDA</option>
+            <option value="ASIGNADO">Asignado</option>
+            <option value="NUMERADO">Numerado</option>
+            <option value="EN_TRAMITE">En Trámite</option>
+            <option value="CON_CANAL">Con Canal SUNAT</option>
+            <option value="LEVANTE_AUTORIZADO">Levante Autorizado</option>
+            <option value="CONCLUIDO">Concluido</option>
+            <option value="ANULADO">Anulado</option>
           </select>
+
+          <input
+            v-model="searchExpediente"
+            type="text"
+            placeholder="Buscar por expediente, DAM o cliente..."
+            class="search-mini-input"
+          />
 
           <button type="button" class="btn-outline-warm" @click="loadData" :disabled="loading">
             <i :class="['pi pi-sync', { 'pi-spin': loading }]"></i>
@@ -386,96 +420,79 @@
         </div>
       </div>
 
-      <!-- Tabla de Expedientes Aduaneros con PrimeVue DataTable -->
+      <!-- Tabla de Expedientes Aduaneros con PrimeVue DataTable (Solo Vista) -->
       <div class="table-container">
         <DataTable
-          :value="filteredOrdenes"
+          :value="filteredExpedientes"
           :loading="loading"
           responsiveLayout="scroll"
           class="custom-datatable"
-          dataKey="idOrdenServicio"
+          dataKey="idExpediente"
         >
           <template #empty>
             <div class="empty-state">
               <i class="pi pi-folder-open empty-icon"></i>
-              <p class="empty-title">No hay expedientes aduaneros</p>
-              <p class="empty-desc">Los expedientes operativos se gestionan a partir de cotizaciones comerciales aprobadas.</p>
+              <p class="empty-title">No hay expedientes aduaneros registrados</p>
+              <p class="empty-desc">Los expedientes aduaneros son formalizados por Supervisión Aduanera tras aprobarse la cotización y confirmarse el pago en Finanzas.</p>
             </div>
           </template>
 
-          <Column header="Código Expediente">
-            <template #body="{ data: os }">
-              <span class="doc-code-os">{{ os.codigoOs }}</span>
+          <Column header="N° Expediente">
+            <template #body="{ data: exp }">
+              <span class="doc-code-os">{{ exp.codigoExpediente }}</span>
             </template>
           </Column>
 
-          <Column header="Cotización Vinculada">
-            <template #body="{ data: os }">
-              <span class="doc-code">{{ os.codigoCotizacion }}</span>
+          <Column header="Cotización Origen">
+            <template #body="{ data: exp }">
+              <span class="doc-code">{{ exp.codigoCotizacion || '—' }}</span>
             </template>
           </Column>
 
-          <Column header="Cliente">
-            <template #body="{ data: os }">
-              <span class="client-name">{{ os.clienteRazonSocial || '—' }}</span>
+          <Column header="Cliente / Importador">
+            <template #body="{ data: exp }">
+              <div class="client-cell">
+                <span class="client-name">{{ exp.clienteRazonSocial || '—' }}</span>
+                <span v-if="exp.clienteNumeroDocumento" class="client-sub">{{ exp.clienteNumeroDocumento }}</span>
+              </div>
             </template>
           </Column>
 
-          <Column header="Monto Contratado">
-            <template #body="{ data: os }">
-              <span class="total-amount">${{ Number(os.totalCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
+          <Column header="Régimen Aduanero">
+            <template #body="{ data: exp }">
+              <span class="regimen-tag">{{ formatRegimen(exp.regimenAduanero) }}</span>
             </template>
           </Column>
 
-          <Column header="Fecha Emisión">
-            <template #body="{ data: os }">
-              <span class="date-text">{{ formatDateTime(os.fechaEmision) }}</span>
-            </template>
-          </Column>
-
-          <Column header="Estado Operativo">
-            <template #body="{ data: os }">
+          <Column header="Canal SUNAT">
+            <template #body="{ data: exp }">
               <Tag
-                :value="os.estadoServicio"
-                :severity="getOsSeverity(os.estadoServicio)"
+                :value="exp.canalSunat || 'PENDIENTE'"
+                :severity="getCanalSeverity(exp.canalSunat)"
                 rounded
               />
             </template>
           </Column>
 
-          <Column header="Observaciones">
-            <template #body="{ data: os }">
-              <span class="obs-snippet">{{ os.observaciones || '—' }}</span>
+          <Column header="N° DAM">
+            <template #body="{ data: exp }">
+              <span class="font-mono text-xs font-bold">{{ exp.numeroDeclaracion || '—' }}</span>
             </template>
           </Column>
 
-          <Column header="Acciones" headerClass="text-right" bodyClass="text-right">
-            <template #body="{ data: os }">
-              <div class="actions-wrapper">
-                <button
-                  v-if="os.estadoServicio === 'GENERADA'"
-                  type="button"
-                  class="action-btn-outline approve"
-                  @click="handleCambiarEstadoOS(os, 'EN_OPERACIONES')"
-                >
-                  Iniciar Operación
-                </button>
-                <button
-                  v-else-if="os.estadoServicio === 'EN_OPERACIONES'"
-                  type="button"
-                  class="action-btn-outline finish"
-                  @click="handleCambiarEstadoOS(os, 'CONCLUIDA')"
-                >
-                  Concluir
-                </button>
-                <button
-                  type="button"
-                  class="action-btn-outline btn-danger-action"
-                  @click="handleDeleteOS(os)"
-                >
-                  Eliminar
-                </button>
-              </div>
+          <Column header="Fecha Apertura">
+            <template #body="{ data: exp }">
+              <span class="date-text">{{ formatDateTime(exp.fechaApertura) }}</span>
+            </template>
+          </Column>
+
+          <Column header="Estado Trámite">
+            <template #body="{ data: exp }">
+              <Tag
+                :value="exp.estadoExpediente || 'ASIGNADO'"
+                :severity="getExpedienteSeverity(exp.estadoExpediente)"
+                rounded
+              />
             </template>
           </Column>
         </DataTable>
@@ -570,6 +587,30 @@ const selectedCliente = ref(null)
 const showCotizacionForm = ref(false)
 const selectedCotizacion = ref(null)
 
+const getEstadoPagoLabel = (st) => {
+  switch (st) {
+    case 'ADELANTO_APROBADO': return 'Anticipo Aprobado'
+    case 'PAGADO_TOTAL': return 'Pagado 100%'
+    case 'PENDIENTE_REVISION': return 'En Revisión Finanzas'
+    case 'OBSERVADO': return 'Pago Observado'
+    default: return 'Pendiente de Pago'
+  }
+}
+
+const getEstadoPagoSeverity = (st) => {
+  switch (st) {
+    case 'ADELANTO_APROBADO':
+    case 'PAGADO_TOTAL':
+      return 'success'
+    case 'PENDIENTE_REVISION':
+      return 'warn'
+    case 'OBSERVADO':
+      return 'danger'
+    default:
+      return 'info'
+  }
+}
+
 const showObservationDialog = ref(false)
 const selectedObservationCotizacion = ref(null)
 
@@ -651,12 +692,13 @@ watch(
 
 const cotizaciones = ref([])
 const clientes = ref([])
-const ordenesServicio = ref([])
+const expedientesList = ref([])
 
 const filterEstadoCotizacion = ref('')
 const searchCliente = ref('')
 const filterTipoCliente = ref('ALL')
-const filterEstadoOs = ref('')
+const filterEstadoExpediente = ref('')
+const searchExpediente = ref('')
 
 const showToast = (message, type = 'success') => {
   if (type === 'error') {
@@ -702,9 +744,19 @@ const filteredClientes = computed(() => {
   })
 })
 
-const filteredOrdenes = computed(() => {
-  if (!filterEstadoOs.value) return ordenesServicio.value
-  return ordenesServicio.value.filter((os) => os.estadoServicio === filterEstadoOs.value)
+const filteredExpedientes = computed(() => {
+  return expedientesList.value.filter((exp) => {
+    const matchStatus = !filterEstadoExpediente.value || exp.estadoExpediente === filterEstadoExpediente.value
+    const q = searchExpediente.value.toLowerCase().trim()
+    const matchSearch =
+      !q ||
+      exp.codigoExpediente?.toLowerCase().includes(q) ||
+      exp.codigoCotizacion?.toLowerCase().includes(q) ||
+      exp.clienteRazonSocial?.toLowerCase().includes(q) ||
+      exp.numeroDeclaracion?.toLowerCase().includes(q)
+
+    return matchStatus && matchSearch
+  })
 })
 
 const loadData = async () => {
@@ -717,13 +769,7 @@ const loadData = async () => {
     ])
     cotizaciones.value = cots || []
     clientes.value = cls || []
-    ordenesServicio.value = (exps || []).map((exp) => ({
-      ...exp,
-      idOrdenServicio: exp.idExpediente,
-      codigoOs: exp.codigoExpediente,
-      estadoServicio: exp.estadoExpediente,
-      fechaEmision: exp.fechaApertura
-    }))
+    expedientesList.value = exps || []
   } catch (err) {
     showToast(err.response?.data?.message || 'Error al conectar con la API de ventas.', 'error')
   } finally {
@@ -864,62 +910,6 @@ const handleDeleteCotizacion = async (cotizacion) => {
   }
 }
 
-// ==========================================
-// ÓRDENES DE SERVICIO ACTIONS
-// ==========================================
-const handleGenerarOS = async (cotizacion) => {
-  const confirmed = await confirmAction({
-    message: `¿Generar Orden de Servicio operativa para la cotización ${cotizacion.codigoCotizacion}?`,
-    header: 'Generar Orden de Servicio',
-    icon: 'pi pi-file-edit',
-    acceptLabel: 'Generar OS',
-    acceptClass: 'p-button-success'
-  })
-  if (!confirmed) return
-
-  try {
-    await comercialService.createOrdenServicio({
-      idCotizacion: cotizacion.idCotizacion,
-      idAgenteAduanero: cotizacion.idAgenteRevisor || 1,
-      observaciones: `Servicio formalizado desde propuesta ${cotizacion.codigoCotizacion}`
-    })
-    showToast('¡Orden de Servicio generada con éxito!')
-    activeTab.value = 'ordenes'
-    await loadData()
-  } catch (err) {
-    showToast(err.response?.data?.message || 'Error al generar Orden de Servicio.', 'error')
-  }
-}
-
-const handleCambiarEstadoOS = async (os, nuevoEstado) => {
-  try {
-    await comercialService.updateOrdenServicioEstado(os.idOrdenServicio, {
-      estadoServicio: nuevoEstado,
-      observaciones: os.observaciones
-    })
-    showToast(`Estado de la OS ${os.codigoOs} actualizado a ${nuevoEstado}.`)
-    await loadData()
-  } catch (err) {
-    showToast(err.response?.data?.message || 'Error al actualizar OS.', 'error')
-  }
-}
-
-const handleDeleteOS = async (os) => {
-  const confirmed = await confirmDelete(
-    `¿Desea eliminar la Orden de Servicio ${os.codigoOs}?`,
-    'Confirmar Eliminación de Orden de Servicio'
-  )
-  if (!confirmed) return
-
-  try {
-    await comercialService.deleteOrdenServicio(os.idOrdenServicio)
-    showToast('Orden de servicio eliminada.', 'info')
-    await loadData()
-  } catch (err) {
-    showToast(err.response?.data?.message || 'Error al eliminar OS.', 'error')
-  }
-}
-
 const getCotizacionSeverity = (estado) => {
   if (estado === 'APROBADA') return 'success'
   if (estado === 'RECHAZADA' || estado === 'ANULADA') return 'danger'
@@ -942,27 +932,34 @@ const getCotizacionLabel = (estado) => {
   return map[estado] || estado
 }
 
-const getOsSeverity = (estado) => {
-  if (estado === 'CONCLUIDA') return 'success'
-  if (estado === 'EN_OPERACIONES') return 'info'
-  return 'warn'
+const getExpedienteSeverity = (estado) => {
+  if (estado === 'LEVANTE_AUTORIZADO' || estado === 'CONCLUIDO') return 'success'
+  if (estado === 'ANULADO') return 'danger'
+  if (estado === 'CON_CANAL') return 'warn'
+  return 'info'
+}
+
+const getCanalSeverity = (canal) => {
+  if (canal === 'VERDE') return 'success'
+  if (canal === 'NARANJA') return 'warn'
+  if (canal === 'ROJO') return 'danger'
+  return 'info'
+}
+
+const formatRegimen = (regimen) => {
+  if (!regimen) return '—'
+  return regimen.replace(/_/g, ' ')
+}
+
+const formatDateTime = (dtStr) => {
+  if (!dtStr) return '—'
+  return dtStr.replace('T', ' ').substring(0, 16)
 }
 
 const getCotizacionBadgeClass = (estado) => {
   if (estado === 'APROBADA') return 'status-approved'
   if (estado === 'RECHAZADA') return 'status-rejected'
   return 'status-pending'
-}
-
-const getOsBadgeClass = (estado) => {
-  if (estado === 'CONCLUIDA') return 'status-approved'
-  if (estado === 'EN_OPERACIONES') return 'status-progress'
-  return 'status-pending'
-}
-
-const formatDateTime = (dtStr) => {
-  if (!dtStr) return '—'
-  return dtStr.replace('T', ' ').substring(0, 16)
 }
 
 onMounted(() => {

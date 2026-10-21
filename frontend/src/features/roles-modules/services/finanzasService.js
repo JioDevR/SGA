@@ -90,6 +90,29 @@ export const finanzasService = {
   async anularLiquidacion(id) {
     const response = await apiClient.delete(`/finanzas/liquidaciones/${id}`)
     return response.data
+  },
+
+  // ==========================================
+  // VALIDACIÓN DE ANTICIPOS Y PAGOS PRE-EXPEDIENTE
+  // ==========================================
+  async getAnticipos(params = {}) {
+    const response = await apiClient.get('/finanzas/anticipos', { params })
+    return response.data.data
+  },
+
+  async getAnticiposPendientes() {
+    const response = await apiClient.get('/finanzas/anticipos/pendientes')
+    return response.data.data
+  },
+
+  async getAnticipoById(idPago) {
+    const response = await apiClient.get(`/finanzas/anticipos/${idPago}`)
+    return response.data.data
+  },
+
+  async validarAnticipo(idPago, payload) {
+    const response = await apiClient.patch(`/finanzas/anticipos/${idPago}/validar`, payload)
+    return response.data.data
   }
 }
 

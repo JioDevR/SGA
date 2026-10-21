@@ -8,6 +8,7 @@ import pe.sga.dto.request.CotizacionRevisionDTO;
 import pe.sga.dto.response.CotizacionResponseDTO;
 import pe.sga.entity.*;
 import pe.sga.entity.enums.EstadoCotizacion;
+import pe.sga.entity.enums.EstadoPagoCotizacion;
 import pe.sga.exception.BadRequestException;
 import pe.sga.exception.ResourceNotFoundException;
 import pe.sga.repository.*;
@@ -30,6 +31,7 @@ public class CotizacionServiceImpl implements ICotizacionService {
     private final CatalogoTipoCargaRepository tipoCargaRepository;
     private final CatalogoPuertoRepository puertoRepository;
     private final ExpedienteRepository expedienteRepository;
+    private final CotizacionPagoRepository cotizacionPagoRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -360,7 +362,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
             cotizacion.setTasaAdValorem(tasaAdv);
             cotizacion.setTasaPercepcion(tasaPercep);
             cotizacion.setMontoTributosEstimado(tributos);
-            cotizacion.setTotalCotizado(dto.getTotalCotizado() != null && dto.getTotalCotizado().compareTo(BigDecimal.ZERO) > 0 ? dto.getTotalCotizado() : total);
+            BigDecimal totalFinal = dto.getTotalCotizado() != null && dto.getTotalCotizado().compareTo(BigDecimal.ZERO) > 0 ? dto.getTotalCotizado() : total;
+            cotizacion.setTotalCotizado(totalFinal);
+
+            BigDecimal abonado = cotizacion.getTotalAbonado() != null ? cotizacion.getTotalAbonado() : BigDecimal.ZERO;
+            BigDecimal saldo = totalFinal.subtract(abonado);
+            cotizacion.setSaldoPendiente(saldo.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : saldo);
         }
     }
 
@@ -377,6 +384,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 codigoExpediente = expOpt.get().getCodigoExpediente();
             }
         }
+
+        boolean tienePagoAprobado = "ADELANTO_APROBADO".equals(c.getEstadoPago())
+                || "PAGADO_TOTAL".equals(c.getEstadoPago())
+                || (c.getIdCotizacion() != null && cotizacionPagoRepository.existsByCotizacion_IdCotizacionAndEstadoPago(c.getIdCotizacion(), EstadoPagoCotizacion.APROBADO));
+
+        boolean habilitadoParaExpediente = c.getEstado() == EstadoCotizacion.APROBADA && tienePagoAprobado && !tieneExpediente;
 
         return CotizacionResponseDTO.builder()
                 .idCotizacion(c.getIdCotizacion())
@@ -421,6 +434,11 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .tieneExpediente(tieneExpediente)
                 .idExpediente(idExpediente)
                 .codigoExpediente(codigoExpediente)
+                .estadoPago(c.getEstadoPago() != null ? c.getEstadoPago() : "SIN_PAGO")
+                .totalAbonado(c.getTotalAbonado() != null ? c.getTotalAbonado() : BigDecimal.ZERO)
+                .saldoPendiente(c.getSaldoPendiente() != null ? c.getSaldoPendiente() : (c.getTotalCotizado() != null ? c.getTotalCotizado() : BigDecimal.ZERO))
+                .tienePagoAprobado(tienePagoAprobado)
+                .habilitadoParaExpediente(habilitadoParaExpediente)
                 .build();
     }
 

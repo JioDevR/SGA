@@ -129,4 +129,16 @@ public class Cotizacion {
 
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
+
+    @Column(name = "estado_pago", nullable = false, length = 25)
+    @Builder.Default
+    private String estadoPago = "SIN_PAGO";
+
+    @Column(name = "total_abonado", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal totalAbonado = BigDecimal.ZERO;
+
+    @Column(name = "saldo_pendiente", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal saldoPendiente = BigDecimal.ZERO;
 }

@@ -187,6 +187,10 @@ CREATE TABLE cotizacion (
     fecha_revision DATETIME NULL,
     motivo_observacion TEXT NULL,
     observaciones TEXT NULL,
+    -- Control Financiero y Anticipos (Paso 2.5: Pre-Expediente)
+    estado_pago VARCHAR(25) NOT NULL DEFAULT 'SIN_PAGO',
+    total_abonado DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    saldo_pendiente DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     -- Restricciones e Índices
     PRIMARY KEY (id_cotizacion),
     CONSTRAINT uq_cotizacion_codigo UNIQUE (codigo_cotizacion),
@@ -197,6 +201,36 @@ CREATE TABLE cotizacion (
     CONSTRAINT fk_cotizacion_tipo_carga FOREIGN KEY (id_tipo_carga) REFERENCES catalogo_tipo_carga (id_tipo_carga) ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT fk_cotizacion_puerto_envio FOREIGN KEY (id_puerto_envio) REFERENCES catalogo_puerto (id_puerto) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_cotizacion_puerto_destino FOREIGN KEY (id_puerto_destino) REFERENCES catalogo_puerto (id_puerto) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- Tabla de Pagos / Anticipos de Cotización (Validación Finanzas previa a Expediente)
+CREATE TABLE cotizacion_pago (
+    id_pago INT NOT NULL AUTO_INCREMENT,
+    id_cotizacion INT NOT NULL,
+    codigo_pago VARCHAR(30) NOT NULL,
+    tipo_abono VARCHAR(30) NOT NULL DEFAULT 'ADELANTO',
+    monto_abonado DECIMAL(12, 2) NOT NULL,
+    moneda VARCHAR(5) NOT NULL DEFAULT 'USD',
+    tipo_cambio DECIMAL(8, 4) NOT NULL DEFAULT 3.7500,
+    monto_equivalente_pen DECIMAL(12, 2) NOT NULL,
+    metodo_pago VARCHAR(50) NOT NULL,
+    banco_origen VARCHAR(80) NULL,
+    banco_destino VARCHAR(80) NOT NULL,
+    numero_operacion VARCHAR(60) NOT NULL,
+    fecha_operacion DATE NOT NULL,
+    id_documento_comprobante INT NULL,
+    estado_pago VARCHAR(25) NOT NULL DEFAULT 'PENDIENTE_REVISION',
+    id_usuario_finanzas INT NULL,
+    fecha_validacion DATETIME NULL,
+    observacion_finanzas TEXT NULL,
+    id_usuario_registro INT NOT NULL,
+    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_pago),
+    CONSTRAINT uq_cotizacion_pago_codigo UNIQUE (codigo_pago),
+    CONSTRAINT fk_pago_cotizacion FOREIGN KEY (id_cotizacion) REFERENCES cotizacion (id_cotizacion) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_pago_usuario_finanzas FOREIGN KEY (id_usuario_finanzas) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE SET NULL,
+    CONSTRAINT fk_pago_usuario_registro FOREIGN KEY (id_usuario_registro) REFERENCES usuario (id_usuario) ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_pago_doc_comprobante FOREIGN KEY (id_documento_comprobante) REFERENCES documento_adjunto (id_documento) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
 ---------------------------------------------------------------------------------
 

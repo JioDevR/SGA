@@ -14,8 +14,10 @@ import pe.sga.entity.Usuario;
 import pe.sga.entity.enums.CanalSunat;
 import pe.sga.entity.enums.EstadoCotizacion;
 import pe.sga.entity.enums.EstadoExpediente;
+import pe.sga.entity.enums.EstadoPagoCotizacion;
 import pe.sga.exception.BadRequestException;
 import pe.sga.exception.ResourceNotFoundException;
+import pe.sga.repository.CotizacionPagoRepository;
 import pe.sga.repository.CotizacionRepository;
 import pe.sga.repository.ExpedienteRepository;
 import pe.sga.repository.UsuarioRepository;
@@ -32,6 +34,7 @@ public class ExpedienteServiceImpl implements IExpedienteService {
     private final ExpedienteRepository expedienteRepository;
     private final CotizacionRepository cotizacionRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CotizacionPagoRepository cotizacionPagoRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -110,6 +113,15 @@ public class ExpedienteServiceImpl implements IExpedienteService {
 
         if (cotizacion.getEstado() != EstadoCotizacion.APROBADA) {
             throw new BadRequestException("Solo se pueden aperturar expedientes para cotizaciones con estado APROBADA. Estado actual: " + cotizacion.getEstado());
+        }
+
+        // COMPUERTA FINANCIERA: Debe existir un pago o adelanto validado y aprobado por Finanzas
+        boolean tienePagoAprobado = "ADELANTO_APROBADO".equals(cotizacion.getEstadoPago())
+                || "PAGADO_TOTAL".equals(cotizacion.getEstadoPago())
+                || cotizacionPagoRepository.existsByCotizacion_IdCotizacionAndEstadoPago(cotizacion.getIdCotizacion(), EstadoPagoCotizacion.APROBADO);
+
+        if (!tienePagoAprobado) {
+            throw new BadRequestException("No es posible aperturar el expediente aduanero. Se requiere un pago o adelanto validado y aprobado por el área de Finanzas.");
         }
 
         if (expedienteRepository.existsByCotizacion_IdCotizacion(dto.getIdCotizacion())) {

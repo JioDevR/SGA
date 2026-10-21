@@ -152,13 +152,33 @@
             </template>
           </Column>
 
+          <Column header="Pago / Anticipo">
+            <template #body="{ data: c }">
+              <div v-if="c.estado === 'APROBADA'" class="client-cell">
+                <Tag
+                  :value="getEstadoPagoLabel(c.estadoPago)"
+                  :severity="getEstadoPagoSeverity(c.estadoPago)"
+                  rounded
+                />
+                <span v-if="c.totalAbonado > 0" class="client-sub" style="color: #15803d; font-weight: 600;">
+                  Abono: ${{ Number(c.totalAbonado).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                </span>
+                <span v-else class="client-sub text-muted">
+                  Sin abono confirmado
+                </span>
+              </div>
+              <span v-else class="text-muted-dash">—</span>
+            </template>
+          </Column>
+
           <Column header="Expediente Aduanero">
             <template #body="{ data: c }">
               <div v-if="c.tieneExpediente" class="exp-linked-tag">
                 <i class="pi pi-folder"></i>
                 <span>{{ c.codigoExpediente }}</span>
               </div>
-              <span v-else-if="c.estado === 'APROBADA'" class="text-muted-dash">Listo para Expediente</span>
+              <span v-else-if="c.estado === 'APROBADA' && c.tienePagoAprobado" class="text-muted-dash" style="color: #15803d; font-weight: 600;">Listo para Expediente</span>
+              <span v-else-if="c.estado === 'APROBADA'" class="text-muted-dash" style="color: #b45309;">Requiere Pago Finanzas</span>
               <span v-else class="text-muted-dash">—</span>
             </template>
           </Column>
@@ -223,18 +243,34 @@
                   <i class="pi pi-times"></i>
                 </button>
 
-                <!-- Botón de Apertura de Expediente si está Aprobada y no tiene Expediente -->
-                <button
-                  v-if="c.estado === 'APROBADA' && !c.tieneExpediente"
-                  type="button"
-                  class="action-btn-outline"
-                  style="border-color: var(--color-accent-copper, #c2410c); color: var(--color-accent-copper, #c2410c); font-weight: 700;"
-                  title="Aperturar Expediente Aduanero para esta cotización"
-                  @click="openAperturaModal(c)"
-                >
-                  <i class="pi pi-folder-open"></i>
-                  <span>+ Expediente</span>
-                </button>
+                <!-- Acciones de Expediente cuando está Aprobada -->
+                <template v-if="c.estado === 'APROBADA' && !c.tieneExpediente">
+                  <!-- Botón Aperturar Expediente si ya tiene pago aprobado por Finanzas -->
+                  <button
+                    v-if="c.tienePagoAprobado"
+                    type="button"
+                    class="action-btn-outline"
+                    style="border-color: var(--color-accent-copper, #c2410c); color: var(--color-accent-copper, #c2410c); font-weight: 700;"
+                    title="Aperturar Expediente Aduanero para esta cotización"
+                    @click="openAperturaModal(c)"
+                  >
+                    <i class="pi pi-folder-open"></i>
+                    <span>+ Expediente</span>
+                  </button>
+
+                  <!-- Botón Expediente Bloqueado si aún no tiene pago aprobado -->
+                  <button
+                    v-else
+                    type="button"
+                    class="action-btn-outline"
+                    style="border-color: #e5e7eb; color: #9ca3af; cursor: not-allowed; background: #f9fafb;"
+                    disabled
+                    title="Requiere que el área de Finanzas apruebe el pago o adelanto antes de generar el expediente"
+                  >
+                    <i class="pi pi-lock"></i>
+                    <span>+ Expediente</span>
+                  </button>
+                </template>
               </div>
             </template>
           </Column>
@@ -733,6 +769,7 @@
       @saved="onExpedienteAperturado"
     />
 
+
     <!-- Modal: Detalle Integral del Expediente Aduanero -->
     <DetalleExpedienteModal
       :visible="showDetalleModal"
@@ -804,6 +841,30 @@ const searchExpedienteQuery = ref('')
 // Modales Operativos
 const showAperturaModal = ref(false)
 const selectedCotizacionParaExpediente = ref(null)
+
+const getEstadoPagoLabel = (st) => {
+  switch (st) {
+    case 'ADELANTO_APROBADO': return 'Anticipo Aprobado'
+    case 'PAGADO_TOTAL': return 'Pagado 100%'
+    case 'PENDIENTE_REVISION': return 'En Revisión Finanzas'
+    case 'OBSERVADO': return 'Pago Observado'
+    default: return 'Pendiente de Pago'
+  }
+}
+
+const getEstadoPagoSeverity = (st) => {
+  switch (st) {
+    case 'ADELANTO_APROBADO':
+    case 'PAGADO_TOTAL':
+      return 'success'
+    case 'PENDIENTE_REVISION':
+      return 'warn'
+    case 'OBSERVADO':
+      return 'danger'
+    default:
+      return 'info'
+  }
+}
 
 const showDetalleModal = ref(false)
 const selectedExpedienteParaDetalle = ref(null)
@@ -880,7 +941,7 @@ const aprobadasCount = computed(() => {
 })
 
 const cotizacionesAprobadasSinExpediente = computed(() => {
-  return cotizaciones.value.filter((c) => c.estado === 'APROBADA' && !c.tieneExpediente)
+  return cotizaciones.value.filter((c) => c.estado === 'APROBADA' && c.tienePagoAprobado && !c.tieneExpediente)
 })
 
 // Métricas de Expedientes

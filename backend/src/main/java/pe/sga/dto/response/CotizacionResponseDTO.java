@@ -66,4 +66,11 @@ public class CotizacionResponseDTO {
     private Boolean tieneExpediente;
     private Integer idExpediente;
     private String codigoExpediente;
+
+    // Control Financiero Pre-Expediente
+    private String estadoPago;
+    private BigDecimal totalAbonado;
+    private BigDecimal saldoPendiente;
+    private Boolean tienePagoAprobado;
+    private Boolean habilitadoParaExpediente;
 }
