@@ -1,56 +1,58 @@
+import { ROLES } from '@/core/auth/roles'
+
 export const gerenciaRoutes = [
   {
-    path: '/gerencia',
-    redirect: '/gerencia/sedes'
+    path: '/gerencia-general',
+    redirect: '/gerencia-general/sedes'
   },
   {
-    path: '/gerencia/sedes',
+    path: '/gerencia-general/sedes',
     name: 'GerenciaSedes',
     component: () => import('@/features/admin/sedes/views/SedesManagementView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
-      title: 'Sedes Territoriales - Gerencia SGA'
+      roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
+      title: 'Gerencia General - Sedes - SGA'
     }
   },
   {
-    path: '/gerencia/catalogos',
+    path: '/gerencia-general/catalogos',
     name: 'GerenciaCatalogos',
     component: () => import('@/features/admin/catalogos/views/CatalogosManagementView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
-      title: 'Catálogos Auxiliares - Gerencia SGA'
+      roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
+      title: 'Gerencia General - Catálogos Auxiliares - SGA'
     }
   },
   {
-    path: '/gerencia/resumen',
+    path: '/gerencia-general/resumen',
     name: 'GerenciaResumen',
     component: () => import('@/features/admin/overview/views/AdminOverviewView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
-      title: 'Panel Ejecutivo - Gerencia SGA'
+      roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
+      title: 'Gerencia General - Resumen Ejecutivo - SGA'
     }
   },
   {
-    path: '/gerencia/flota',
+    path: '/gerencia-general/flota',
     name: 'GerenciaFlota',
     component: () => import('@/features/gerencia/views/GerenciaFlotaView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
-      title: 'Parque Automotor & Flota - Gerencia SGA'
+      roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
+      title: 'Gerencia General - Flota - SGA'
     }
   },
   {
-    path: '/gerencia/conductores',
+    path: '/gerencia-general/conductores',
     name: 'GerenciaConductores',
     component: () => import('@/features/gerencia/views/GerenciaConductoresView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['GERENTE', 'ADMIN_TI', 'ADMINISTRADOR'],
-      title: 'Plantilla de Conductores MTC - Gerencia SGA'
+      roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
+      title: 'Gerencia General - Conductores - SGA'
     }
   }
 ]

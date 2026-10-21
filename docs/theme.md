@@ -182,7 +182,7 @@ Ubicados en `src/shared/components/`:
    * **Props:** `currentPage` (Number), `totalPages` (Number), `totalItems` (Number), `startIndex` (Number), `endIndex` (Number), `itemLabel` (String), `disabled` (Boolean).
 
 5. **`UserRoleBadge.vue` (`src/features/admin/users/components/UserRoleBadge.vue`):**
-   * Tag redondeado que mapea automáticamente iconos de PrimeIcons y severidades de PrimeVue según el rol de aduanas (`ADMINISTRADOR`, `VENTAS`, `LOGISTICA`, `AGENTE_ADUANERO`, `LIQUIDADOR`, `LEGAL`, `FINANZAS`, `TRANSPORTE`).
+   * Tag redondeado que mapea automáticamente iconos de PrimeIcons y severidades según el rol institucional (`ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, `SUPERVISOR_ADUANERO`, `AGENTE_ADUANERO`, `SUPERVISOR_TRANSPORTE`, `CONTADOR`, `ASESOR_LEGAL`).
 
 6. **`ModulePlaceholder.vue` (`src/shared/components/ModulePlaceholder.vue`):**
    * Pantalla de estado vacío / en construcción con icono representativo, descripción técnica y accesos rápidos.

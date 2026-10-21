@@ -47,6 +47,7 @@ public class CatalogoMercanciaController {
     }
 
     @PostMapping
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<CatalogoMercanciaResponseDTO>> crear(@Valid @RequestBody CatalogoMercanciaRequestDTO dto) {
         CatalogoMercanciaResponseDTO creado = mercanciaService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -54,6 +55,7 @@ public class CatalogoMercanciaController {
     }
 
     @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<CatalogoMercanciaResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody CatalogoMercanciaRequestDTO dto) {
@@ -62,12 +64,14 @@ public class CatalogoMercanciaController {
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminarPorEstado(@PathVariable Integer id) {
         mercanciaService.eliminarPorEstado(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Mercancía marcada como inactiva (borrado lógico)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         mercanciaService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Mercancía reactivada exitosamente", null));

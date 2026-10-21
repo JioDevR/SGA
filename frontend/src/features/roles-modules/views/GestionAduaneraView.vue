@@ -2,8 +2,8 @@
   <div class="supervision-view">
     <!-- 1. Hero Banner Editorial Cálido Reutilizable -->
     <HeroBannerCard
-      kicker="SUPERVISIÓN ADUANERA // AUDITORÍA & CONTROL OPERATIVO"
-      title="Bandeja de Supervisión Aduanera y Gestión de Expedientes"
+      kicker="GESTIÓN ADUANERA // AUDITORÍA & CONTROL OPERATIVO"
+      title="Gestión Aduanera y Supervisión de Expedientes"
       description="Auditoría técnica de propuestas comerciales, control de partidas arancelarias, validación de regímenes aduaneros, apertura de Expedientes Aduaneros y control de canales SUNAT."
     />
 
@@ -770,7 +770,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
-import { supervisionService } from '../services/supervisionService'
+import { gestionAduaneraService } from '../services/gestionAduaneraService'
 import { expedienteService } from '../services/expedienteService'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { useNavigationStore } from '@/core/stores/navigationStore'
@@ -853,11 +853,11 @@ const processingAction = ref(false)
 // Sincronización reactiva con el menú lateral (Sidebar)
 const switchTab = (tabName) => {
   activeTab.value = tabName
-  navigationStore.setSupervisionSubOption(tabName)
+  navigationStore.setGestionAduaneraSubOption(tabName)
 }
 
 watch(
-  () => [navigationStore.supervisionSubOption, navigationStore.navTick],
+  () => [navigationStore.gestionAduaneraSubOption, navigationStore.navTick],
   ([newSub]) => {
     if (newSub && ['cotizaciones', 'expedientes'].includes(newSub)) {
       activeTab.value = newSub
@@ -1000,7 +1000,7 @@ const loadData = async () => {
   loading.value = true
   try {
     const [cots, exps] = await Promise.all([
-      supervisionService.getCotizaciones(),
+      gestionAduaneraService.getCotizaciones(),
       expedienteService.getExpedientes()
     ])
     cotizaciones.value = cots || []
@@ -1045,7 +1045,7 @@ const confirmApprove = async (cotizacion) => {
 
   try {
     loading.value = true
-    await supervisionService.revisarCotizacion(cotizacion.idCotizacion, {
+    await gestionAduaneraService.revisarCotizacion(cotizacion.idCotizacion, {
       idAgenteRevisor: authStore.user?.idUsuario || 1,
       estado: 'APROBADA',
       motivoObservacion: null,
@@ -1072,7 +1072,7 @@ const executeRevision = async () => {
 
   processingAction.value = true
   try {
-    await supervisionService.revisarCotizacion(actionCotizacion.value.idCotizacion, {
+    await gestionAduaneraService.revisarCotizacion(actionCotizacion.value.idCotizacion, {
       idAgenteRevisor: authStore.user?.idUsuario || 1,
       estado: 'OBSERVADA',
       motivoObservacion: observationReason.value.trim(),
@@ -1100,7 +1100,7 @@ const executeReject = async () => {
 
   processingAction.value = true
   try {
-    await supervisionService.revisarCotizacion(actionCotizacion.value.idCotizacion, {
+    await gestionAduaneraService.revisarCotizacion(actionCotizacion.value.idCotizacion, {
       idAgenteRevisor: authStore.user?.idUsuario || 1,
       estado: 'RECHAZADA',
       motivoObservacion: rejectReason.value.trim(),

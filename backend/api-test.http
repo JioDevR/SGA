@@ -355,3 +355,148 @@ Authorization: Bearer {{token}}
   "numeroFactura": "F001-0009841",
   "observaciones": "Abono validado en cuenta corriente en soles"
 }
+
+### ===========================================================================
+### PRUEBAS DE AUTORIZACIÓN POR ROL (8 ROLES DEFINITIVOS)
+### ===========================================================================
+
+### 1. Login Administrador TI (ADMINISTRADOR_TI)
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "Password123!"
+}
+
+### 1.1 Administrador TI accede a Logs (200 Permitido)
+GET {{baseUrl}}/admin/logs
+Authorization: Bearer {{loginAdmin.response.body.data.token}}
+
+### 2. Login Gerente General (GERENTE_GENERAL)
+# @name loginGerente
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "gerente",
+  "password": "Password123!"
+}
+
+### 2.1 Gerente accede a Usuarios (200 Permitido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginGerente.response.body.data.token}}
+
+### 2.2 Gerente intenta acceder a Logs TI (403 Prohibido)
+GET {{baseUrl}}/admin/logs
+Authorization: Bearer {{loginGerente.response.body.data.token}}
+
+### 3. Login Agente Comercial (AGENTE_COMERCIAL)
+# @name loginComercial
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "comercial",
+  "password": "Password123!"
+}
+
+### 3.1 Comercial accede a Clientes (200 Permitido)
+GET {{baseUrl}}/clientes
+Authorization: Bearer {{loginComercial.response.body.data.token}}
+
+### 3.2 Comercial intenta acceder a Usuarios (403 Prohibido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginComercial.response.body.data.token}}
+
+### 4. Login Supervisor Aduanero (SUPERVISOR_ADUANERO)
+# @name loginSupervisor
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "supervisor",
+  "password": "Password123!"
+}
+
+### 4.1 Supervisor accede a Expedientes (200 Permitido)
+GET {{baseUrl}}/expedientes
+Authorization: Bearer {{loginSupervisor.response.body.data.token}}
+
+### 4.2 Supervisor intenta acceder a Usuarios (403 Prohibido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginSupervisor.response.body.data.token}}
+
+### 5. Login Agente Aduanero (AGENTE_ADUANERO)
+# @name loginAgente
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "agente",
+  "password": "Password123!"
+}
+
+### 5.1 Agente accede a Expedientes (200 Permitido)
+GET {{baseUrl}}/expedientes
+Authorization: Bearer {{loginAgente.response.body.data.token}}
+
+### 5.2 Agente intenta acceder a Usuarios (403 Prohibido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginAgente.response.body.data.token}}
+
+### 6. Login Supervisor de Transporte (SUPERVISOR_TRANSPORTE)
+# @name loginTransporte
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "transporte",
+  "password": "Password123!"
+}
+
+### 6.1 Supervisor de Transporte accede a Despachos (200 Permitido)
+GET {{baseUrl}}/transporte/despachos
+Authorization: Bearer {{loginTransporte.response.body.data.token}}
+
+### 6.2 Supervisor de Transporte intenta acceder a Usuarios (403 Prohibido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginTransporte.response.body.data.token}}
+
+### 7. Login Contador (CONTADOR)
+# @name loginContador
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "contador",
+  "password": "Password123!"
+}
+
+### 7.1 Contador accede a Liquidaciones Financieras (200 Permitido)
+GET {{baseUrl}}/finanzas/liquidaciones
+Authorization: Bearer {{loginContador.response.body.data.token}}
+
+### 7.2 Contador intenta acceder a Usuarios (403 Prohibido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginContador.response.body.data.token}}
+
+### 8. Login Asesor Legal (ASESOR_LEGAL)
+# @name loginLegal
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "legal",
+  "password": "Password123!"
+}
+
+### 8.1 Asesor Legal accede a Expedientes (200 Permitido)
+GET {{baseUrl}}/expedientes
+Authorization: Bearer {{loginLegal.response.body.data.token}}
+
+### 8.2 Asesor Legal intenta acceder a Usuarios (403 Prohibido)
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{loginLegal.response.body.data.token}}
+

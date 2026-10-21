@@ -35,6 +35,7 @@ public class CatalogoTipoCargaController {
     }
 
     @PostMapping
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<CatalogoTipoCargaResponseDTO>> crear(@Valid @RequestBody CatalogoTipoCargaDTO dto) {
         CatalogoTipoCargaResponseDTO creado = tipoCargaService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,6 +43,7 @@ public class CatalogoTipoCargaController {
     }
 
     @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<CatalogoTipoCargaResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody CatalogoTipoCargaDTO dto) {
@@ -50,12 +52,14 @@ public class CatalogoTipoCargaController {
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminarPorEstado(@PathVariable Integer id) {
         tipoCargaService.eliminarPorEstado(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Tipo de carga marcado como inactivo (eliminación por estado)", null));
     }
 
     @PatchMapping("/{id}/reactivar")
+    @org.springframework.security.access.prepost.PreAuthorize(pe.sga.config.SecurityRoles.ACCESS_SEDES_CATALOGOS_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> reactivar(@PathVariable Integer id) {
         tipoCargaService.reactivar(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Tipo de carga reactivado exitosamente", null));

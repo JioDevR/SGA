@@ -2,8 +2,8 @@
   <div class="legal-view">
     <!-- Hero Banner Card Editorial -->
     <HeroBannerCard
-      kicker="ASESORÍA JURÍDICA // ASUNTOS CONTENCIOSO-TRIBUTARIOS & SUNAT"
-      title="Gestión Legal Aduanera, Recursos de Reclamación y Dictámenes"
+      kicker="LEGAL Y AUDITORÍA // ASUNTOS CONTENCIOSO-TRIBUTARIOS & SUNAT"
+      title="Legal y Auditoría - Recursos de Reclamación y Dictámenes"
       description="Patrocinio y defensa jurídica en despachos aduaneros observados, contingencias de duda razonable de valor, inspecciones de Canal Rojo y apelaciones ante el Tribunal Fiscal."
     />
 
@@ -394,7 +394,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
-import { supervisionService } from '@/features/roles-modules/services/supervisionService'
+import { gestionAduaneraService } from '@/features/roles-modules/services/gestionAduaneraService'
 import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useNavigationStore } from '@/core/stores/navigationStore'
@@ -478,7 +478,7 @@ const filteredExpedientes = computed(() => {
 const loadExpedientes = async () => {
   loadingExpedientes.value = true
   try {
-    const data = await supervisionService.getExpedientes({ soloActivos: false })
+    const data = await gestionAduaneraService.getExpedientes({ soloActivos: false })
     expedientesList.value = data || []
   } catch (err) {
     showError('Error al recuperar expedientes aduaneros')
@@ -489,7 +489,7 @@ const loadExpedientes = async () => {
 
 const switchTab = (tab) => {
   activeTab.value = tab
-  navigationStore.setLegalSubOption(tab === 'observados' ? 'expedientes' : tab === 'recursos' ? 'auditorias' : 'expedientes')
+  navigationStore.setLegalAuditoriaSubOption(tab === 'observados' ? 'expedientes' : tab === 'recursos' ? 'auditorias' : 'expedientes')
 }
 
 const openNuevoRecursoModal = (exp) => {
@@ -571,7 +571,7 @@ const getTipoRecursoSeverity = (tipo) => {
 }
 
 watch(
-  () => [navigationStore.legalSubOption, navigationStore.navTick],
+  () => [navigationStore.legalAuditoriaSubOption, navigationStore.navTick],
   ([sub]) => {
     if (sub && ['expedientes', 'auditorias'].includes(sub)) {
       activeTab.value = sub === 'auditorias' ? 'recursos' : 'observados'

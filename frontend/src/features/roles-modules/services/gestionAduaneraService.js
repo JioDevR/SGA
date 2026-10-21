@@ -1,6 +1,6 @@
 import apiClient from '@/core/api/apiClient'
 
-export const supervisionService = {
+export const gestionAduaneraService = {
   // ==========================================
   // BANDEJA DE AUDITORÍA Y COTIZACIONES
   // ==========================================
@@ -66,4 +66,5 @@ export const supervisionService = {
   }
 }
 
-export default supervisionService
+export const supervisionService = gestionAduaneraService
+export default gestionAduaneraService

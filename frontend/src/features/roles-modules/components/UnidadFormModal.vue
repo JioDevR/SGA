@@ -102,7 +102,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import BaseModal from '@/shared/components/BaseModal.vue'
-import { transporteService } from '../services/transporteService'
+import { transporteFlotaService } from '../services/transporteFlotaService'
 
 const props = defineProps({
   visible: {
@@ -180,9 +180,9 @@ const handleSubmit = async () => {
 
     let res
     if (isEditing.value) {
-      res = await transporteService.updateUnidad(props.unidad.idUnidad, payload)
+      res = await transporteFlotaService.updateUnidad(props.unidad.idUnidad, payload)
     } else {
-      res = await transporteService.createUnidad(payload)
+      res = await transporteFlotaService.createUnidad(payload)
     }
 
     emit('saved', res)

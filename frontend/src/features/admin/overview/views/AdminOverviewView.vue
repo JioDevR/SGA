@@ -80,7 +80,7 @@
         </div>
 
         <p class="suboption-desc">
-          Administración de cuentas de operadores, asignación de roles de acceso (Ventas, Logística, Liquidación, Legal, etc.) y auditoría de accesos.
+          Administración de cuentas de operadores, asignación de roles institucionales (Comercial, Aduanas, Transporte, Legal, etc.) y auditoría de accesos.
         </p>
 
         <div class="suboption-stats">
@@ -283,17 +283,17 @@ const loadOverviewMetrics = async () => {
 
 const goToSubOption = (option) => {
   if (option === 'users') {
-    navigationStore.setActiveModule('admin')
-    navigationStore.setAdminSubOption('users')
-    router.push('/admin/usuarios')
+    navigationStore.setActiveModule('administracion-ti')
+    navigationStore.setAdministracionTiSubOption('users')
+    router.push('/administracion-ti/usuarios')
   } else if (option === 'sedes') {
-    navigationStore.setActiveModule('gerencia')
-    navigationStore.setGerenciaSubOption('sedes')
-    router.push('/gerencia/sedes')
+    navigationStore.setActiveModule('gerencia-general')
+    navigationStore.setGerenciaGeneralSubOption('sedes')
+    router.push('/gerencia-general/sedes')
   } else if (option === 'catalogos') {
-    navigationStore.setActiveModule('gerencia')
-    navigationStore.setGerenciaSubOption('catalogos')
-    router.push('/gerencia/catalogos')
+    navigationStore.setActiveModule('gerencia-general')
+    navigationStore.setGerenciaGeneralSubOption('catalogos')
+    router.push('/gerencia-general/catalogos')
   }
 }
 

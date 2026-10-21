@@ -1,6 +1,6 @@
 import apiClient from '@/core/api/apiClient'
 
-export const transporteService = {
+export const transporteFlotaService = {
   // ==========================================
   // CONDUCTORES
   // ==========================================
@@ -143,4 +143,5 @@ export const transporteService = {
   }
 }
 
-export default transporteService
+export const transporteService = transporteFlotaService
+export default transporteFlotaService

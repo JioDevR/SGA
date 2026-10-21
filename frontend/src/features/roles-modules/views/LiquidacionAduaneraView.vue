@@ -2,8 +2,8 @@
   <div class="liquidador-view">
     <!-- Hero Banner Card Editorial -->
     <HeroBannerCard
-      kicker="LIQUIDACIÓN ADUANERA // NOMENCLATURA & DAM SUNAT"
-      title="Clasificación Arancelaria Nandina y Declaración Aduanera (DAM)"
+      kicker="GESTIÓN ADUANERA // LIQUIDACIÓN & DAM SUNAT"
+      title="Liquidación Aduanera - Clasificación Arancelaria y DAM"
       description="Cálculo de base imponible CIF aduanera, liquidación de derechos arancelarios Ad-Valorem, IGV (16%), IPM (2%), ISC y percepciones SUNAT para la formulación de la DAM."
     />
 
@@ -438,7 +438,7 @@ import MetricCard from '@/shared/components/MetricCard.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
-import { supervisionService } from '@/features/roles-modules/services/supervisionService'
+import { gestionAduaneraService } from '@/features/roles-modules/services/gestionAduaneraService'
 import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useNavigationStore } from '@/core/stores/navigationStore'
@@ -552,7 +552,7 @@ const filteredExpedientes = computed(() => {
 const loadExpedientes = async () => {
   loadingExpedientes.value = true
   try {
-    const data = await supervisionService.getExpedientes({ soloActivos: false })
+    const data = await gestionAduaneraService.getExpedientes({ soloActivos: false })
     expedientesList.value = data || []
   } catch (err) {
     showError('Error al recuperar expedientes aduaneros')
@@ -563,7 +563,12 @@ const loadExpedientes = async () => {
 
 const switchTab = (tab) => {
   activeTab.value = tab
-  navigationStore.setLiquidadorSubOption(tab)
+  const subMap = {
+    declaraciones: 'declaraciones',
+    arancel: 'clasificacion',
+    calculadora: 'tributos'
+  }
+  navigationStore.setGestionAduaneraSubOption(subMap[tab] || tab)
 }
 
 const cargarEnCalculadora = (exp) => {
@@ -638,7 +643,7 @@ const getCanalClass = (canal) => {
 }
 
 watch(
-  () => [navigationStore.liquidadorSubOption, navigationStore.navTick],
+  () => [navigationStore.gestionAduaneraSubOption, navigationStore.navTick],
   ([sub]) => {
     if (sub && ['declaraciones', 'clasificacion', 'tributos'].includes(sub)) {
       activeTab.value = sub === 'clasificacion' ? 'arancel' : sub === 'tributos' ? 'calculadora' : 'declaraciones'

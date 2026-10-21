@@ -2,7 +2,7 @@
   <div class="transporte-view">
     <!-- Hero Banner Card -->
     <HeroBannerCard
-      kicker="TRANSPORTE & DISTRIBUCIÓN // CABINA OPERATIVA DE RUTA"
+      kicker="TRANSPORTE Y FLOTA // CABINA OPERATIVA DE RUTA"
       :title="bannerTitle"
       :description="bannerDesc"
     />
@@ -686,7 +686,8 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useAuthStore } from '@/features/auth/stores/authStore'
-import { transporteService } from '../services/transporteService'
+import { ROLES } from '@/core/auth/roles'
+import { transporteFlotaService } from '../services/transporteFlotaService'
 import CrearDespachoModal from '../components/CrearDespachoModal.vue'
 import AsignarRecursosModal from '../components/AsignarRecursosModal.vue'
 import ConfirmarEntregaModal from '../components/ConfirmarEntregaModal.vue'
@@ -731,7 +732,7 @@ const selectedDocTitulo = ref('')
 
 // Textos dinámicos del banner
 const bannerTitle = computed(() => {
-  if (authStore.userRole === 'TRANSPORTE') {
+  if (authStore.userRole === ROLES.SUPERVISOR_TRANSPORTE) {
     return `Cabina de Operaciones // Chofer: ${authStore.userFullName || authStore.userName}`
   }
   return 'Cabina Operativa de Ruta y Monitoreo de Transporte'
@@ -769,7 +770,7 @@ const filteredDespachosGlobal = computed(() => {
 
 // Sincronización con navigationStore
 watch(
-  () => [navigationStore.transporteSubOption, navigationStore.navTick],
+  () => [navigationStore.transporteFlotaSubOption, navigationStore.navTick],
   ([sub]) => {
     if (sub && ['cabina', 'camion', 'viajes', 'despachos'].includes(sub)) {
       activeTab.value = sub
@@ -780,7 +781,7 @@ watch(
 
 const switchTab = (tab) => {
   activeTab.value = tab
-  navigationStore.setTransporteSubOption(tab)
+  navigationStore.setTransporteFlotaSubOption(tab)
   if (tab === 'cabina' || tab === 'camion') {
     loadMiDespacho()
   } else if (tab === 'viajes') {
@@ -794,7 +795,7 @@ const switchTab = (tab) => {
 const loadMiDespacho = async () => {
   loadingMiDespacho.value = true
   try {
-    const data = await transporteService.getMiDespachoActivo()
+    const data = await transporteFlotaService.getMiDespachoActivo()
     miDespachoActivo.value = data || null
   } catch (err) {
     console.error('Error al cargar mi despacho activo:', err)
@@ -807,7 +808,7 @@ const loadMiDespacho = async () => {
 const loadMisViajes = async () => {
   loadingMisViajes.value = true
   try {
-    const data = await transporteService.getMisDespachos()
+    const data = await transporteFlotaService.getMisDespachos()
     misViajesList.value = data || []
   } catch (err) {
     console.error('Error al cargar historial de viajes:', err)
@@ -820,7 +821,7 @@ const loadMisViajes = async () => {
 const loadDespachosGlobal = async () => {
   loadingGlobal.value = true
   try {
-    const data = await transporteService.getDespachos({ soloActivos: false })
+    const data = await transporteFlotaService.getDespachos({ soloActivos: false })
     despachosGlobalList.value = data || []
   } catch (err) {
     showError('Error al cargar monitoreo global de despachos')
@@ -836,7 +837,7 @@ const handleIniciarRuta = async (despacho) => {
 
   actionBusy.value = true
   try {
-    await transporteService.iniciarRuta(id, {
+    await transporteFlotaService.iniciarRuta(id, {
       fechaSalidaRuta: new Date().toISOString()
     })
     showSuccess('Ruta de transporte iniciada exitosamente')
@@ -860,7 +861,7 @@ const submitIncidencia = async () => {
   savingIncidencia.value = true
   try {
     const id = miDespachoActivo.value.idDespachoTransporte || miDespachoActivo.value.idDespacho
-    await transporteService.reportarIncidencia(id, incidenciaTexto.value.trim())
+    await transporteFlotaService.reportarIncidencia(id, incidenciaTexto.value.trim())
     showInfo('Incidencia en ruta registrada en la bitácora')
     showIncidenciaModal.value = false
     await loadMiDespacho()

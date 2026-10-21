@@ -1,46 +1,54 @@
+import { ROLES } from '@/core/auth/roles'
+
 export const rolesRoutes = [
   {
-    path: '/ventas',
-    name: 'VentasModule',
-    component: () => import('../views/VentasView.vue'),
+    path: '/recepcion-comercial',
+    name: 'RecepcionComercialModule',
+    component: () => import('../views/RecepcionComercialView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'VENTAS'],
-      title: 'Ventas & Comercial - SGA'
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.AGENTE_COMERCIAL],
+      title: 'Recepción Comercial - SGA'
     }
   },
   {
-    path: '/supervision',
-    name: 'SupervisionModule',
-    component: () => import('../views/SupervisionView.vue'),
+    path: '/gestion-aduanera',
+    name: 'GestionAduaneraModule',
+    component: () => import('../views/GestionAduaneraView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'SUPERVISION', 'SUPERVISOR'],
-      title: 'Supervisión Aduanera - SGA'
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.SUPERVISOR_ADUANERO],
+      title: 'Gestión Aduanera - SGA'
     }
   },
   {
-    path: '/aduanas',
-    name: 'AduanasModule',
-    component: () => import('../views/LogisticaView.vue'),
+    path: '/gestion-aduanera/liquidacion',
+    name: 'LiquidacionAduaneraModule',
+    component: () => import('../views/LiquidacionAduaneraView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'AGENTE_ADUANERO', 'LOGISTICA', 'LIQUIDADOR'],
-      title: 'Agente Aduanero & Operaciones - SGA'
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.SUPERVISOR_ADUANERO],
+      title: 'Liquidación Aduanera - SGA'
     }
   },
   {
-    path: '/logistica',
-    redirect: '/aduanas'
-  },
-  {
-    path: '/transporte',
-    name: 'TransporteModule',
-    component: () => import('../views/TransporteView.vue'),
+    path: '/agente-aduanero',
+    name: 'AgenteAduaneroModule',
+    component: () => import('../views/AgenteAduaneroView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'TRANSPORTE'],
-      title: 'Transporte & Flota - SGA'
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.SUPERVISOR_ADUANERO, ROLES.AGENTE_ADUANERO],
+      title: 'Agente Aduanero - SGA'
+    }
+  },
+  {
+    path: '/transporte-flota',
+    name: 'TransporteFlotaModule',
+    component: () => import('../views/TransporteFlotaView.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.SUPERVISOR_TRANSPORTE],
+      title: 'Transporte y Flota - SGA'
     }
   },
   {
@@ -49,28 +57,18 @@ export const rolesRoutes = [
     component: () => import('../views/FinanzasView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'FINANZAS'],
-      title: 'Finanzas & Cobranzas - SGA'
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.CONTADOR],
+      title: 'Finanzas - SGA'
     }
   },
   {
-    path: '/liquidador',
-    name: 'LiquidadorModule',
-    component: () => import('../views/LiquidadorView.vue'),
+    path: '/legal-auditoria',
+    name: 'LegalAuditoriaModule',
+    component: () => import('../views/LegalAuditoriaView.vue'),
     meta: {
       requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'LIQUIDADOR'],
-      title: 'Liquidación Aduanera - SGA'
-    }
-  },
-  {
-    path: '/legal',
-    name: 'LegalModule',
-    component: () => import('../views/LegalView.vue'),
-    meta: {
-      requiresAuth: true,
-      roles: ['ADMIN_TI', 'ADMINISTRADOR', 'GERENTE', 'LEGAL'],
-      title: 'Legal & Auditoría - SGA'
+      roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.ASESOR_LEGAL],
+      title: 'Legal y Auditoría - SGA'
     }
   }
 ]

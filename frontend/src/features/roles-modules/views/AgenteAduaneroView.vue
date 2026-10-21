@@ -2,8 +2,8 @@
   <div class="logistica-view">
     <!-- 1. Hero Banner Card Editorial Cálido Reutilizable -->
     <HeroBannerCard
-      kicker="LOGÍSTICA ADUANERA // DEPÓSITOS TEMPORALES & VGM"
-      title="Custodia de Carga, Control de Pesaje y Retiro de Terminal"
+      kicker="AGENTE ADUANERO // DEPÓSITOS TEMPORALES & ALMACÉN"
+      title="Agente Aduanero - Custodia de Carga, Control de Pesaje y Retiro"
       description="Supervisión de ingresos a depósitos autorizados, certificación de masa bruta verificada (SOLAS VGM), alerta de días libres sin sobrestadía y autorización de salida tras levante."
     />
 
@@ -207,7 +207,7 @@ const searchQuery = ref('')
 const showIngresoModal = ref(false)
 
 watch(
-  () => [navigationStore.aduanasSubOption, navigationStore.navTick],
+  () => [navigationStore.agenteAduaneroSubOption, navigationStore.navTick],
   ([sub]) => {
     if (sub === 'recepcion') {
       filterEstado.value = 'EN_CUSTODIA'

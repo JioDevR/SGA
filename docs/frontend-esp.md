@@ -51,7 +51,7 @@ A continuación se detalla cada una de las dependencias declaradas en el [`packa
   * Controla la navegación del lado del cliente utilizando historial HTML5 limpio (`createWebHistory()`) en [`router/index.js`](file:///home/jiodev/Documents/Proyects/SGA/frontend/src/core/router/index.js).
   * **Guardias Globales (`beforeEach`):**
     * **Protección de rutas autenticadas:** Redirige automáticamente a `/login` si no existe un token válido y guarda la URL previa (`redirect query param`).
-    * **Control de acceso basado en roles (RBAC):** Valida las metas de ruta (`meta.roles`) contra el rol del usuario autenticado en la sesión (`ADMIN`, `GERENTE`, `VENTAS`, etc.), impidiendo accesos no autorizados.
+    * **Control de acceso basado en roles (RBAC):** Valida las metas de ruta (`meta.roles`) contra el rol del usuario autenticado en la sesión (`ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, etc.), impidiendo accesos no autorizados.
     * **Sincronización con el Menú Lateral:** Detecta el segmento de la URL activa y actualiza automáticamente el estado en `navigationStore`.
     * **Actualización dinámica de títulos:** Modifica `document.title` en cada cambio de vista.
 

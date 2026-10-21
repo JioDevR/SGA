@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.LiquidacionFinancieraRequestDTO;
 import pe.sga.dto.request.LiquidacionPagoDTO;
 import pe.sga.dto.response.ApiResponseDTO;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/finanzas/liquidaciones")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_LIQUIDACION_READ)
 public class LiquidacionFinancieraController {
 
     private final ILiquidacionFinancieraService liquidacionService;
@@ -68,6 +71,7 @@ public class LiquidacionFinancieraController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_LIQUIDACION_WRITE)
     public ResponseEntity<ApiResponseDTO<LiquidacionFinancieraResponseDTO>> emitir(
             @Valid @RequestBody LiquidacionFinancieraRequestDTO dto,
             @AuthenticationPrincipal Usuario usuarioAutenticado) {
@@ -78,6 +82,7 @@ public class LiquidacionFinancieraController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_LIQUIDACION_WRITE)
     public ResponseEntity<ApiResponseDTO<LiquidacionFinancieraResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody LiquidacionFinancieraRequestDTO dto) {
@@ -86,6 +91,7 @@ public class LiquidacionFinancieraController {
     }
 
     @PatchMapping("/{id}/pago")
+    @PreAuthorize(SecurityRoles.ACCESS_LIQUIDACION_WRITE)
     public ResponseEntity<ApiResponseDTO<LiquidacionFinancieraResponseDTO>> registrarPago(
             @PathVariable Integer id,
             @Valid @RequestBody LiquidacionPagoDTO dto) {
@@ -94,6 +100,7 @@ public class LiquidacionFinancieraController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_LIQUIDACION_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         liquidacionService.anular(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Liquidación financiera anulada (borrado lógico)", null));

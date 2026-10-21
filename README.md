@@ -19,7 +19,7 @@ SGA/
 
 ## 🚀 Módulos Funcionales
 
-1. **Seguridad y Accesos TI:** Control de accesos RBAC (Roles: `ADMINISTRADOR`, `ADMIN_TI`, `GERENTE`, `VENTAS`, `SUPERVISION`, `AGENTE_ADUANERO`, `LOGISTICA`, `TRANSPORTE`, `LIQUIDADOR`, `LEGAL`, `FINANZAS`), sedes operativas y autenticación JWT.
+1. **Seguridad y Accesos TI:** Control de accesos RBAC (8 Roles Institucionales: `ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, `SUPERVISOR_ADUANERO`, `AGENTE_ADUANERO`, `SUPERVISOR_TRANSPORTE`, `CONTADOR`, `ASESOR_LEGAL`), sedes operativas y autenticación JWT.
 2. **Comercial & CRM:** Gestión de clientes y prospectos, catálogo arancelario y emisión de cotizaciones marítimas, aéreas y terrestres con cálculo de flete, tributos y honorarios.
 3. **Operaciones Aduaneras:** Asignación de expedientes a agentes aduaneros colegiados, registro de numeración DAM, control de canales SUNAT y levantamiento aduanero.
 4. **Almacenes y Depósitos Temporales:** Control de estadía en depósitos extraportuarios (APM Terminals, DP World, Ransa), control de días libres y pesaje de contenedor VGM conforme al convenio SOLAS.
@@ -75,18 +75,14 @@ Todos los usuarios de prueba tienen la contraseña predeterminada: `Password123!
 
 | Usuario | Rol | Cargo / Responsabilidad |
 | :--- | :--- | :--- |
-| `admin` | `ADMINISTRADOR` | Administrador General del Sistema |
-| `admin_ti` | `ADMIN_TI` | Administrador de Infraestructura y TI |
-| `gerente` | `GERENTE` | Gerente General de Operaciones |
-| `vendedor` | `VENTAS` | Ejecutiva Comercial Senior |
-| `supervisor` | `SUPERVISION` | Supervisor de Operaciones Aduaneras |
+| `admin` | `ADMINISTRADOR_TI` | Administrador de Infraestructura y TI |
+| `gerente` | `GERENTE_GENERAL` | Gerente General de Operaciones |
+| `comercial` | `AGENTE_COMERCIAL` | Ejecutiva Comercial Senior |
+| `supervisor` | `SUPERVISOR_ADUANERO` | Supervisor de Operaciones y Liquidación Aduanera |
 | `agente` | `AGENTE_ADUANERO` | Agente de Aduanas Titular Callao |
-| `agente2` | `AGENTE_ADUANERO` | Agente de Aduanas Adjunta |
-| `logistica` | `LOGISTICA` | Coordinador de Depósitos y VGM |
-| `transporte` | `TRANSPORTE` | Jefe de Tráfico y Flota Terrestre |
-| `liquidador` | `LIQUIDADOR` | Especialista en Liquidaciones SUNAT |
-| `legal` | `LEGAL` | Asesor Jurídico Aduanero |
-| `finanzas` | `FINANZAS` | Jefa de Cobranzas y Facturación |
+| `transporte` | `SUPERVISOR_TRANSPORTE` | Supervisor de Tráfico y Flota Terrestre |
+| `contador` | `CONTADOR` | Contadora y Control Financiero |
+| `legal` | `ASESOR_LEGAL` | Asesor Jurídico y Aduanero |
 
 ---
 

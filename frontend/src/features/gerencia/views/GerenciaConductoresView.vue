@@ -12,7 +12,7 @@
       <MetricCard index="01" label="Conductores Disponibles" :value="conductoresDisponiblesCount" severity="success" highlight />
       <MetricCard index="02" label="Choferes en Ruta" :value="conductoresEnRutaCount" severity="pending" />
       <MetricCard index="03" label="Licencias A-IIIc" :value="conductoresA3cCount" severity="accent" />
-      <MetricCard index="04" label="Total Padrón Activo" :value="conductoresList.length" severity="secondary" />
+      <MetricCard index="04" label="Total Padrón Activo" :value="conductoresList.length" severity="accent" />
     </div>
 
     <!-- Alertas Preventivas de Licencias MTC -->
@@ -349,7 +349,8 @@ import MetricCard from '@/shared/components/MetricCard.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
-import { transporteService } from '@/features/roles-modules/services/transporteService'
+import Dialog from 'primevue/dialog'
+import { transporteFlotaService } from '@/features/roles-modules/services/transporteFlotaService'
 import { userService } from '@/features/admin/users/services/userService'
 import { useNotification } from '@/shared/composables/useNotification'
 
@@ -421,7 +422,7 @@ const alertasLicencias = computed(() => {
 })
 
 const usuariosDisponibles = computed(() => {
-  // Retornar usuarios con rol TRANSPORTE o sin conductor asignado, o el que ya está editando
+  // Retornar usuarios con rol SUPERVISOR_TRANSPORTE o sin conductor asignado, o el que ya está editando
   return usuariosList.value.filter(u => {
     if (!u.estadoActivo) return false
     return true
@@ -446,7 +447,7 @@ const filteredConductores = computed(() => {
 const loadConductores = async () => {
   loading.value = true
   try {
-    const data = await transporteService.getConductores(false)
+    const data = await transporteFlotaService.getConductores(false)
     conductoresList.value = data || []
   } catch (err) {
     showError('Error al cargar conductores MTC')
@@ -517,10 +518,10 @@ const saveConductor = async () => {
     }
 
     if (isEditing.value) {
-      await transporteService.updateConductor(editingId.value, payload)
+      await transporteFlotaService.updateConductor(editingId.value, payload)
       showSuccess('Conductor MTC actualizado')
     } else {
-      await transporteService.createConductor(payload)
+      await transporteFlotaService.createConductor(payload)
       showSuccess('Conductor MTC registrado exitosamente')
     }
     showModal.value = false
@@ -535,10 +536,10 @@ const saveConductor = async () => {
 const toggleEstado = async (c) => {
   try {
     if (c.estadoActivo) {
-      await transporteService.deleteConductor(c.idConductor)
+      await transporteFlotaService.deleteConductor(c.idConductor)
       showInfo(`Conductor ${c.nombres} ${c.apellidos} dado de baja`)
     } else {
-      await transporteService.reactivarConductor(c.idConductor)
+      await transporteFlotaService.reactivarConductor(c.idConductor)
       showSuccess(`Conductor ${c.nombres} ${c.apellidos} reactivado`)
     }
     await loadConductores()

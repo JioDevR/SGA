@@ -344,7 +344,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
-import { transporteService } from '@/features/roles-modules/services/transporteService'
+import { transporteFlotaService } from '@/features/roles-modules/services/transporteFlotaService'
 import { useNotification } from '@/shared/composables/useNotification'
 
 const { showSuccess, showError, showInfo } = useNotification()
@@ -441,7 +441,7 @@ const filteredUnidades = computed(() => {
 const loadUnidades = async () => {
   loading.value = true
   try {
-    const data = await transporteService.getUnidades({ soloActivos: false })
+    const data = await transporteFlotaService.getUnidades({ soloActivos: false })
     unidadesList.value = data || []
   } catch (err) {
     showError('Error al cargar unidades de transporte')
@@ -503,10 +503,10 @@ const saveUnidad = async () => {
     }
 
     if (isEditing.value) {
-      await transporteService.updateUnidad(editingId.value, payload)
+      await transporteFlotaService.updateUnidad(editingId.value, payload)
       showSuccess('Unidad vehicular actualizada')
     } else {
-      await transporteService.createUnidad(payload)
+      await transporteFlotaService.createUnidad(payload)
       showSuccess('Vehículo ingresado a la flota')
     }
     showModal.value = false
@@ -521,10 +521,10 @@ const saveUnidad = async () => {
 const toggleEstado = async (u) => {
   try {
     if (u.estadoActivo) {
-      await transporteService.deleteUnidad(u.idUnidad)
+      await transporteFlotaService.deleteUnidad(u.idUnidad)
       showInfo(`Unidad ${u.placaTracto} dada de baja`)
     } else {
-      await transporteService.reactivarUnidad(u.idUnidad)
+      await transporteFlotaService.reactivarUnidad(u.idUnidad)
       showSuccess(`Unidad ${u.placaTracto} reactivada`)
     }
     await loadUnidades()

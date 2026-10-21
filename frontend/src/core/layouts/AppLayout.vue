@@ -46,7 +46,7 @@
               </div>
               <div class="user-meta">
                 <span class="user-full-name">{{ authStore.userFullName || authStore.user?.username }}</span>
-                <span class="user-role-tag">{{ authStore.userRole || 'ADMINISTRADOR' }}</span>
+                <span class="user-role-tag">{{ displayUserRole }}</span>
               </div>
               <i :class="['pi pi-chevron-down chevron-icon', { 'rotated': isUserDropdownOpen }]"></i>
             </div>
@@ -58,7 +58,7 @@
                   <div class="dropdown-avatar">{{ avatarInitials }}</div>
                   <div class="dropdown-user-info">
                     <div class="dropdown-user-name">{{ authStore.userFullName || authStore.user?.username }}</div>
-                    <div class="dropdown-user-role">{{ authStore.userRole || 'ADMINISTRADOR' }}</div>
+                    <div class="dropdown-user-role">{{ displayUserRole }}</div>
                   </div>
                 </div>
 
@@ -128,6 +128,7 @@ import AppSidebar from '@/shared/components/AppSidebar.vue'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useTheme } from '@/shared/composables/useTheme'
+import { ROLE_LABELS } from '@/core/auth/roles'
 
 const router = useRouter()
 const route = useRoute()
@@ -162,54 +163,71 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+const displayUserRole = computed(() => {
+  return ROLE_LABELS[authStore.userRole] || authStore.userRole || 'Operador SGA'
+})
+
 const currentSectionName = computed(() => {
   const map = {
-    admin: 'Administración & Control TI',
-    gerencia: 'Gerencia General & Sedes',
-    ventas: 'Ventas & Comercial',
-    supervision: 'Supervisión Aduanera',
-    aduanas: 'Agente Aduanero & Operaciones',
-    logistica: 'Agente Aduanero & Almacén',
-    liquidador: 'Liquidación Aduanera',
-    legal: 'Legal & Auditoría',
-    finanzas: 'Finanzas',
-    transporte: 'Transporte'
+    'administracion-ti': 'Administración TI',
+    'gerencia-general': 'Gerencia General',
+    'comercial': 'Recepción Comercial',
+    'gestion-aduanera': 'Gestión Aduanera',
+    'agente-aduanero': 'Agente Aduanero',
+    'transporte-flota': 'Transporte y Flota',
+    'finanzas': 'Finanzas',
+    'legal-auditoria': 'Legal y Auditoría'
   }
   return map[navigationStore.currentModule] || 'Operaciones'
 })
 
 const currentTitle = computed(() => {
-  if (navigationStore.currentModule === 'admin') {
-    if (navigationStore.adminSubOption === 'about') return 'Acerca del Sistema SGA'
-    return navigationStore.adminSubOption === 'create-user'
+  if (navigationStore.currentModule === 'administracion-ti') {
+    if (navigationStore.administracionTiSubOption === 'about') return 'Acerca del Sistema SGA'
+    if (navigationStore.administracionTiSubOption === 'logs') return 'Bitácora y Consola de Logs TI'
+    return navigationStore.administracionTiSubOption === 'create-user'
       ? 'Ficha de Registro de Operador'
       : 'Gestor y Directorio de Usuarios TI'
   }
-  if (navigationStore.currentModule === 'gerencia') {
+  if (navigationStore.currentModule === 'gerencia-general') {
     const gMap = {
       overview: 'Panel Ejecutivo y Métricas Generales',
       sedes: 'Gestión Integral de Sedes y Agencias Territoriales',
-      catalogos: 'Catálogos Auxiliares (Puertos y Tipos de Carga)'
+      catalogos: 'Catálogos Auxiliares (Puertos y Tipos de Carga)',
+      flota: 'Parque Automotor & Flota de Transporte',
+      conductores: 'Plantilla de Conductores Acreditados MTC'
     }
-    return gMap[navigationStore.gerenciaSubOption] || 'Gerencia General'
+    return gMap[navigationStore.gerenciaGeneralSubOption] || 'Gerencia General'
   }
-  if (navigationStore.currentModule === 'ventas') {
+  if (navigationStore.currentModule === 'comercial') {
     const vMap = {
       cotizaciones: 'Cotizaciones Comerciales',
       clientes: 'Directorio de Clientes & Prospectos',
-      ordenes: 'Órdenes de Servicio'
+      ordenes: 'Expedientes Aduaneros'
     }
-    return vMap[navigationStore.ventasSubOption] || 'Módulo Comercial de Ventas'
+    return vMap[navigationStore.comercialSubOption] || 'Recepción Comercial'
   }
-  if (navigationStore.currentModule === 'supervision') {
+  if (navigationStore.currentModule === 'gestion-aduanera') {
     const sMap = {
       cotizaciones: 'Bandeja de Cotizaciones para Revisión Técnica',
-      expedientes: 'Gestión Integral de Expedientes Aduaneros'
+      expedientes: 'Gestión Integral de Expedientes Aduaneros',
+      declaraciones: 'Declaraciones DAM (Liquidación)',
+      clasificacion: 'Clasificación Arancelaria NANDINA',
+      tributos: 'Cálculo y Liquidación de Tributos'
     }
-    return sMap[navigationStore.supervisionSubOption] || 'Supervisión Aduanera'
+    return sMap[navigationStore.gestionAduaneraSubOption] || 'Gestión Aduanera'
   }
-  if (navigationStore.currentModule === 'aduanas') {
-    return 'Control de Almacén Aduanero y Despachos'
+  if (navigationStore.currentModule === 'agente-aduanero') {
+    return 'Agente Aduanero'
+  }
+  if (navigationStore.currentModule === 'transporte-flota') {
+    return 'Transporte y Flota'
+  }
+  if (navigationStore.currentModule === 'legal-auditoria') {
+    return 'Legal y Auditoría'
+  }
+  if (navigationStore.currentModule === 'finanzas') {
+    return 'Finanzas'
   }
   return route.meta?.title?.replace(' - SGA', '') || 'Operaciones'
 })

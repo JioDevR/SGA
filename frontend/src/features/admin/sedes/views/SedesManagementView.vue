@@ -238,6 +238,7 @@
 import { ref, computed, onMounted } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Tag from 'primevue/tag'
 import SedeRegistrationForm from '../components/SedeRegistrationForm.vue'
 import sedeService from '../services/sedeService'
 import { downloadBlob } from '@/shared/utils/download'

@@ -144,8 +144,8 @@ Al ejecutar el backend Spring Boot:
 2. El componente `DataInitializer` detecta tablas desiertas e inserta:
    * Sedes logísticas operativas (Callao, APM Terminals, DP World, Ransa).
    * Catálogos oficiales de puertos marítimos/aéreos y tipos de carga.
-   * Usuario de administración general (`admin` / `Password123!`).
-   * Cuentas operativas base para cada rol (`gerente`, `vendedor`, `supervisor`, `agente`).
+   * 8 roles institucionales (`ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, `SUPERVISOR_ADUANERO`, `AGENTE_ADUANERO`, `SUPERVISOR_TRANSPORTE`, `CONTADOR`, `ASESOR_LEGAL`).
+   * Cuentas operativas base para los 8 roles institucionales (`admin`, `gerente`, `comercial`, `supervisor`, `agente`, `transporte`, `contador`, `legal` / `Password123!`).
 
 ### Opción B: Carga Manual mediante Scripts SQL
 Para una reconstrucción estricta mediante consola o cliente SQL:

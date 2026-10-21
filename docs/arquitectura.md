@@ -163,9 +163,9 @@ erDiagram
 
 El backend incluye [`DataInitializer.java`](file:///home/jiodev/Documents/Proyects/SGA/backend/src/main/java/pe/sga/config/DataInitializer.java), el cual implementa `CommandLineRunner`:
 1. Se ejecuta inmediatamente después de levantar el contexto de Spring Boot.
-2. Comprueba si los roles indispensables (`ADMIN`, `OPERADOR_ADUANAS`, `SUPERVISOR`, `LIQUIDADOR`, `CLIENTE`) existen en la tabla `roles`; si no, los crea.
-3. Verifica la existencia de una sede central (`Sede Callao Principal`).
-4. Genera al superusuario `admin` con contraseña encriptada con BCrypt (`admin123` o configurada) asignándole el rol `ADMIN`.
+2. Comprueba si los 8 roles institucionales (`ADMINISTRADOR_TI`, `GERENTE_GENERAL`, `AGENTE_COMERCIAL`, `SUPERVISOR_ADUANERO`, `AGENTE_ADUANERO`, `SUPERVISOR_TRANSPORTE`, `CONTADOR`, `ASESOR_LEGAL`) existen en la tabla `rol`; si no, los crea.
+3. Verifica la existencia de las sedes operativas.
+4. Genera los usuarios iniciales con contraseña encriptada con BCrypt (`Password123!`).
 5. Siembra catálogos aduaneros de prueba si la base de datos está recién inicializada.
 
 ---

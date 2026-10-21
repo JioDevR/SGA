@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pe.sga.config.SecurityRoles;
 import pe.sga.dto.request.ExpedienteActualizarDTO;
 import pe.sga.dto.request.ExpedienteCanalDTO;
 import pe.sga.dto.request.ExpedienteCrearDTO;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/expedientes")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_READ)
 public class ExpedienteController {
 
     private final IExpedienteService expedienteService;
@@ -65,6 +68,7 @@ public class ExpedienteController {
     }
 
     @PostMapping
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ExpedienteResponseDTO>> crear(@Valid @RequestBody ExpedienteCrearDTO dto) {
         ExpedienteResponseDTO creado = expedienteService.crear(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -72,6 +76,7 @@ public class ExpedienteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ExpedienteResponseDTO>> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody ExpedienteActualizarDTO dto) {
@@ -80,6 +85,7 @@ public class ExpedienteController {
     }
 
     @PatchMapping("/{id}/canal")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ExpedienteResponseDTO>> asignarCanal(
             @PathVariable Integer id,
             @Valid @RequestBody ExpedienteCanalDTO dto) {
@@ -88,6 +94,7 @@ public class ExpedienteController {
     }
 
     @PatchMapping("/{id}/levante")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<ExpedienteResponseDTO>> autorizarLevante(
             @PathVariable Integer id,
             @Valid @RequestBody ExpedienteLevanteDTO dto) {
@@ -96,6 +103,7 @@ public class ExpedienteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(SecurityRoles.ACCESS_EXPEDIENTE_ALMACEN_WRITE)
     public ResponseEntity<ApiResponseDTO<Void>> eliminar(@PathVariable Integer id) {
         expedienteService.anular(id);
         return ResponseEntity.ok(ApiResponseDTO.ok("Expediente anulado exitosamente (borrado lógico por estado)", null));

@@ -53,68 +53,50 @@ INSERT INTO
     )
 VALUES (
         1,
-        'ADMINISTRADOR',
-        'Acceso total a la administración, gestión global de usuarios y auditoría',
+        'ADMINISTRADOR_TI',
+        'Administrador de TI',
         TRUE
     ),
     (
         2,
-        'ADMIN_TI',
-        'Administrador de infraestructura, accesos y seguridad informática TI',
+        'GERENTE_GENERAL',
+        'Gerente General',
         TRUE
     ),
     (
         3,
-        'GERENTE',
-        'Gerente general con acceso de lectura gerencial y KPIs a todos los módulos',
+        'AGENTE_COMERCIAL',
+        'Agente Comercial',
         TRUE
     ),
     (
         4,
-        'VENTAS',
-        'Gestión comercial de clientes, cotizaciones y prospección de negocios',
+        'SUPERVISOR_ADUANERO',
+        'Supervisor Aduanero',
         TRUE
     ),
     (
         5,
-        'SUPERVISION',
-        'Supervisión ejecutiva de operaciones aduaneras, logísticas y transporte',
+        'AGENTE_ADUANERO',
+        'Agente Aduanero',
         TRUE
     ),
     (
         6,
-        'AGENTE_ADUANERO',
-        'Revisión técnica de cotizaciones, apertura y gestión de DAM / expedientes',
+        'SUPERVISOR_TRANSPORTE',
+        'Supervisor de Transporte',
         TRUE
     ),
     (
         7,
-        'LOGISTICA',
-        'Gestión de depósitos temporales, pesaje VGM y custodia de carga',
+        'CONTADOR',
+        'Contador',
         TRUE
     ),
     (
         8,
-        'TRANSPORTE',
-        'Monitoreo de flotas, conductores, unidades y guías de remisión',
-        TRUE
-    ),
-    (
-        9,
-        'LIQUIDADOR',
-        'Liquidación financiera, cálculos de tributos SUNAT y cobranza',
-        TRUE
-    ),
-    (
-        10,
-        'LEGAL',
-        'Revisión normativa, documentación legal y dictámenes aduaneros',
-        TRUE
-    ),
-    (
-        11,
-        'FINANZAS',
-        'Control de facturación, cobranzas y pagos bancarios',
+        'ASESOR_LEGAL',
+        'Asesor Legal',
         TRUE
     );
 
@@ -679,14 +661,14 @@ VALUES (
         'DNI',
         '45892104',
         '+51 987 654 321',
-        'Administrador General',
+        'Administrador de TI',
         'ADM-SUNAT-01',
         NOW(),
         TRUE
     ),
     (
         2,
-        2,
+        1,
         1,
         'admin_ti',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -703,7 +685,7 @@ VALUES (
     ),
     (
         3,
-        3,
+        2,
         1,
         'gerente',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -720,7 +702,7 @@ VALUES (
     ),
     (
         4,
-        4,
+        3,
         1,
         'vendedor',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -737,7 +719,7 @@ VALUES (
     ),
     (
         5,
-        5,
+        4,
         1,
         'supervisor',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -754,7 +736,7 @@ VALUES (
     ),
     (
         6,
-        6,
+        5,
         2,
         'agente',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -771,7 +753,7 @@ VALUES (
     ),
     (
         7,
-        6,
+        5,
         3,
         'agente2',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -788,7 +770,7 @@ VALUES (
     ),
     (
         8,
-        7,
+        5,
         5,
         'logistica',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -798,14 +780,14 @@ VALUES (
         'DNI',
         '44556677',
         '+51 987 654 328',
-        'Coordinador de Depósitos y VGM',
+        'Coordinador de Depósitos y Bahías',
         'LOG-SUNAT-08',
         NOW(),
         TRUE
     ),
     (
         9,
-        8,
+        6,
         1,
         'transporte',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -815,14 +797,14 @@ VALUES (
         'DNI',
         '41235678',
         '+51 987 654 329',
-        'Jefe de Tráfico y Flota Terrestre',
+        'Supervisor de Flota y Tráfico Terrestre',
         'TRA-SUNAT-09',
         NOW(),
         TRUE
     ),
     (
         10,
-        9,
+        4,
         1,
         'liquidador',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -832,14 +814,14 @@ VALUES (
         'DNI',
         '49876512',
         '+51 987 654 330',
-        'Especialista en Liquidaciones SUNAT',
+        'Supervisor Aduanero de Liquidaciones',
         'LIQ-SUNAT-10',
         NOW(),
         TRUE
     ),
     (
         11,
-        10,
+        8,
         1,
         'legal',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -856,7 +838,7 @@ VALUES (
     ),
     (
         12,
-        11,
+        7,
         1,
         'finanzas',
         '$2a$10$vbDgD4A8kg.sizd9I.P/AO44N1VeIvOSzvk8BbxZoqb5j9iJZ48Ee',
@@ -866,7 +848,7 @@ VALUES (
         'DNI',
         '48877665',
         '+51 987 654 332',
-        'Jefa de Cobranzas y Facturación',
+        'Contador General',
         'FIN-SUNAT-12',
         NOW(),
         TRUE
