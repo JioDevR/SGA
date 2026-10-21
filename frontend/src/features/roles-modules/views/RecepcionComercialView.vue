@@ -22,72 +22,315 @@
     <!-- Vista Principal: Tablero Comercial y Listados -->
     <div v-else class="ventas-master-container">
 
-      <!-- 1. Hero Banner Card con Estilo Editorial Cálido Reutilizable -->
-      <HeroBannerCard
-        kicker="RECEPCIÓN COMERCIAL // PROSPECTOS & EMISIÓN DE COTIZACIONES"
-        title="Control de Cotizaciones, Clientes y Expedientes"
-        description="Supervisión de prospectos comerciales, emisión de presupuestos de despacho aduanero y formalización de expedientes operativos."
-      />
+      <!-- ======================================================== -->
+      <!-- SUB-OPCIÓN 01: DASHBOARD COMERCIAL DE VENTAS             -->
+      <!-- ======================================================== -->
+      <section v-if="activeTab === 'dashboard'" class="dashboard-comercial-section fade-in">
+        <!-- 1. Barra de Atajos Rápidos Comerciales -->
+        <div class="dashboard-action-toolbar">
+          <div class="toolbar-left-info">
+            <span class="badge-kicker">OPERATORIA & ATAJOS RÁPIDOS</span>
+            <h3 class="toolbar-title">Panel de Acciones Comerciales</h3>
+          </div>
+          <div class="toolbar-actions-group">
+            <button type="button" class="btn-espresso" @click="openCreateCotizacion">
+              <i class="pi pi-plus"></i>
+              <span>+ Nueva Cotización</span>
+            </button>
+            <button type="button" class="btn-outline-warm" @click="openCreateCliente">
+              <i class="pi pi-user-plus"></i>
+              <span>+ Nuevo Cliente</span>
+            </button>
+            <button type="button" class="btn-outline-warm" @click="navigateTo('cotizaciones')">
+              <i class="pi pi-file-edit"></i>
+              <span>Bandeja Cotizaciones</span>
+            </button>
+            <button type="button" class="btn-outline-warm" @click="navigateTo('clientes')">
+              <i class="pi pi-building"></i>
+              <span>Directorio Clientes</span>
+            </button>
+            <button type="button" class="btn-outline-warm" @click="loadData" :disabled="loading" title="Actualizar datos">
+              <i :class="['pi pi-sync', { 'pi-spin': loading }]"></i>
+              <span>Refrescar</span>
+            </button>
+          </div>
+        </div>
 
-      <!-- 2. Métricas Comerciales Rápidas Reutilizando MetricCard -->
-      <div class="metrics-grid">
-        <MetricCard
-          index="01"
-          label="Cotizaciones Emitidas"
-          :value="cotizaciones.length"
-          severity="accent"
-        />
-        <MetricCard
-          index="02"
-          label="Propuestas Aprobadas"
-          :value="aprobadasCount"
-          severity="success"
-        />
-        <MetricCard
-          index="03"
-          label="Clientes & Prospectos"
-          :value="clientes.length"
-        />
-        <MetricCard
-          index="04"
-          label="Expedientes (Seguimiento)"
-          :value="expedientesList.length"
-          severity="pending"
-        />
-      </div>
+        <!-- 2. Grid de Métricas Comerciales Avanzadas -->
+        <div class="metrics-commercial-grid">
+          <!-- Tarjeta 1: Total Cotizaciones -->
+          <div class="commercial-kpi-card" @click="navigateTo('cotizaciones')">
+            <div class="kpi-card-header">
+              <span class="kpi-num">01</span>
+              <span class="kpi-label">Cotizaciones Emitidas</span>
+              <i class="pi pi-file-edit kpi-icon"></i>
+            </div>
+            <div class="kpi-main-stat">
+              <span class="kpi-value">{{ cotizaciones.length }}</span>
+              <span class="kpi-badge font-mono">${{ Number(totalMontoCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }} USD</span>
+            </div>
+            <div class="kpi-footer-note">
+              <span>Volumen acumulado cotizado</span>
+            </div>
+          </div>
 
-      <!-- 3. Selector de Pestañas Principales -->
-      <div class="tabs-nav-bar">
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'cotizaciones' }]"
-          @click="switchTab('cotizaciones')"
-        >
-          <i class="pi pi-file-edit"></i>
-          <span>Cotizaciones ({{ cotizaciones.length }})</span>
-        </button>
+          <!-- Tarjeta 2: Propuestas Aprobadas -->
+          <div class="commercial-kpi-card success-card" @click="navigateTo('cotizaciones')">
+            <div class="kpi-card-header">
+              <span class="kpi-num">02</span>
+              <span class="kpi-label">Propuestas Aprobadas</span>
+              <i class="pi pi-check-circle kpi-icon success"></i>
+            </div>
+            <div class="kpi-main-stat">
+              <span class="kpi-value text-success">{{ aprobadasCount }}</span>
+              <span class="kpi-badge success">{{ conversionRate }}% Conversión</span>
+            </div>
+            <div class="kpi-footer-note">
+              <span>Abonos: <strong class="font-mono text-success">${{ Number(totalAbonadoConfirmado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong></span>
+            </div>
+          </div>
 
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'clientes' }]"
-          @click="switchTab('clientes')"
-        >
-          <i class="pi pi-building"></i>
-          <span>Clientes & Prospectos ({{ clientes.length }})</span>
-        </button>
+          <!-- Tarjeta 3: En Negociación / Pendientes -->
+          <div class="commercial-kpi-card pending-card" @click="navigateTo('cotizaciones')">
+            <div class="kpi-card-header">
+              <span class="kpi-num">03</span>
+              <span class="kpi-label">Propuestas Pendientes</span>
+              <i class="pi pi-clock kpi-icon warning"></i>
+            </div>
+            <div class="kpi-main-stat">
+              <span class="kpi-value text-warning">{{ pendientesCount }}</span>
+              <span class="kpi-badge warning">En Evaluación</span>
+            </div>
+            <div class="kpi-footer-note">
+              <span>Pendientes de confirmación</span>
+            </div>
+          </div>
 
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'ordenes' }]"
-          @click="switchTab('ordenes')"
-        >
-          <i class="pi pi-folder-open"></i>
-          <span>Expedientes Aduaneros ({{ expedientesList.length }})</span>
-        </button>
-      </div>
+          <!-- Tarjeta 4: Observadas por Supervisión -->
+          <div class="commercial-kpi-card alert-card" @click="navigateTo('cotizaciones')">
+            <div class="kpi-card-header">
+              <span class="kpi-num">04</span>
+              <span class="kpi-label">Propuestas Observadas</span>
+              <i class="pi pi-exclamation-triangle kpi-icon danger"></i>
+            </div>
+            <div class="kpi-main-stat">
+              <span class="kpi-value text-danger">{{ observadasCount }}</span>
+              <span class="kpi-badge danger">Requiere Ajuste</span>
+            </div>
+            <div class="kpi-footer-note">
+              <span>Para corrección inmediata</span>
+            </div>
+          </div>
 
-    <!-- TAB 1: COTIZACIONES -->
-    <div v-if="activeTab === 'cotizaciones'" class="tab-content-section">
+          <!-- Tarjeta 5: Clientes y Prospectos -->
+          <div class="commercial-kpi-card" @click="navigateTo('clientes')">
+            <div class="kpi-card-header">
+              <span class="kpi-num">05</span>
+              <span class="kpi-label">Cartera de Clientes</span>
+              <i class="pi pi-users kpi-icon"></i>
+            </div>
+            <div class="kpi-main-stat">
+              <span class="kpi-value">{{ clientes.length }}</span>
+              <span class="kpi-badge">{{ clientesEfectivosCount }} Efectivos</span>
+            </div>
+            <div class="kpi-footer-note">
+              <span>{{ prospectosCount }} prospectos calificados</span>
+            </div>
+          </div>
+
+          <!-- Tarjeta 6: Expedientes Formalizados -->
+          <div class="commercial-kpi-card" @click="navigateTo('ordenes')">
+            <div class="kpi-card-header">
+              <span class="kpi-num">06</span>
+              <span class="kpi-label">Expedientes Operativos</span>
+              <i class="pi pi-folder-open kpi-icon"></i>
+            </div>
+            <div class="kpi-main-stat">
+              <span class="kpi-value">{{ expedientesList.length }}</span>
+              <span class="kpi-badge info">En Seguimiento</span>
+            </div>
+            <div class="kpi-footer-note">
+              <span>Trámites aduaneros activos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Paneles Analíticos en 2 Columnas -->
+        <div class="dashboard-analytics-row">
+          <!-- Columna A: Embudo y Desglose de Propuestas -->
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <div>
+                <span class="badge-kicker">PIPELINE COMERCIAL</span>
+                <h4 class="card-main-title">Embudo de Conversión de Cotizaciones</h4>
+              </div>
+              <span class="analytics-stat-pill">Ticket Promedio: <strong class="font-mono">${{ Number(ticketPromedio || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong></span>
+            </div>
+
+            <div class="pipeline-progress-bar">
+              <div
+                class="pipeline-segment approved"
+                :style="{ width: (cotizaciones.length ? (aprobadasCount / cotizaciones.length) * 100 : 0) + '%' }"
+                :title="`Aprobadas: ${aprobadasCount}`"
+              ></div>
+              <div
+                class="pipeline-segment pending"
+                :style="{ width: (cotizaciones.length ? (pendientesCount / cotizaciones.length) * 100 : 0) + '%' }"
+                :title="`Pendientes: ${pendientesCount}`"
+              ></div>
+              <div
+                class="pipeline-segment observed"
+                :style="{ width: (cotizaciones.length ? (observadasCount / cotizaciones.length) * 100 : 0) + '%' }"
+                :title="`Observadas: ${observadasCount}`"
+              ></div>
+              <div
+                class="pipeline-segment rejected"
+                :style="{ width: (cotizaciones.length ? (rechazadasCount / cotizaciones.length) * 100 : 0) + '%' }"
+                :title="`Rechazadas / Anuladas: ${rechazadasCount}`"
+              ></div>
+            </div>
+
+            <div class="pipeline-legend">
+              <div class="legend-item">
+                <span class="legend-dot approved"></span>
+                <span class="legend-label">Aprobadas</span>
+                <strong class="legend-count">{{ aprobadasCount }}</strong>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot pending"></span>
+                <span class="legend-label">Pendientes</span>
+                <strong class="legend-count">{{ pendientesCount }}</strong>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot observed"></span>
+                <span class="legend-label">Observadas</span>
+                <strong class="legend-count">{{ observadasCount }}</strong>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot rejected"></span>
+                <span class="legend-label">Rechazadas / Anuladas</span>
+                <strong class="legend-count">{{ rechazadasCount }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna B: Desglose por Régimen Aduanero -->
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <div>
+                <span class="badge-kicker">DISTRIBUCIÓN OPERATIVA</span>
+                <h4 class="card-main-title">Propuestas por Régimen Aduanero</h4>
+              </div>
+              <span class="analytics-stat-pill">{{ regimenBreakdown.length }} Regímenes</span>
+            </div>
+
+            <div class="regimen-list">
+              <div v-for="r in regimenBreakdown" :key="r.regimen" class="regimen-row">
+                <div class="regimen-info">
+                  <span class="regimen-name">{{ r.label }}</span>
+                  <span class="regimen-count">{{ r.count }} propuesta{{ r.count > 1 ? 's' : '' }}</span>
+                </div>
+                <div class="regimen-total font-mono">
+                  ${{ Number(r.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                </div>
+              </div>
+              <div v-if="!regimenBreakdown.length" class="empty-mini">
+                <span>Sin cotizaciones registradas para desglosar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Actividad Comercial Reciente (Últimas Cotizaciones) -->
+        <div class="recent-commercial-card">
+          <div class="card-title-row">
+            <div>
+              <span class="badge-kicker">HISTORIAL RECIENTE</span>
+              <h4 class="card-main-title">Últimas Cotizaciones Comerciales Emitidas</h4>
+            </div>
+            <button type="button" class="btn-outline-warm btn-sm" @click="navigateTo('cotizaciones')">
+              <span>Ver todas las cotizaciones ({{ cotizaciones.length }})</span>
+              <i class="pi pi-arrow-right"></i>
+            </button>
+          </div>
+
+          <div class="recent-table-wrapper">
+            <table class="compact-commercial-table">
+              <thead>
+                <tr>
+                  <th>N° Cotización</th>
+                  <th>Cliente / Prospecto</th>
+                  <th>Régimen Aduanero</th>
+                  <th>Total Cotizado</th>
+                  <th>Fecha Emisión</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="c in ultimasCotizaciones" :key="c.idCotizacion">
+                  <td>
+                    <span class="doc-code">{{ c.codigoCotizacion }}</span>
+                  </td>
+                  <td>
+                    <div class="client-cell">
+                      <span class="client-name">{{ c.clienteRazonSocial || 'Cliente N/A' }}</span>
+                      <span class="client-sub">{{ c.clienteNumeroDocumento }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="regimen-tag">{{ formatRegimen(c.regimenAduanero) }}</span>
+                  </td>
+                  <td>
+                    <span class="total-amount font-mono">${{ Number(c.totalCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
+                  </td>
+                  <td>
+                    <span class="date-text">{{ c.fechaEmision }}</span>
+                  </td>
+                  <td>
+                    <Tag
+                      :value="getCotizacionLabel(c.estado)"
+                      :severity="getCotizacionSeverity(c.estado)"
+                      rounded
+                    />
+                  </td>
+                  <td>
+                    <div class="actions-wrapper">
+                      <button
+                        type="button"
+                        class="action-btn-outline"
+                        title="Ver / Adjuntar Documentos"
+                        @click="openDocumentosCotizacion(c)"
+                      >
+                        <i class="pi pi-paperclip"></i>
+                        <span>Docs</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="action-btn-outline"
+                        title="Editar cotización"
+                        @click="openEditCotizacion(c)"
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="!ultimasCotizaciones.length">
+                  <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                    No hay cotizaciones registradas. Utilice el botón "+ Nueva Cotización" para emitir su primera oferta comercial.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SUB-OPCIÓN 02: REGISTRO DE COTIZACIONES COMERCIALES      -->
+      <!-- ======================================================== -->
+      <div v-if="activeTab === 'cotizaciones'" class="tab-content-section fade-in">
       <div class="section-header-row">
         <div>
           <span class="badge-kicker">PROPUESTAS ADUANERAS</span>
@@ -578,7 +821,7 @@ const navigationStore = useNavigationStore()
 const { showSuccess, showError, showInfo } = useNotification()
 const { confirmAction, confirmDelete } = useConfirmation()
 
-const activeTab = ref('cotizaciones')
+const activeTab = ref('dashboard')
 const loading = ref(false)
 
 const showClienteForm = ref(false)
@@ -586,6 +829,12 @@ const selectedCliente = ref(null)
 
 const showCotizacionForm = ref(false)
 const selectedCotizacion = ref(null)
+
+const navigateTo = (subOption) => {
+  closeAllForms()
+  activeTab.value = subOption
+  navigationStore.setComercialSubOption(subOption)
+}
 
 const getEstadoPagoLabel = (st) => {
   switch (st) {
@@ -649,18 +898,11 @@ const closeAllForms = () => {
   selectedCliente.value = null
 }
 
-// Cambio de pestaña desde la barra horizontal superior
-const switchTab = (tabName) => {
-  closeAllForms()
-  activeTab.value = tabName
-  navigationStore.setComercialSubOption(tabName)
-}
-
 // Sincronizar activeTab y resetear formularios con sub-opción de navegación Comercial y navTick
 watch(
   () => [navigationStore.comercialSubOption, navigationStore.navTick],
   ([newSub]) => {
-    if (newSub && ['cotizaciones', 'clientes', 'ordenes'].includes(newSub)) {
+    if (newSub && ['dashboard', 'cotizaciones', 'clientes', 'ordenes'].includes(newSub)) {
       activeTab.value = newSub
       closeAllForms()
     }
@@ -710,8 +952,71 @@ const showToast = (message, type = 'success') => {
   }
 }
 
+// Métricas Comerciales Avanzadas para el Dashboard
+const totalMontoCotizado = computed(() => {
+  return cotizaciones.value.reduce((acc, c) => acc + (Number(c.totalCotizado) || 0), 0)
+})
+
 const aprobadasCount = computed(() => {
   return cotizaciones.value.filter((c) => c.estado === 'APROBADA').length
+})
+
+const pendientesCount = computed(() => {
+  return cotizaciones.value.filter((c) => c.estado === 'PENDIENTE' || c.estado === 'ENVIADA').length
+})
+
+const observadasCount = computed(() => {
+  return cotizaciones.value.filter((c) => c.estado === 'REVISION' || c.estado === 'OBSERVADA').length
+})
+
+const rechazadasCount = computed(() => {
+  return cotizaciones.value.filter((c) => c.estado === 'RECHAZADA' || c.estado === 'ANULADA').length
+})
+
+const conversionRate = computed(() => {
+  if (!cotizaciones.value.length) return '0.0'
+  return ((aprobadasCount.value / cotizaciones.value.length) * 100).toFixed(1)
+})
+
+const totalAbonadoConfirmado = computed(() => {
+  return cotizaciones.value.reduce((acc, c) => acc + (Number(c.totalAbonado) || 0), 0)
+})
+
+const ticketPromedio = computed(() => {
+  if (!cotizaciones.value.length) return '0.00'
+  return (totalMontoCotizado.value / cotizaciones.value.length).toFixed(2)
+})
+
+const clientesEfectivosCount = computed(() => {
+  return clientes.value.filter((c) => !c.esProspecto).length
+})
+
+const prospectosCount = computed(() => {
+  return clientes.value.filter((c) => c.esProspecto).length
+})
+
+const ultimasCotizaciones = computed(() => {
+  return [...cotizaciones.value]
+    .sort((a, b) => (b.idCotizacion || 0) - (a.idCotizacion || 0))
+    .slice(0, 5)
+})
+
+const regimenBreakdown = computed(() => {
+  const map = {}
+  cotizaciones.value.forEach((c) => {
+    const reg = c.regimenAduanero || 'OTROS'
+    if (!map[reg]) {
+      map[reg] = { count: 0, total: 0 }
+    }
+    map[reg].count++
+    map[reg].total += Number(c.totalCotizado) || 0
+  })
+  return Object.entries(map).map(([key, data]) => ({
+    regimen: key,
+    label: key.replace(/_/g, ' '),
+    count: data.count,
+    total: data.total
+  }))
 })
 
 const filteredCotizaciones = computed(() => {
@@ -971,160 +1276,435 @@ onMounted(() => {
 .ventas-view {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  max-width: 1440px;
-  margin: 0 auto;
+  gap: var(--space-6, 1.5rem);
+  width: 100%;
 }
 
-/* 1. Hero Banner Card */
-.hero-banner-card {
-  position: relative;
-  background: linear-gradient(135deg, #1c1917 0%, #1c2621 60%, #063d27 100%);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: var(--radius-lg, 12px);
-  padding: 1.75rem 2rem;
-  color: #fafaf9;
-  overflow: hidden;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.hero-content {
-  max-width: 780px;
-  position: relative;
-  z-index: 2;
-}
-
-.badge-kicker {
-  display: inline-block;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #10b981;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-}
-
-.hero-title {
-  font-size: 1.65rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.015em;
-  margin: 0.15rem 0 0.45rem;
-  line-height: 1.25;
-}
-
-.hero-desc {
-  font-size: 0.875rem;
-  color: #d6d3d1;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.hero-watermark {
-  position: absolute;
-  right: 1.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 7rem;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.03);
-  user-select: none;
-  pointer-events: none;
-}
-
-/* 2. Grid de Métricas */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
-}
-
-.metric-card {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1.35rem 1.45rem;
+/* ==========================================================================
+   ESTRUCTURA Y DASHBOARD COMERCIAL (LENGUAJE EDITORIAL CÁLIDO SGA)
+   ========================================================================== */
+.ventas-master-container {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: var(--space-6, 1.5rem);
+}
+
+.dashboard-comercial-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 1.5rem);
+}
+
+/* 1. Barra de Atajos Rápidos Comerciales */
+.dashboard-action-toolbar {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1rem 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
   box-shadow: var(--shadow-subtle);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card);
+.toolbar-left-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
-.metric-top {
+.toolbar-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.toolbar-actions-group {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
-.metric-idx {
+/* 2. Grid de Métricas Comerciales Avanzadas */
+.metrics-commercial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 1200px) {
+  .metrics-commercial-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .metrics-commercial-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.commercial-kpi-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem 1.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-subtle);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.commercial-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--color-border-strong);
+}
+
+.kpi-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.kpi-num {
   font-size: 0.6875rem;
   font-weight: 700;
   color: var(--color-accent-kicker);
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border-subtle);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0.15rem 0.45rem;
   letter-spacing: 0.02em;
 }
 
-.metric-label {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
+.kpi-label {
+  font-size: 0.825rem;
   font-weight: 600;
+  color: var(--color-text-muted);
+  flex: 1;
 }
 
-.metric-val {
-  font-size: 2rem;
-  font-weight: 700;
+.kpi-icon {
+  font-size: 1.05rem;
+  color: var(--color-text-subtle);
+}
+
+.kpi-icon.success {
+  color: var(--color-success-text);
+}
+
+.kpi-icon.warning {
+  color: var(--color-warning-text);
+}
+
+.kpi-icon.danger {
+  color: var(--color-danger-text);
+}
+
+.kpi-main-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.kpi-value {
+  font-size: 2.15rem;
+  font-weight: 800;
   color: var(--color-text-main);
   line-height: 1;
   letter-spacing: -0.02em;
 }
 
-/* 3. Barra de Pestañas */
-.tabs-nav-bar {
-  display: flex;
-  gap: 0.75rem;
-  border-bottom: 2px solid var(--color-border-subtle);
-  padding-bottom: 0.25rem;
+.kpi-badge {
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border);
 }
 
-.tab-btn {
-  display: inline-flex;
+.kpi-badge.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
+}
+
+.kpi-badge.warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border-color: var(--color-warning-border);
+}
+
+.kpi-badge.danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-border);
+}
+
+.kpi-badge.info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border-color: var(--color-info-border);
+}
+
+.kpi-footer-note {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  border-top: 1px dashed var(--color-border-subtle);
+  padding-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 3. Paneles Analíticos */
+.dashboard-analytics-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 960px) {
+  .dashboard-analytics-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.card-main-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0.15rem 0 0;
+  letter-spacing: -0.01em;
+}
+
+.analytics-stat-pill {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg-subtle);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+}
+
+.pipeline-progress-bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-subtle);
+  margin: 0.35rem 0;
+}
+
+.pipeline-segment {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.pipeline-segment.approved {
+  background: #15803d;
+}
+
+.pipeline-segment.pending {
+  background: #b45309;
+}
+
+.pipeline-segment.observed {
+  background: #eab308;
+}
+
+.pipeline-segment.rejected {
+  background: #b91c1c;
+}
+
+.pipeline-legend {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.legend-item {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  border: none;
-  background: transparent;
+  font-size: 0.8rem;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -0.25rem;
-  transition: all var(--transition-fast);
 }
 
-.tab-btn:hover {
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.approved {
+  background: #15803d;
+}
+
+.legend-dot.pending {
+  background: #b45309;
+}
+
+.legend-dot.observed {
+  background: #eab308;
+}
+
+.legend-dot.rejected {
+  background: #b91c1c;
+}
+
+.legend-count {
+  margin-left: auto;
   color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.regimen-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.regimen-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.85rem;
   background: var(--color-bg-subtle);
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
 }
 
-.tab-btn.active {
+.regimen-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.regimen-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--color-text-main);
-  border-bottom-color: var(--color-primary);
+}
+
+.regimen-count {
+  font-size: 0.725rem;
+  color: var(--color-text-muted);
+}
+
+.regimen-total {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.empty-mini {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* 4. Actividad Comercial Reciente */
+.recent-commercial-card {
   background: var(--color-bg-surface);
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   box-shadow: var(--shadow-subtle);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.785rem;
+}
+
+.recent-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.compact-commercial-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  text-align: left;
+}
+
+.compact-commercial-table thead th {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-muted);
+  padding: 0.65rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.725rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.compact-commercial-table tbody tr {
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.compact-commercial-table tbody tr:hover {
+  background: var(--color-bg-subtle);
+}
+
+.compact-commercial-table tbody td {
+  padding: 0.65rem 0.85rem;
+  color: var(--color-text-main);
+  vertical-align: middle;
+}
+
+.text-success {
+  color: var(--color-success-text) !important;
+}
+
+.text-warning {
+  color: var(--color-warning-text) !important;
+}
+
+.text-danger {
+  color: var(--color-danger-text) !important;
 }
 
 /* Contenido de cada Tab */
@@ -1157,9 +1737,8 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.filter-select,
 .search-mini-input {
-  background: var(--color-bg-surface);
+  background-color: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.55rem 0.85rem;
@@ -1168,7 +1747,6 @@ onMounted(() => {
   outline: none;
 }
 
-.filter-select:focus,
 .search-mini-input:focus {
   border-color: var(--color-primary);
 }

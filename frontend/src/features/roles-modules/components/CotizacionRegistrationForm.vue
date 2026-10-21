@@ -1572,8 +1572,7 @@ const handleSubmit = () => {
   flex-direction: column;
   gap: var(--space-6, 1.5rem);
   padding-bottom: var(--space-10, 2.5rem);
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* 1. Header Bar */
@@ -1659,7 +1658,7 @@ const handleSubmit = () => {
 }
 
 .form-main-title {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-2xl, 1.75rem);
   font-weight: 800;
   color: var(--color-text-main);
@@ -1893,7 +1892,7 @@ const handleSubmit = () => {
 /* 2. Grid de Contenido */
 .form-content-grid {
   display: grid;
-  grid-template-columns: 1fr 390px;
+  grid-template-columns: 1fr 400px;
   gap: var(--space-6, 1.5rem);
   align-items: start;
 }
@@ -1929,11 +1928,12 @@ const handleSubmit = () => {
 }
 
 .block-idx {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-lg, 1.25rem);
-  font-weight: 800;
-  color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md, 0.9375rem);
+  font-weight: 700;
+  color: var(--color-accent-kicker);
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border-subtle);
   width: 2.25rem;
   height: 2.25rem;
   display: flex;
@@ -2407,7 +2407,7 @@ const handleSubmit = () => {
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
-  font-family: var(--font-family-serif);
+  font-family: var(--font-mono);
   color: var(--color-primary);
 }
 
@@ -2488,20 +2488,20 @@ const handleSubmit = () => {
 }
 
 .form-input,
-.form-select,
 .form-textarea {
   width: 100%;
   padding: 0.7rem 0.9rem 0.7rem 2.5rem;
   font-size: var(--font-size-sm, 0.875rem);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md, 0.5rem);
-  background: var(--color-bg-subtle);
+  background-color: var(--color-bg-subtle);
   color: var(--color-text-main);
   transition: all var(--transition-fast);
 }
 
 .form-select {
-  padding-left: 0.9rem;
+  width: 100%;
+  font-size: var(--font-size-sm, 0.875rem);
 }
 
 .form-textarea {
@@ -2520,7 +2520,7 @@ const handleSubmit = () => {
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: var(--color-bg-surface);
+  background-color: var(--color-bg-surface);
   box-shadow: 0 0 0 2px var(--color-primary-subtle);
 }
 
@@ -2645,16 +2645,16 @@ const handleSubmit = () => {
 }
 
 .proforma-client-name {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text-main);
   margin: 0;
   line-height: 1.3;
 }
 
 .proforma-client-doc {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: var(--font-size-2xs, 0.65rem);
   color: var(--color-primary);
   font-weight: 700;
@@ -2704,9 +2704,9 @@ const handleSubmit = () => {
 }
 
 .p-val-total {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-mono);
   font-size: var(--font-size-md, 1.15rem);
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color-primary);
 }
 
@@ -3327,7 +3327,7 @@ const handleSubmit = () => {
 }
 
 .badge-amount {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-mono);
   font-size: var(--font-size-md, 1.1rem);
   font-weight: 800;
   color: var(--color-primary);
@@ -3381,25 +3381,6 @@ const handleSubmit = () => {
 /* Styled Select and Read-only boxes for Customs calculation */
 .form-select-styled {
   width: 100%;
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--radius-md, 0.5rem);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-main);
-  font-size: var(--font-size-xs, 0.75rem);
-  font-weight: 600;
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--transition-fast);
-}
-
-.form-select-styled:focus {
-  border-color: var(--color-primary);
-}
-
-.form-select-styled:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .read-only-amount-box {
@@ -3421,7 +3402,7 @@ const handleSubmit = () => {
 .read-only-val {
   font-size: var(--font-size-xs, 0.75rem);
   font-weight: 700;
-  font-family: var(--font-family-serif, monospace);
+  font-family: var(--font-mono);
   color: var(--color-text-main);
 }
 
@@ -3494,7 +3475,7 @@ const handleSubmit = () => {
 .cif-amount {
   font-size: var(--font-size-base, 1rem);
   font-weight: 800;
-  font-family: var(--font-family-serif, monospace);
+  font-family: var(--font-mono);
   color: var(--color-text-main);
 }
 

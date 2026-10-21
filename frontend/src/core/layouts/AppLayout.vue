@@ -8,12 +8,16 @@
       <!-- Topbar Minimalista con Estilo Editorial Cálido -->
       <header class="app-topbar">
         <div class="topbar-left">
-          <div class="breadcrumbs">
-            <span class="breadcrumb-root">SGA</span>
-            <span class="breadcrumb-sep">/</span>
-            <span class="breadcrumb-current">{{ currentSectionName }}</span>
+          <div class="topbar-meta-row">
+            <div class="breadcrumbs">
+              <span class="breadcrumb-root">SGA</span>
+              <span class="breadcrumb-sep">/</span>
+              <span class="breadcrumb-current">{{ currentSectionName }}</span>
+            </div>
+            <span v-if="currentKicker" class="topbar-kicker">{{ currentKicker }}</span>
           </div>
           <h1 class="topbar-page-title">{{ currentTitle }}</h1>
+          <p v-if="currentSubtitle" class="topbar-page-desc">{{ currentSubtitle }}</p>
         </div>
 
         <div class="topbar-right">
@@ -25,12 +29,6 @@
           >
             <span class="sede-badge-label">SEDE</span>
             <span class="sede-badge-text">{{ authStore.user.codigoSede }} — {{ authStore.user.nombreSede || 'Sede Central Callao' }}</span>
-          </div>
-
-          <!-- Indicador de Backend SGA -->
-          <div class="system-status-indicator">
-            <span class="status-pulse"></span>
-            <span class="status-text">Backend SGA Conectado</span>
           </div>
           
           <!-- Perfil de Usuario con Menú Desplegable -->
@@ -201,7 +199,8 @@ const currentTitle = computed(() => {
   }
   if (navigationStore.currentModule === 'comercial') {
     const vMap = {
-      cotizaciones: 'Cotizaciones Comerciales',
+      dashboard: 'Dashboard Comercial & Ventas',
+      cotizaciones: 'Registro de Cotizaciones Comerciales',
       clientes: 'Directorio de Clientes & Prospectos',
       ordenes: 'Expedientes Aduaneros'
     }
@@ -232,6 +231,57 @@ const currentTitle = computed(() => {
   return route.meta?.title?.replace(' - SGA', '') || 'Operaciones'
 })
 
+const currentKicker = computed(() => {
+  if (navigationStore.currentModule === 'comercial') {
+    const kMap = {
+      dashboard: 'PANEL COMERCIAL // INTELIGENCIA DE VENTAS',
+      cotizaciones: 'PROPUESTAS ADUANERAS // EMISIÓN & SEGUIMIENTO',
+      clientes: 'CARTERA COMERCIAL // CLIENTES & PROSPECTOS',
+      ordenes: 'CONTROL OPERATIVO // SEGUIMIENTO ADUANERO'
+    }
+    return kMap[navigationStore.comercialSubOption] || 'RECEPCIÓN COMERCIAL // PROSPECTOS & COTIZACIONES'
+  }
+  if (navigationStore.currentModule === 'gerencia-general') {
+    return 'DIRECCIÓN EJECUTIVA // GESTIÓN CORPORATIVA'
+  }
+  if (navigationStore.currentModule === 'administracion-ti') {
+    return 'SISTEMAS & SEGURIDAD // CONSOLA TI'
+  }
+  if (navigationStore.currentModule === 'gestion-aduanera') {
+    return 'SUPERVISIÓN & CONTROL // OPERACIONES ADUANERAS'
+  }
+  if (navigationStore.currentModule === 'finanzas') {
+    return 'GESTIÓN CONTABLE // TESORERÍA & FACTURACIÓN'
+  }
+  return null
+})
+
+const currentSubtitle = computed(() => {
+  if (navigationStore.currentModule === 'comercial') {
+    const sMap = {
+      dashboard: 'Métricas de ventas, conversión de propuestas, cartera comercial y atajos rápidos de gestión.',
+      cotizaciones: 'Supervisión de prospectos comerciales, emisión de presupuestos de despacho aduanero y control de estados.',
+      clientes: 'Gestión unificada de prospectos en evaluación y clientes formalizados para operaciones aduaneras.',
+      ordenes: 'Seguimiento de expedientes operativos y enlace directo con cotizaciones comerciales aprobadas.'
+    }
+    return sMap[navigationStore.comercialSubOption] || 'Supervisión comercial, emisión de presupuestos aduaneros y formalización de expedientes operativos.'
+  }
+  if (navigationStore.currentModule === 'gerencia-general') {
+    return 'Supervisión global de sedes territoriales, parque automotor y conductores acreditados MTC.'
+  }
+  if (navigationStore.currentModule === 'administracion-ti') {
+    return 'Control de accesos de operadores, parámetros de infraestructura y auditoría técnica del sistema.'
+  }
+  if (navigationStore.currentModule === 'gestion-aduanera') {
+    const sMap = {
+      cotizaciones: 'Auditoría técnica de propuestas comerciales, control de partidas arancelarias y validación normativa.',
+      expedientes: 'Gestión integral de expedientes aduaneros, asignación de canales SUNAT y autorización de levante.'
+    }
+    return sMap[navigationStore.gestionAduaneraSubOption] || 'Auditoría técnica de propuestas, control de partidas, apertura de expedientes aduaneros y seguimiento SUNAT.'
+  }
+  return null
+})
+
 const avatarInitials = computed(() => {
   if (!authStore.user) return 'CM'
   const n = authStore.user.nombres?.charAt(0) || ''
@@ -257,10 +307,10 @@ const avatarInitials = computed(() => {
 }
 
 .app-topbar {
-  min-height: 72px;
+  min-height: 76px;
   background: var(--color-bg-base);
   border-bottom: 1px solid var(--color-border);
-  padding: 0.75rem 2.25rem;
+  padding: 0.85rem 3.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -273,7 +323,13 @@ const avatarInitials = computed(() => {
 .topbar-left {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.2rem;
+}
+
+.topbar-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
 }
 
 .breadcrumbs {
@@ -294,22 +350,43 @@ const avatarInitials = computed(() => {
   color: var(--color-text-muted);
 }
 
+.topbar-kicker {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-kicker);
+  background: var(--color-bg-subtle);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border-subtle);
+}
+
 .topbar-page-title {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--color-text-main);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   margin: 0;
   line-height: 1.2;
+}
+
+.topbar-page-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  margin: 0;
+  max-width: 850px;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  flex-shrink: 0;
 }
 
-/* Sede Asignada Pill en el Topbar */
+/* Sede Asignada Pill en el Topbar (Mantenida sutil y estilizada) */
 .sede-topbar-badge {
   display: inline-flex;
   align-items: center;
@@ -337,31 +414,6 @@ const avatarInitials = computed(() => {
   color: var(--color-text-main);
   font-size: 0.725rem;
   white-space: nowrap;
-}
-
-.system-status-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.725rem;
-}
-
-.status-pulse {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #228b49;
-  box-shadow: 0 0 5px rgba(34, 139, 73, 0.4);
-}
-
-.status-text {
-  font-weight: 600;
-  color: var(--color-text-main);
-  font-size: 0.725rem;
 }
 
 /* Botón Rápido de Tema en Topbar */
@@ -704,7 +756,7 @@ const avatarInitials = computed(() => {
 
 .page-content {
   flex: 1;
-  padding: 2rem 2.25rem 3rem;
+  padding: 2rem 3.5rem 3rem;
   background: var(--color-bg-base);
 }
 

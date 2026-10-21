@@ -1683,9 +1683,10 @@ onMounted(() => {
 
 <style scoped>
 .finanzas-view {
-  padding: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 /* Pestañas de Navegación */

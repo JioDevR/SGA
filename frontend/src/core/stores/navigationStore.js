@@ -10,8 +10,8 @@ export const useNavigationStore = defineStore('navigation', {
     administracionTiSubOption: 'users',
     // Sub-opciones en Gerencia General: 'overview' | 'sedes' | 'catalogos' | 'flota' | 'conductores'
     gerenciaGeneralSubOption: 'sedes',
-    // Sub-opciones en Recepción Comercial: 'cotizaciones' | 'clientes'
-    comercialSubOption: 'cotizaciones',
+    // Sub-opciones en Recepción Comercial: 'dashboard' | 'cotizaciones' | 'clientes' | 'ordenes'
+    comercialSubOption: 'dashboard',
     // Sub-opciones en Gestión Aduanera: 'cotizaciones' | 'expedientes' | 'declaraciones' | 'clasificacion' | 'tributos'
     gestionAduaneraSubOption: 'cotizaciones',
     // Sub-opciones en Agente Aduanero: 'almacen' | 'expedientes' | 'despacho'

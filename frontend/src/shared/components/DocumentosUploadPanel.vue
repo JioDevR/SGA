@@ -841,19 +841,17 @@ defineExpose({
   color: var(--color-text-main);
 }
 
-.select-input,
 .text-input {
   padding: 0.55rem 0.85rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm, 6px);
-  background: var(--color-bg-surface);
+  background-color: var(--color-bg-surface);
   color: var(--color-text-main);
   font-size: 0.875rem;
   font-family: inherit;
   transition: border-color var(--transition-fast, 0.2s);
 }
 
-.select-input:focus,
 .text-input:focus {
   outline: none;
   border-color: var(--color-primary);

@@ -78,36 +78,36 @@ defineEmits(['cancel', 'submit'])
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-6, 1.5rem);
-  padding: var(--space-6, 1.5rem) var(--space-8, 2rem);
+  gap: var(--space-5, 1.25rem);
+  padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl, 1rem);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg, 0.75rem);
+  box-shadow: var(--shadow-subtle);
   flex-wrap: wrap;
 }
 
 .header-titles {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-  max-width: 800px;
+  gap: 0.35rem;
+  max-width: 820px;
 }
 
 .btn-back-link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
+  gap: 0.4rem;
   background: none;
   border: none;
   color: var(--color-text-muted);
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: 0.725rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
   padding: 0;
-  margin-bottom: var(--space-1, 0.25rem);
+  margin-bottom: 0.15rem;
   transition: color var(--transition-fast);
 }
 
@@ -123,51 +123,55 @@ defineEmits(['cancel', 'submit'])
 }
 
 .badge-kicker {
-  font-size: var(--font-size-2xs, 0.65rem);
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-sm, 0.25rem);
+  color: var(--color-accent-kicker);
+  background: var(--color-bg-subtle);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-xs, 0.25rem);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .mode-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: var(--font-size-2xs, 0.65rem);
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full, 9999px);
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
 }
 
 .mode-create {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
 }
 
 .mode-edit {
-  background: var(--color-warning-subtle);
-  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
 }
 
 .form-main-title {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-2xl, 1.75rem);
-  font-weight: 800;
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 700;
   color: var(--color-text-main);
-  line-height: 1.2;
-  margin: 0;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin: 0.15rem 0 0;
 }
 
 .form-main-desc {
-  font-size: var(--font-size-sm, 0.875rem);
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
-  line-height: 1.5;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -180,10 +184,10 @@ defineEmits(['cancel', 'submit'])
 .btn-outline-warm {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.25rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
+  gap: 0.45rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.84rem;
+  font-weight: 600;
   border-radius: var(--radius-md, 0.5rem);
   border: 1px solid var(--color-border);
   background: var(--color-bg-surface);
@@ -200,26 +204,28 @@ defineEmits(['cancel', 'submit'])
 .btn-espresso {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.35rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.84rem;
+  font-weight: 600;
   border-radius: var(--radius-md, 0.5rem);
-  border: 1px solid var(--color-primary);
+  border: none;
   background: var(--color-primary);
   color: var(--color-primary-text);
   cursor: pointer;
   transition: all var(--transition-fast);
+  box-shadow: 0 2px 6px rgba(53, 47, 42, 0.2);
 }
 
 .btn-espresso:hover:not(:disabled) {
   background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
+  transform: translateY(-1px);
 }
 
 .btn-espresso:disabled,
 .btn-outline-warm:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 </style>

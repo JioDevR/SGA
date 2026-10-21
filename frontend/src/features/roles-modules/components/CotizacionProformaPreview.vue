@@ -136,63 +136,6 @@
         <span>SISTEMA DE GESTIÓN ADUANERA • MÓDULO COMERCIAL</span>
       </div>
     </div>
-
-    <!-- Tarjeta de Control de Calidad y Validación -->
-    <div class="checklist-card">
-      <h4 class="checklist-title">
-        <i class="pi pi-list-check"></i>
-        <span>Requisitos para Emisión</span>
-      </h4>
-
-      <ul class="checklist-items">
-        <li :class="['checklist-row', { valid: !!form.idCliente }]">
-          <i :class="form.idCliente ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Cliente o prospecto asignado</span>
-        </li>
-        <li :class="['checklist-row', { valid: !!form.regimenAduanero }]">
-          <i :class="form.regimenAduanero ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Régimen aduanero determinado</span>
-        </li>
-        <li :class="['checklist-row', { valid: Number(form.valorFob) > 0 }]">
-          <i :class="Number(form.valorFob) > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Valor FOB de mercancía (> $0.00)</span>
-        </li>
-        <li :class="['checklist-row', { valid: form.validezDias > 0 }]">
-          <i :class="form.validezDias > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Plazo de validez especificado</span>
-        </li>
-        <li v-if="form.servicioTransporte" :class="['checklist-row', { valid: !!form.origenDepartamento && !!form.destinoDepartamento && Number(form.costoTransporteInterno) > 0 }]">
-          <i :class="(form.origenDepartamento && form.destinoDepartamento && Number(form.costoTransporteInterno) > 0) ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Ruta y flete local asignado</span>
-        </li>
-        <li :class="['checklist-row', { valid: Number(form.totalCotizado) > 0 }]">
-          <i :class="Number(form.totalCotizado) > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Monto total cotizado (> $0.00 USD)</span>
-        </li>
-      </ul>
-
-      <div class="sidebar-action-buttons">
-        <button
-          type="button"
-          class="btn-espresso full-width"
-          @click="$emit('submit')"
-          :disabled="submitting || !isFormReady"
-        >
-          <i v-if="submitting" class="pi pi-spin pi-spinner"></i>
-          <i v-else class="pi pi-save"></i>
-          <span>{{ isEditMode ? 'Guardar Cambios' : 'Emitir Cotización' }}</span>
-        </button>
-
-        <button
-          type="button"
-          class="btn-outline-warm full-width"
-          @click="$emit('cancel')"
-          :disabled="submitting"
-        >
-          <span>Descartar y Regresar</span>
-        </button>
-      </div>
-    </div>
   </aside>
 </template>
 
@@ -326,16 +269,16 @@ const formatVal = (val) => {
 }
 
 .proforma-client-name {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text-main);
   margin: 0;
   line-height: 1.3;
 }
 
 .proforma-client-doc {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: var(--font-size-2xs, 0.65rem);
   color: var(--color-primary);
   font-weight: 700;
@@ -454,9 +397,9 @@ const formatVal = (val) => {
 }
 
 .p-val-total {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-mono);
   font-size: var(--font-size-md, 1.15rem);
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color-primary);
 }
 
@@ -468,110 +411,5 @@ const formatVal = (val) => {
   color: var(--color-text-muted);
   letter-spacing: 0.05em;
   font-weight: 700;
-}
-
-.checklist-card {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl, 1rem);
-  padding: var(--space-5, 1.25rem);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4, 1rem);
-}
-
-.checklist-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2, 0.5rem);
-  font-size: var(--font-size-xs, 0.75rem);
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-main);
-  margin: 0;
-}
-
-.checklist-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-}
-
-.checklist-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2, 0.5rem);
-  font-size: var(--font-size-xs, 0.75rem);
-  color: var(--color-text-muted);
-  transition: color var(--transition-fast);
-}
-
-.checklist-row.valid {
-  color: var(--color-success);
-  font-weight: 600;
-}
-
-.sidebar-action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-  margin-top: var(--space-2, 0.5rem);
-}
-
-.full-width {
-  width: 100%;
-}
-
-.btn-outline-warm {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.25rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
-  border-radius: var(--radius-md, 0.5rem);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
-  color: var(--color-text-main);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-outline-warm:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-subtle);
-}
-
-.btn-espresso {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.35rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
-  border-radius: var(--radius-md, 0.5rem);
-  border: 1px solid var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-primary-text, #ffffff);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-espresso:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-.btn-espresso:disabled,
-.btn-outline-warm:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>

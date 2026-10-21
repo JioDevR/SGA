@@ -693,7 +693,7 @@ const handleSubmit = async () => {
 }
 
 .form-main-title {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-2xl, 1.75rem);
   font-weight: 800;
   color: var(--color-text-main);
@@ -827,11 +827,12 @@ const handleSubmit = async () => {
 }
 
 .block-idx {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-lg, 1.25rem);
-  font-weight: 800;
-  color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md, 0.9375rem);
+  font-weight: 700;
+  color: var(--color-accent-kicker);
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border-subtle);
   width: 2.25rem;
   height: 2.25rem;
   display: flex;
@@ -1221,9 +1222,9 @@ const handleSubmit = async () => {
 }
 
 .card-port-name {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-md, 1.1rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text-main);
   margin: 0 0 var(--space-2, 0.5rem) 0;
   line-height: 1.3;
