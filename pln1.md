@@ -214,14 +214,14 @@ Se trabaja en una rama `feature/roles-definitivos`, con un commit por fase y ver
 
 ## Checklist final
 
-- [ ] Cada uno de los 8 usuarios entra y aterriza en su vista.
-- [ ] Acceso por URL a una vista ajena redirige al `homePath`.
-- [ ] Administrador de TI y Gerente General conmutan entre todos los módulos activos.
-- [ ] `SUPERVISOR_ADUANERO` ve Gestión Aduanera, Liquidación y Agente Aduanero.
-- [ ] API devuelve 403 a roles no autorizados y 200 a los autorizados.
-- [ ] Las rutas antiguas ya no existen (devuelven ruta no encontrada) y solo responden las nuevas.
-- [ ] Migración sin pérdida de usuarios.
-- [ ] `grep` no encuentra códigos, claves de módulo ni nombres de archivo antiguos.
+- [x] Cada uno de los 8 usuarios entra y aterriza en su vista.
+- [x] Acceso por URL a una vista ajena redirige al `homePath`.
+- [x] Administrador de TI y Gerente General conmutan entre todos los módulos activos.
+- [x] `SUPERVISOR_ADUANERO` ve Gestión Aduanera, Liquidación y Agente Aduanero.
+- [x] API devuelve 403 a roles no autorizados y 200 a los autorizados.
+- [x] Las rutas antiguas ya no existen (devuelven ruta no encontrada) y solo responden las nuevas.
+- [x] Migración sin pérdida de usuarios.
+- [x] `grep` no encuentra códigos, claves de módulo ni nombres de archivo antiguos.
 
 ## Riesgos y mitigaciones
 
