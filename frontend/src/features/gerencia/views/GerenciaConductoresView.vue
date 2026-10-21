@@ -12,7 +12,7 @@
       <MetricCard index="01" label="Conductores Disponibles" :value="conductoresDisponiblesCount" severity="success" highlight />
       <MetricCard index="02" label="Choferes en Ruta" :value="conductoresEnRutaCount" severity="pending" />
       <MetricCard index="03" label="Licencias A-IIIc" :value="conductoresA3cCount" severity="accent" />
-      <MetricCard index="04" label="Total Padrón Activo" :value="conductoresList.length" severity="secondary" />
+      <MetricCard index="04" label="Total Padrón Activo" :value="conductoresList.length" severity="accent" />
     </div>
 
     <!-- Alertas Preventivas de Licencias MTC -->
@@ -349,6 +349,7 @@ import MetricCard from '@/shared/components/MetricCard.vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Tag from 'primevue/tag'
+import Dialog from 'primevue/dialog'
 import { transporteFlotaService } from '@/features/roles-modules/services/transporteFlotaService'
 import { userService } from '@/features/admin/users/services/userService'
 import { useNotification } from '@/shared/composables/useNotification'
