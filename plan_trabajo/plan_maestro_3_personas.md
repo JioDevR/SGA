@@ -35,9 +35,11 @@ Para construir **Transaduanas Platform** de manera limpia, profesional, sin coli
 
 ### Guías Técnicas Individuales de Consulta:
 Cada persona cuenta con su propio manual técnico paso a paso con el código y especificaciones exactas:
-* **Persona 1 (DBA / Infraestructura):** Documento [`database.md`](file:///home/jiodev/Documents/Proyects/SGA/alternativo/database.md)
-* **Persona 2 (Backend Completo):** Documento [`backend.md`](file:///home/jiodev/Documents/Proyects/SGA/alternativo/backend.md)
-* **Persona 3 (Frontend Completo):** Documento [`frontend.md`](file:///home/jiodev/Documents/Proyects/SGA/alternativo/frontend.md)
+* **Persona 1 (Paso 0 - Configuración Inicial & Docker):** Documento [`conf_inicial.md`](./conf_inicial.md)
+* **Persona 1 (Paso 1 - Base de Datos Relacional 3NF & Seeds):** Documento [`database.md`](./database.md)
+* **Persona 2 (Backend Completo):** Documento [`backend.md`](./backend.md)
+* **Persona 3 (Frontend Completo):** Documento [`frontend.md`](./frontend.md)
+* **Control de Versiones & Git:** Documento [`guia_git_github.md`](./guia_git_github.md)
 
 ---
 
@@ -130,28 +132,33 @@ A continuación se detalla el orden cronológico exacto de trabajo día por día
 
 ---
 
-### DÍA 1: Cimientos, Base de Datos e Infraestructura (Persona 1)
+### DÍA 1: Cimientos, Configuración Inicial y Base de Datos (Persona 1)
 
-Persona 1 arranca el proyecto en solitario para preparar la plataforma sobre la que trabajarán los demás:
+Persona 1 arranca el proyecto en solitario para preparar la plataforma sobre la que trabajarán los demás, siguiendo dos etapas consecutivas:
 
+#### Parte A: Configuración Inicial del Entorno (Paso 0 - Ver [`conf_inicial.md`](./conf_inicial.md))
 ```bash
 # 1. Persona 1 inicializa el repositorio
 git init
 git checkout -b main
 git commit --allow-empty -m "chore: initial commit en main"
 git checkout -b develop
+git checkout -b infra/setup-initial-environment
+```
+* **Commit 0.1:** `chore(infra): inicializar repositorio git, estructura de directorios y reglas .gitignore`  
+  *Archivos:* `.gitignore`, estructura base `database/backups/`, `backend/`, `frontend/`, `docs/`.
+* **Commit 0.2:** `feat(infra): configurar docker-compose mysql 8.4 inno-db y plantilla de configuracion local`  
+  *Archivos:* `database/docker-compose.yml`, `backend/application-local.properties.example`.
+
+#### Parte B: Modelado y Sembrado de Base de Datos (Paso 1 - Ver [`database.md`](./database.md))
+```bash
 git checkout -b infra/setup-database-environment
 ```
-
-* **Commit 1.1:** `chore(infra): inicializar estructura de repositorio, ramas develop/main y archivo gitignore`  
-  *Archivos:* `.gitignore`, estructura de carpetas `database/`, `backend/`, `frontend/`.
-* **Commit 1.2:** `feat(infra): configurar docker-compose para mysql 8.4 inno-db y plantilla de conexion local`  
-  *Archivos:* `database/docker-compose.yml`, `backend/application-local.properties.example`.
-* **Commit 1.3:** `feat(database): implementar esquema ddl relacional de 16 tablas normalizadas en 3nf`  
+* **Commit 1.1:** `feat(database): implementar esquema ddl relacional de 16 tablas normalizadas en 3nf`  
   *Archivos:* `database/schema.sql` (creación de 16 tablas con claves foráneas e índices).
-* **Commit 1.4:** `feat(database): incorporar datos semilla de roles normativos, sedes, catalogos y usuario admin`  
-  *Archivos:* `database/data.sql` (8 roles, sedes, tipos de carga, puertos y admin).
-* **Commit 1.5:** `test(infra): verificar levantamiento del contenedor mysql y carga exitosa de las 16 tablas`  
+* **Commit 1.2:** `feat(database): incorporar datos semilla de roles normativos, sedes, catalogos y usuario admin`  
+  *Archivos:* `database/data.sql` (8 roles normativos, sedes territoriales, tipos de carga, puertos y admin).
+* **Commit 1.3:** `test(infra): verificar levantamiento del contenedor mysql y carga exitosa de las 16 tablas`  
   *Acción:* Levantar MySQL, cargar schema, cargar data y verificar con `SHOW TABLES;`.
 
 #### Cierre del Día 1 (Merge de Infraestructura a `develop`):

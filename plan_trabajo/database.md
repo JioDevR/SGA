@@ -1,6 +1,9 @@
-# Guía Maestra de Base de Datos e Infraestructura
+# Guía Maestra de Base de Datos y Modelado Relacional (3NF)
 **Transaduanas Platform (Powered by SGA Core)**  
-*Arquitectura de Datos, Modelado Relacional 3NF y Secuencia de Commits Git para el Mantenedor / DBA (Persona 1)*
+*Paso 1: Arquitectura de Datos, Modelado de 16 Tablas, Datos Semilla y Reglas de Negocio para el DBA (Persona 1)*
+
+> [!NOTE]
+> Esta guía asume que ya se completó la configuración inicial del repositorio, ramas y contenedor MySQL 8.4 descrita en **[`conf_inicial.md`](./conf_inicial.md)**.
 
 ---
 
@@ -77,161 +80,29 @@ erDiagram
 
 ---
 
-## 2. Rol y Responsabilidades del Mantenedor / DBA (Persona 1)
+## 2. Secuencia de Commits de Base de Datos (Rama `infra/*`)
 
-El **Ingeniero 1 (Mantenedor / DevOps / DBA)** tiene a su cargo la gobernanza técnica de la infraestructura y el control de versiones:
-
-1. **Gobernanza del Repositorio:** Creación de las ramas `main` y `develop`, configuración de reglas de protección, branches por rol (`infra/*`, `backend/*`, `frontend/*`) y resolución de Pull Requests.
-2. **Entorno Contenerizado:** Configuración y mantenimiento del contenedor MySQL 8.4 (Podman o Docker) con volúmenes persistentes y credenciales aisladas.
-3. **Arquitectura del Esquema SQL:** Redacción, optimización e indexación de `schema.sql` y datos semilla `data.sql`.
-4. **Garantía de Disponibilidad:** Asegurar que la base de datos esté levantada y poblada antes de que el Ingeniero de Backend (Persona 2) inicie la conexión de Spring Boot.
-
----
-
-## 3. Recreación Paso a Paso con Commits (Rama `infra/*`)
-
-A continuación se detalla la secuencia exacta de commits para inicializar el proyecto, levantar la base de datos y proveer los cimientos para el resto del equipo:
+Continuando desde la rama `infra/setup-database-environment` iniciada tras el paso de configuración inicial:
 
 ```
-[main] ─────────────────────────────────────────────────────────────●
-  │
-  ▼
 [develop]
   │
   └──► [infra/setup-database-environment]
           │
-          ├── Commit 1: Inicialización del repositorio y estructura
-          ├── Commit 2: Docker compose y variables de entorno
-          ├── Commit 3: Esquema DDL relacional (16 tablas 3NF)
-          ├── Commit 4: Datos semilla (roles, sedes, admin)
-          └── Commit 5: Scripts de verificación y health check
+          ├── Commit 1.1: Esquema DDL relacional (16 tablas en 3NF)
+          ├── Commit 1.2: Datos semilla normativos (roles, sedes, catálogos, admin)
+          └── Commit 1.3: Verificación de integridad y merge hacia develop
 ```
 
 ---
 
-### Commit 1: Inicialización del Repositorio y Estructura Raíz
+### Commit 1.1: Esquema DDL Relacional Completo (16 Tablas en 3NF)
 
-**Objetivo:** Crear el repositorio Git con la estructura de carpetas estándar y políticas de exclusión (`.gitignore`).
-
-#### 1. Comandos de terminal:
-```bash
-# Inicializar repositorio Git y ramas base
-git init
-git checkout -b main
-git commit --allow-empty -m "chore: initial commit en main"
-git checkout -b develop
-
-# Crear rama de especialidad para infraestructura
-git checkout -b infra/setup-database-environment
-
-# Crear estructura de carpetas
-mkdir -p database/backups
-mkdir -p backend
-mkdir -p frontend
-```
-
-#### 2. Crear archivo `.gitignore` en la raíz del proyecto:
-```gitignore
-# Archivos de sistema y logs
-*.log
-.DS_Store
-Thumbs.db
-
-# Configuración local de base de datos y credenciales
-application-local.properties
-backend/application-local.properties
-.env
-*.env.local
-
-# Maven / Java
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-.mvn/wrapper/maven-wrapper.jar
-
-# Node / Vue / Vite
-node_modules/
-dist/
-dist-ssr/
-*.local
-
-# IDEs
-.idea/
-.vscode/
-*.iml
-*.sublime-project
-*.sublime-workspace
-```
-
-#### 3. Comando Git:
-```bash
-git add .gitignore
-git commit -m "chore(infra): inicializar estructura de repositorio, ramas develop/main y archivo gitignore"
-```
-
----
-
-### Commit 2: Contenedor MySQL 8.4 y Variables de Entorno
-
-**Objetivo:** Orquestar el servicio de base de datos MySQL 8.4 InnoDB con Podman/Docker y documentar las variables de conexión.
-
-#### 1. Crear el archivo `database/docker-compose.yml`:
-```yaml
-services:
-  mysql:
-    image: docker.io/library/mysql:8.4
-    container_name: sga-mysql
-    restart: unless-stopped
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --default-time-zone=-05:00
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: SGAdb
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
-    ports:
-      - "3306:3306"
-    volumes:
-      - sga-mysql-data:/var/lib/mysql
-
-volumes:
-  sga-mysql-data:
-    name: sga-mysql-data
-```
-
-#### 2. Crear archivo de ejemplo de variables locales `backend/application-local.properties.example`:
-```properties
-# Ejemplo de configuración local para desarrollo (copiar a application-local.properties)
-SERVER_PORT=8085
-DB_URL=jdbc:mysql://localhost:3306/SGAdb?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
-DB_USERNAME=root
-DB_PASSWORD=root
-JPA_DDL_AUTO=update
-JPA_SHOW_SQL=true
-JWT_SECRET=sga_platform_secret_key_super_segura_2026_jwt_token_auth
-STORAGE_DIR=./uploads/documentos
-```
-
-#### 3. Comando Git:
-```bash
-git add database/docker-compose.yml backend/application-local.properties.example
-git commit -m "feat(infra): configurar docker-compose para mysql 8.4 inno-db y plantilla de conexion local"
-```
-
----
-
-### Commit 3: Esquema DDL Relacional Completo (16 Tablas en 3NF)
-
-**Objetivo:** Redactar el archivo `database/schema.sql` conteniendo la definición estricta de tablas, claves primarias autoincrementales, llaves foráneas e índices.
+**Objetivo:** Redactar y aplicar el archivo `database/schema.sql` conteniendo la definición estricta de tablas, claves primarias autoincrementales, llaves foráneas e índices.
 
 #### 1. Crear el archivo `database/schema.sql`:
-*Copiar de `database/schema.sql` del proyecto actual.*  
-Asegurar que incluya las 16 tablas en el orden correcto para respetar la integridad referencial:
+*Copiar de `database/schema.sql` del proyecto.*  
+Asegurar el orden de creación estricto para satisfacer las restricciones referenciales:
 1. `catalogo_puerto`
 2. `catalogo_tipo_carga`
 3. `catalogo_mercancia`
@@ -257,7 +128,7 @@ git commit -m "feat(database): implementar esquema ddl relacional de 16 tablas n
 
 ---
 
-### Commit 4: Datos Semilla Normativos (Roles, Sedes y Administrador)
+### Commit 1.2: Datos Semilla Normativos (Roles, Sedes y Administrador)
 
 **Objetivo:** Redactar el script `database/data.sql` con los datos basales obligatorios para el arranque del sistema.
 
@@ -324,25 +195,22 @@ git commit -m "feat(database): incorporar datos semilla de roles normativos, sed
 
 ---
 
-### Commit 5: Scripts de Verificación y Protocolo de Merge a `develop`
+### Commit 1.3: Carga, Verificación de Integridad y Merge a `develop`
 
-**Objetivo:** Probar el levantamiento físico del contenedor, la carga del esquema e integrar los cambios hacia la rama troncal `develop`.
+**Objetivo:** Ejecutar físicamente los scripts DDL y DML sobre el contenedor MySQL, comprobar integridad e integrar hacia la rama `develop`.
 
-#### 1. Probar el arranque local:
+#### 1. Cargar el esquema y las semillas en el contenedor:
 ```bash
-# Levantar contenedor MySQL
-docker compose -f database/docker-compose.yml up -d
-# O con Podman:
-podman compose -f database/docker-compose.yml up -d
-
-# Esperar 5 segundos y cargar el esquema y las semillas
+# Cargar esquema relacional
 mysql -h 127.0.0.1 -P 3306 -u root -proot SGAdb < database/schema.sql
+
+# Cargar datos semilla
 mysql -h 127.0.0.1 -P 3306 -u root -proot SGAdb < database/data.sql
 
-# Verificar conteo de tablas
-mysql -h 127.0.0.1 -P 3306 -u root -proot SGAdb -e "SHOW TABLES;"
+# Verificar conteo de tablas y registros
+mysql -h 127.0.0.1 -P 3306 -u root -proot SGAdb -e "SHOW TABLES; SELECT COUNT(*) AS total_roles FROM rol;"
 ```
-*Resultado esperado:* 16 tablas listadas y 8 roles en la tabla `rol`.
+*Resultado esperado:* 16 tablas listadas y `total_roles = 8`.
 
 #### 2. Integrar rama a `develop`:
 ```bash
@@ -353,7 +221,7 @@ git push origin develop
 
 ---
 
-## 4. Guía de Ejecución y Monitoreo para el DBA
+## 3. Guía de Ejecución y Monitoreo para el DBA
 
 ### Inspección Rápida de Integridad Referencial
 Para auditar que las claves foráneas y compuertas de negocio estén activas:
@@ -371,7 +239,7 @@ SHOW STATUS WHERE `variable_name` = 'Threads_connected';
 
 ---
 
-## 5. Resumen de Entregables de la Base de Datos
+## 4. Resumen de Entregables de la Base de Datos
 
 Al concluir la labor del Ingeniero 1:
 * Contenedor MySQL 8.4 operativo en puerto `3306`.
