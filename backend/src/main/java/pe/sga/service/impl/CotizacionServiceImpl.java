@@ -142,7 +142,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
 
         calcularValoresEconomicos(cotizacion, dto);
 
-        return mapToResponse(cotizacionRepository.save(cotizacion));
+        Cotizacion guardada = cotizacionRepository.save(cotizacion);
+        if (guardada.getEstado() == EstadoCotizacion.APROBADA) {
+            autoFormalizarCliente(guardada.getCliente());
+        }
+
+        return mapToResponse(guardada);
     }
 
     @Override
@@ -192,7 +197,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
 
         calcularValoresEconomicos(cotizacion, dto);
 
-        return mapToResponse(cotizacionRepository.save(cotizacion));
+        Cotizacion guardada = cotizacionRepository.save(cotizacion);
+        if (guardada.getEstado() == EstadoCotizacion.APROBADA) {
+            autoFormalizarCliente(guardada.getCliente());
+        }
+
+        return mapToResponse(guardada);
     }
 
     @Override
@@ -222,7 +232,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
             cotizacion.setObservaciones(dto.getObservaciones());
         }
 
-        return mapToResponse(cotizacionRepository.save(cotizacion));
+        Cotizacion guardada = cotizacionRepository.save(cotizacion);
+        if (guardada.getEstado() == EstadoCotizacion.APROBADA) {
+            autoFormalizarCliente(guardada.getCliente());
+        }
+
+        return mapToResponse(guardada);
     }
 
     @Override
@@ -236,7 +251,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
             cotizacion.setMotivoObservacion(motivoObservacion);
         }
 
-        return mapToResponse(cotizacionRepository.save(cotizacion));
+        Cotizacion guardada = cotizacionRepository.save(cotizacion);
+        if (guardada.getEstado() == EstadoCotizacion.APROBADA) {
+            autoFormalizarCliente(guardada.getCliente());
+        }
+
+        return mapToResponse(guardada);
     }
 
     @Override
@@ -366,5 +386,16 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .idExpediente(idExpediente)
                 .codigoExpediente(codigoExpediente)
                 .build();
+    }
+
+    /**
+     * Regla de Negocio: Promueve automáticamente a un prospecto comercial a 'Cliente Efectivo'
+     * en el momento en que una cotización asociada es APROBADA.
+     */
+    private void autoFormalizarCliente(Cliente cliente) {
+        if (cliente != null && Boolean.TRUE.equals(cliente.getEsProspecto())) {
+            cliente.setEsProspecto(false);
+            clienteRepository.save(cliente);
+        }
     }
 }

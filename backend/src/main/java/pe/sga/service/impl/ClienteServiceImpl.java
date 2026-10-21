@@ -98,7 +98,7 @@ public class ClienteServiceImpl implements IClienteService {
                 .direccionFiscal(dto.getDireccionFiscal() != null ? dto.getDireccionFiscal().trim() : null)
                 .correoContacto(dto.getCorreoContacto().trim())
                 .telefonoContacto(dto.getTelefonoContacto() != null ? dto.getTelefonoContacto().trim() : null)
-                .esProspecto(dto.getEsProspecto() != null ? dto.getEsProspecto() : true)
+                .esProspecto(true) // Regla de negocio: Todo cliente nuevo se registra como Prospecto Comercial
                 .estadoActivo(dto.getEstadoActivo() != null ? dto.getEstadoActivo() : true)
                 .build();
 
@@ -124,9 +124,7 @@ public class ClienteServiceImpl implements IClienteService {
         cliente.setDireccionFiscal(dto.getDireccionFiscal() != null ? dto.getDireccionFiscal().trim() : null);
         cliente.setCorreoContacto(dto.getCorreoContacto().trim());
         cliente.setTelefonoContacto(dto.getTelefonoContacto() != null ? dto.getTelefonoContacto().trim() : null);
-        if (dto.getEsProspecto() != null) {
-            cliente.setEsProspecto(dto.getEsProspecto());
-        }
+        // El estado 'esProspecto' es inmutable manualmente: solo se promueve automáticamente al aprobar una cotización
         if (dto.getEstadoActivo() != null) {
             cliente.setEstadoActivo(dto.getEstadoActivo());
         }
