@@ -117,19 +117,6 @@ export const comercialService = {
     const response = await apiClient.delete(`/expedientes/${id}`)
     return response.data
   },
-
-  // Alias de compatibilidad hacia atrás (deprecados)
-  createOrdenServicio(data) {
-    return this.createExpediente(data)
-  },
-
-  updateOrdenServicioEstado(id, data) {
-    return this.updateExpedienteEstado(id, data)
-  },
-
-  deleteOrdenServicio(id) {
-    return this.deleteExpediente(id)
-  }
 }
 
 export const ventasService = comercialService

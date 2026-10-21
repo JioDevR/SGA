@@ -628,10 +628,8 @@ const exportingPdf = ref(false)
 const handleExportPdf = async () => {
   exportingPdf.value = true
   try {
-    const response = await apiClient.get('/catalogos/puertos/exportar-pdf', {
-      responseType: 'blob'
-    })
-    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+    const blobData = await catalogoService.downloadPuertosPdf()
+    const url = window.URL.createObjectURL(new Blob([blobData], { type: 'application/pdf' }))
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', `reporte-puertos-aduaneros-${new Date().toISOString().slice(0, 10)}.pdf`)

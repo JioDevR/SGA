@@ -324,10 +324,8 @@ const exportSedesPdf = async () => {
 const exportPuertosPdf = async () => {
   exportingPuertos.value = true
   try {
-    const response = await apiClient.get('/catalogos/puertos/exportar-pdf', {
-      responseType: 'blob'
-    })
-    downloadBlob(response.data, `reporte-puertos-sga-${new Date().toISOString().slice(0, 10)}.pdf`)
+    const blobData = await catalogoService.downloadPuertosPdf()
+    downloadBlob(blobData, `reporte-puertos-sga-${new Date().toISOString().slice(0, 10)}.pdf`)
   } catch (err) {
     console.error('Error al exportar puertos PDF:', err)
   } finally {

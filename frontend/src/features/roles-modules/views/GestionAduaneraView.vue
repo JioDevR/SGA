@@ -3,7 +3,7 @@
     <!-- ============================================================== -->
     <!-- VISTA COMPLETA: AUDITORÍA TÉCNICA DEL EXPEDIENTE / COTIZACIÓN   -->
     <!-- ============================================================== -->
-    <AuditoriaExpedienteView
+    <AuditoriaExpedienteModal
       v-if="showAuditoriaCompleta && inspectedCotizacion"
       :cotizacion="inspectedCotizacion"
       :processing="processingAction"
@@ -824,7 +824,7 @@ import AperturaExpedienteModal from '../components/AperturaExpedienteModal.vue'
 import DetalleExpedienteModal from '../components/DetalleExpedienteModal.vue'
 import CanalLevanteModal from '../components/CanalLevanteModal.vue'
 import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
-import AuditoriaExpedienteView from '../components/AuditoriaExpedienteView.vue'
+import AuditoriaExpedienteModal from '../components/AuditoriaExpedienteModal.vue'
 
 const authStore = useAuthStore()
 const navigationStore = useNavigationStore()

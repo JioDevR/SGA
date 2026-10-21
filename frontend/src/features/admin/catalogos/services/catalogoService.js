@@ -36,6 +36,16 @@ export const catalogoService = {
     return response.data
   },
 
+  /**
+   * Descargar reporte de puertos en PDF generado con JasperReports
+   */
+  async downloadPuertosPdf() {
+    const response = await apiClient.get('/catalogos/puertos/exportar-pdf', {
+      responseType: 'blob'
+    })
+    return response.data
+  },
+
   // ==========================================
   // CATÁLOGO DE TIPOS DE CARGA
   // ==========================================
