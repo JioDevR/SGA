@@ -3,15 +3,41 @@ import { authService } from '../services/authService'
 import { ROLES, ROLE_HOME_PATH } from '@/core/auth/roles'
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    token: localStorage.getItem('sga_token') || null,
-    user: JSON.parse(localStorage.getItem('sga_user') || 'null'),
-    loading: false,
-    error: null
-  }),
+  state: () => {
+    let user = null
+    try {
+      const stored = localStorage.getItem('sga_user')
+      if (stored) {
+        user = JSON.parse(stored)
+        // Si el rol en sesión local es obsoleto o inexistente, invalidar sesión
+        if (!user || !user.rol || !Object.values(ROLES).includes(user.rol)) {
+          localStorage.removeItem('sga_token')
+          localStorage.removeItem('sga_user')
+          user = null
+        }
+      }
+    } catch {
+      localStorage.removeItem('sga_token')
+      localStorage.removeItem('sga_user')
+      user = null
+    }
+
+    const token = user ? (localStorage.getItem('sga_token') || null) : null
+    if (!token && user) {
+      localStorage.removeItem('sga_user')
+      user = null
+    }
+
+    return {
+      token,
+      user,
+      loading: false,
+      error: null
+    }
+  },
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
+    isAuthenticated: (state) => !!state.token && !!state.user && Object.values(ROLES).includes(state.user.rol),
     userRole: (state) => state.user?.rol || '',
     isAdministradorTI: (state) => state.user?.rol === ROLES.ADMINISTRADOR_TI,
     isGerenteGeneral: (state) => state.user?.rol === ROLES.GERENTE_GENERAL,
@@ -26,7 +52,7 @@ export const useAuthStore = defineStore('auth', {
     },
     homePath: (state) => {
       const rol = state.user?.rol
-      return ROLE_HOME_PATH[rol] || '/administracion-ti/usuarios'
+      return ROLE_HOME_PATH[rol] || '/login'
     }
   },
 

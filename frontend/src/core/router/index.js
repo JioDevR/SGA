@@ -71,14 +71,19 @@ router.beforeEach(async (to, from, next) => {
   // Si cualquier ruta requiere autenticación y no hay sesión activa
   const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth)
   if (requiresAuth && !isAuth) {
-    return next({ path: '/login', query: { redirect: to.fullPath } })
+    return next({ path: '/login', query: to.fullPath !== '/' ? { redirect: to.fullPath } : {} })
   }
 
   // Validación de permisos por rol
   if (to.meta?.roles && to.meta.roles.length > 0) {
     const userRole = authStore.userRole
     if (!to.meta.roles.includes(userRole)) {
-      return next(authStore.homePath)
+      const targetHome = authStore.homePath
+      if (to.path === targetHome || targetHome === '/login') {
+        authStore.logout()
+        return next('/login')
+      }
+      return next(targetHome)
     }
   }
 
