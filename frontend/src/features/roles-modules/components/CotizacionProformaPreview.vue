@@ -62,17 +62,17 @@
 
         <div class="proforma-divider"></div>
 
+        <!-- 1. Base Imponible / Valoración (No entra al total de liquidación SGA) -->
+        <div class="proforma-section-header">
+          <span class="section-micro-title">VALORACIÓN ADUANERA (BASE)</span>
+        </div>
+
         <div class="proforma-row">
           <span class="p-label">Valor FOB (Mercancía):</span>
           <span class="p-val font-semibold">${{ formatVal(form.valorFob) }}</span>
         </div>
 
-        <div class="proforma-row">
-          <span class="p-label">Flete Internacional:</span>
-          <span class="p-val">${{ formatVal(form.montoFleteEstimado) }}</span>
-        </div>
-
-        <div class="proforma-row">
+        <div v-if="form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'" class="proforma-row">
           <span class="p-label">Seguro Estimado:</span>
           <span class="p-val">${{ formatVal(form.montoSeguroEstimado) }}</span>
         </div>
@@ -80,6 +80,18 @@
         <div v-if="form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'" class="proforma-row cif-row">
           <span class="p-label">Valor CIF Base:</span>
           <span class="p-val text-accent font-bold">${{ formatVal((Number(form.valorFob) || 0) + (Number(form.montoFleteEstimado) || 0) + (Number(form.montoSeguroEstimado) || 0)) }}</span>
+        </div>
+
+        <div class="proforma-divider"></div>
+
+        <!-- 2. Conceptos a Liquidar por Despacho y Logística SGA -->
+        <div class="proforma-section-header">
+          <span class="section-micro-title">CONCEPTOS A LIQUIDAR (SGA)</span>
+        </div>
+
+        <div class="proforma-row">
+          <span class="p-label">Flete Internacional:</span>
+          <span class="p-val">${{ formatVal(form.montoFleteEstimado) }}</span>
         </div>
 
         <div class="proforma-row">
@@ -101,9 +113,16 @@
 
         <div class="proforma-divider"></div>
 
-        <div class="proforma-row total-row">
-          <span class="p-label-total">TOTAL ESTIMADO:</span>
-          <span class="p-val-total">${{ formatVal(form.totalCotizado) }} USD</span>
+        <!-- Total Liquidado (Excluye FOB de mercancía) -->
+        <div class="proforma-total-container">
+          <div class="proforma-row total-row">
+            <span class="p-label-total">TOTAL ESTIMADO:</span>
+            <span class="p-val-total">${{ formatVal(form.totalCotizado) }} USD</span>
+          </div>
+          <span class="total-fob-excluded-hint">
+            <i class="pi pi-info-circle"></i>
+            {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Flete + Gastos Op. (Excluye valor FOB)' : 'Flete + Gastos Op. + Tributos (Excluye valor FOB)' }}
+          </span>
         </div>
       </div>
 
@@ -380,11 +399,42 @@ const formatVal = (val) => {
 .proforma-divider {
   height: 1px;
   background: var(--color-border-subtle);
-  margin: 0.25rem 0;
+  margin: 0.35rem 0;
+}
+
+.proforma-section-header {
+  padding: 0.2rem 0;
+}
+
+.section-micro-title {
+  font-size: var(--font-size-2xs, 0.6rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.proforma-total-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .total-row {
-  padding-top: var(--space-2, 0.5rem);
+  padding-top: var(--space-1, 0.25rem);
+}
+
+.total-fob-excluded-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-2xs, 0.65rem);
+  color: var(--color-primary);
+  font-weight: 600;
+  background: var(--color-bg-subtle);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm, 0.25rem);
+  border: 1px dashed var(--color-border);
 }
 
 .p-label-total {
