@@ -50,8 +50,8 @@
 
         <div class="proforma-row">
           <span class="p-label">Transporte SGA:</span>
-          <span :class="['p-val', form.servicioTransporte ? 'text-accent' : '']">
-            {{ form.servicioTransporte ? '✓ Interno SGA' : 'Externo' }}
+          <span :class="['p-val', form.servicioTransporte ? 'text-accent font-semibold' : '']">
+            {{ form.servicioTransporte ? (form.origenProvincia && form.destinoProvincia ? `✓ ${form.origenProvincia} → ${form.destinoProvincia}` : '✓ Interno SGA') : 'Externo' }}
           </span>
         </div>
 
@@ -106,6 +106,11 @@
           </span>
         </div>
 
+        <div v-if="form.servicioTransporte && Number(form.costoTransporteInterno) > 0" class="proforma-row">
+          <span class="p-label">Flete Transporte Local:</span>
+          <span class="p-val text-accent font-semibold">${{ formatVal(form.costoTransporteInterno) }}</span>
+        </div>
+
         <div v-if="docsCount > 0" class="proforma-row">
           <span class="p-label">Documentos:</span>
           <span class="p-val text-info"><i class="pi pi-paperclip"></i> {{ docsCount }} adjunto(s)</span>
@@ -155,6 +160,10 @@
         <li :class="['checklist-row', { valid: form.validezDias > 0 }]">
           <i :class="form.validezDias > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
           <span>Plazo de validez especificado</span>
+        </li>
+        <li v-if="form.servicioTransporte" :class="['checklist-row', { valid: !!form.origenDepartamento && !!form.destinoDepartamento && Number(form.costoTransporteInterno) > 0 }]">
+          <i :class="(form.origenDepartamento && form.destinoDepartamento && Number(form.costoTransporteInterno) > 0) ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
+          <span>Ruta y flete local asignado</span>
         </li>
         <li :class="['checklist-row', { valid: Number(form.totalCotizado) > 0 }]">
           <i :class="Number(form.totalCotizado) > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>

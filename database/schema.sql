@@ -165,6 +165,11 @@ CREATE TABLE cotizacion (
     id_puerto_envio INT NULL,
     id_puerto_destino INT NULL,
     servicio_transporte BOOLEAN NOT NULL DEFAULT FALSE,
+    origen_departamento VARCHAR(60) NULL,
+    origen_provincia VARCHAR(60) NULL,
+    destino_departamento VARCHAR(60) NULL,
+    destino_provincia VARCHAR(60) NULL,
+    costo_transporte_interno DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     -- Costos y Liquidación Estimada (USD)
     valor_fob DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     monto_flete DECIMAL(12, 2) NOT NULL DEFAULT 0.00,

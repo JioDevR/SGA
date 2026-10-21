@@ -57,6 +57,22 @@ public class Cotizacion {
     @Builder.Default
     private Boolean servicioTransporte = false;
 
+    @Column(name = "origen_departamento", length = 60)
+    private String origenDepartamento;
+
+    @Column(name = "origen_provincia", length = 60)
+    private String origenProvincia;
+
+    @Column(name = "destino_departamento", length = 60)
+    private String destinoDepartamento;
+
+    @Column(name = "destino_provincia", length = 60)
+    private String destinoProvincia;
+
+    @Column(name = "costo_transporte_interno", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal costoTransporteInterno = BigDecimal.ZERO;
+
     @Column(name = "valor_fob", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal valorFob = BigDecimal.ZERO;

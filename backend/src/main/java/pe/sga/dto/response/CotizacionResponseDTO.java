@@ -36,6 +36,11 @@ public class CotizacionResponseDTO {
     private Integer idPuertoDestino;
     private String puertoDestinoNombre;
     private Boolean servicioTransporte;
+    private String origenDepartamento;
+    private String origenProvincia;
+    private String destinoDepartamento;
+    private String destinoProvincia;
+    private BigDecimal costoTransporteInterno;
 
     // Costos y Fechas
     private LocalDate fechaEmision;

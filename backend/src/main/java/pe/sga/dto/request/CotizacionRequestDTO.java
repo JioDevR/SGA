@@ -39,6 +39,17 @@ public class CotizacionRequestDTO {
     @Builder.Default
     private Boolean servicioTransporte = false;
 
+    private String origenDepartamento;
+
+    private String origenProvincia;
+
+    private String destinoDepartamento;
+
+    private String destinoProvincia;
+
+    @Builder.Default
+    private BigDecimal costoTransporteInterno = BigDecimal.ZERO;
+
     private LocalDate fechaEmision;
 
     @Builder.Default

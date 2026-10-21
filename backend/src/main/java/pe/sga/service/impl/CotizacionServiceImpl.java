@@ -134,6 +134,11 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .puertoEnvio(puertoEnvio)
                 .puertoDestino(puertoDestino)
                 .servicioTransporte(dto.getServicioTransporte() != null ? dto.getServicioTransporte() : false)
+                .origenDepartamento(dto.getOrigenDepartamento())
+                .origenProvincia(dto.getOrigenProvincia())
+                .destinoDepartamento(dto.getDestinoDepartamento())
+                .destinoProvincia(dto.getDestinoProvincia())
+                .costoTransporteInterno(dto.getCostoTransporteInterno() != null ? dto.getCostoTransporteInterno() : BigDecimal.ZERO)
                 .fechaEmision(fecha)
                 .validezDias(dto.getValidezDias() != null ? dto.getValidezDias() : 15)
                 .estado(dto.getEstado() != null ? dto.getEstado() : EstadoCotizacion.PENDIENTE)
@@ -192,6 +197,11 @@ public class CotizacionServiceImpl implements ICotizacionService {
 
         if (dto.getRegimenAduanero() != null) cotizacion.setRegimenAduanero(dto.getRegimenAduanero());
         if (dto.getServicioTransporte() != null) cotizacion.setServicioTransporte(dto.getServicioTransporte());
+        if (dto.getOrigenDepartamento() != null) cotizacion.setOrigenDepartamento(dto.getOrigenDepartamento());
+        if (dto.getOrigenProvincia() != null) cotizacion.setOrigenProvincia(dto.getOrigenProvincia());
+        if (dto.getDestinoDepartamento() != null) cotizacion.setDestinoDepartamento(dto.getDestinoDepartamento());
+        if (dto.getDestinoProvincia() != null) cotizacion.setDestinoProvincia(dto.getDestinoProvincia());
+        if (dto.getCostoTransporteInterno() != null) cotizacion.setCostoTransporteInterno(dto.getCostoTransporteInterno());
         if (dto.getValidezDias() != null) cotizacion.setValidezDias(dto.getValidezDias());
         if (dto.getObservaciones() != null) cotizacion.setObservaciones(dto.getObservaciones());
 
@@ -292,6 +302,27 @@ public class CotizacionServiceImpl implements ICotizacionService {
         BigDecimal honorarios = dto.getMontoHonorariosEstimado() != null ? dto.getMontoHonorariosEstimado() : (cotizacion.getMontoHonorariosEstimado() != null ? cotizacion.getMontoHonorariosEstimado() : BigDecimal.ZERO);
         String regimen = cotizacion.getRegimenAduanero() != null ? cotizacion.getRegimenAduanero().trim().toUpperCase() : "IMPORTACION_DEFINITIVA";
 
+        // Transporte terrestre local SGA
+        boolean conTransporte = Boolean.TRUE.equals(cotizacion.getServicioTransporte());
+        BigDecimal costoTransporte = BigDecimal.ZERO;
+        if (conTransporte) {
+            costoTransporte = dto.getCostoTransporteInterno() != null
+                    ? dto.getCostoTransporteInterno()
+                    : (cotizacion.getCostoTransporteInterno() != null ? cotizacion.getCostoTransporteInterno() : BigDecimal.ZERO);
+            if (dto.getOrigenDepartamento() != null) cotizacion.setOrigenDepartamento(dto.getOrigenDepartamento().trim().toUpperCase());
+            if (dto.getOrigenProvincia() != null) cotizacion.setOrigenProvincia(dto.getOrigenProvincia().trim().toUpperCase());
+            if (dto.getDestinoDepartamento() != null) cotizacion.setDestinoDepartamento(dto.getDestinoDepartamento().trim().toUpperCase());
+            if (dto.getDestinoProvincia() != null) cotizacion.setDestinoProvincia(dto.getDestinoProvincia().trim().toUpperCase());
+            cotizacion.setCostoTransporteInterno(costoTransporte);
+        } else {
+            cotizacion.setOrigenDepartamento(null);
+            cotizacion.setOrigenProvincia(null);
+            cotizacion.setDestinoDepartamento(null);
+            cotizacion.setDestinoProvincia(null);
+            cotizacion.setCostoTransporteInterno(BigDecimal.ZERO);
+            costoTransporte = BigDecimal.ZERO;
+        }
+
         cotizacion.setValorFob(fob);
         cotizacion.setMontoFleteEstimado(flete);
         cotizacion.setMontoHonorariosEstimado(honorarios);
@@ -301,7 +332,7 @@ public class CotizacionServiceImpl implements ICotizacionService {
             cotizacion.setTasaAdValorem(BigDecimal.ZERO);
             cotizacion.setTasaPercepcion(BigDecimal.ZERO);
             cotizacion.setMontoTributosEstimado(BigDecimal.ZERO);
-            BigDecimal total = flete.add(honorarios).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal total = flete.add(honorarios).add(costoTransporte).setScale(2, RoundingMode.HALF_UP);
             cotizacion.setTotalCotizado(dto.getTotalCotizado() != null && dto.getTotalCotizado().compareTo(BigDecimal.ZERO) > 0 ? dto.getTotalCotizado() : total);
         } else {
             BigDecimal seguro;
@@ -323,7 +354,7 @@ public class CotizacionServiceImpl implements ICotizacionService {
                     : BigDecimal.ZERO;
 
             BigDecimal tributos = advalorem.add(igv).add(percep).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal total = flete.add(honorarios).add(tributos).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal total = flete.add(honorarios).add(tributos).add(costoTransporte).setScale(2, RoundingMode.HALF_UP);
 
             cotizacion.setMontoSeguroEstimado(seguro);
             cotizacion.setTasaAdValorem(tasaAdv);
@@ -366,6 +397,11 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .idPuertoDestino(c.getPuertoDestino() != null ? c.getPuertoDestino().getIdPuerto() : null)
                 .puertoDestinoNombre(c.getPuertoDestino() != null ? c.getPuertoDestino().getNombre() : null)
                 .servicioTransporte(c.getServicioTransporte())
+                .origenDepartamento(c.getOrigenDepartamento())
+                .origenProvincia(c.getOrigenProvincia())
+                .destinoDepartamento(c.getDestinoDepartamento())
+                .destinoProvincia(c.getDestinoProvincia())
+                .costoTransporteInterno(c.getCostoTransporteInterno())
                 .fechaEmision(c.getFechaEmision())
                 .validezDias(c.getValidezDias())
                 .valorFob(c.getValorFob())

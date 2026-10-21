@@ -544,6 +544,116 @@
                   <i v-if="form.servicioTransporte === false" class="pi pi-check-circle check-active"></i>
                 </div>
               </div>
+
+              <!-- Configuración Condicional de Ruta de Transporte Interno SGA -->
+              <transition name="fade-slide">
+                <div v-if="form.servicioTransporte" class="transport-route-config-panel">
+                  <div class="route-panel-header">
+                    <div class="route-badge-icon">
+                      <i class="pi pi-map"></i>
+                    </div>
+                    <div>
+                      <h4 class="route-panel-title">Ruta Nacional & Tarifa de Flete Local SGA</h4>
+                      <p class="route-panel-desc">Especifique el origen y destino departamental/provincial en Perú y la tarifa de flete local cotizada.</p>
+                    </div>
+                  </div>
+
+                  <div class="route-inputs-grid">
+                    <!-- ORIGEN -->
+                    <div class="route-location-card">
+                      <div class="loc-card-tag loc-origin">
+                        <i class="pi pi-compass"></i>
+                        <span>PUNTO DE PARTIDA (ORIGEN)</span>
+                      </div>
+                      <div class="loc-fields-row">
+                        <div class="field-subgroup">
+                          <label class="loc-label">Departamento *</label>
+                          <select
+                            v-model="form.origenDepartamento"
+                            class="form-select-styled"
+                            @change="onOrigenDepartamentoChange"
+                          >
+                            <option v-for="dep in departamentosList" :key="'orig-' + dep" :value="dep">
+                              {{ dep }}
+                            </option>
+                          </select>
+                        </div>
+
+                        <div class="field-subgroup">
+                          <label class="loc-label">Provincia *</label>
+                          <select
+                            v-model="form.origenProvincia"
+                            class="form-select-styled"
+                            :disabled="!form.origenDepartamento"
+                          >
+                            <option v-for="prov in provinciasOrigenList" :key="'orig-prov-' + prov" :value="prov">
+                              {{ prov }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- DESTINO -->
+                    <div class="route-location-card">
+                      <div class="loc-card-tag loc-dest">
+                        <i class="pi pi-map-marker"></i>
+                        <span>PUNTO DE LLEGADA (DESTINO)</span>
+                      </div>
+                      <div class="loc-fields-row">
+                        <div class="field-subgroup">
+                          <label class="loc-label">Departamento *</label>
+                          <select
+                            v-model="form.destinoDepartamento"
+                            class="form-select-styled"
+                            @change="onDestinoDepartamentoChange"
+                          >
+                            <option v-for="dep in departamentosList" :key="'dest-' + dep" :value="dep">
+                              {{ dep }}
+                            </option>
+                          </select>
+                        </div>
+
+                        <div class="field-subgroup">
+                          <label class="loc-label">Provincia *</label>
+                          <select
+                            v-model="form.destinoProvincia"
+                            class="form-select-styled"
+                            :disabled="!form.destinoDepartamento"
+                          >
+                            <option v-for="prov in provinciasDestinoList" :key="'dest-prov-' + prov" :value="prov">
+                              {{ prov }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- TARIFA DE TRANSPORTE LOCAL -->
+                  <div class="route-cost-row">
+                    <div class="route-cost-info">
+                      <div class="cost-title-box">
+                        <i class="pi pi-dollar"></i>
+                        <label class="route-cost-label">Tarifa Flete Transporte Terrestre SGA (USD) *</label>
+                      </div>
+                      <span class="route-cost-sub">Importe que se sumará a los conceptos a liquidar de esta cotización comercial.</span>
+                    </div>
+                    <div class="route-cost-input-wrap">
+                      <span class="currency-tag">$ USD</span>
+                      <input
+                        v-model.number="form.costoTransporteInterno"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        class="form-input cost-input"
+                        placeholder="0.00"
+                        :disabled="submitting"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </transition>
             </div>
 
             <!-- 6. Validez de la Propuesta (Días) -->
@@ -806,7 +916,31 @@
                 />
                 <span class="input-suffix">USD</span>
               </div>
-              <span class="field-hint-mini">Agrupa honorarios aduaneros + visto bueno + almacén temporal + flete local (ej. $800 - $1,500 USD).</span>
+              <span class="field-hint-mini">Agrupa honorarios aduaneros + visto bueno + almacén temporal.</span>
+            </div>
+
+            <!-- 2.1 Flete Transporte Terrestre Local SGA (Si se contrató servicio) -->
+            <div v-if="form.servicioTransporte" class="field-group transport-summary-row-box">
+              <div class="label-with-badge">
+                <label class="field-label">Flete Transporte Terrestre Local SGA (USD) *</label>
+                <span class="kicker-mini-badge" style="background: rgba(194, 65, 12, 0.15); color: #c2410c;">
+                  RUTA: {{ form.origenProvincia || 'Origen' }} → {{ form.destinoProvincia || 'Destino' }}
+                </span>
+              </div>
+              <div class="input-icon-box">
+                <i class="pi pi-truck input-icon"></i>
+                <input
+                  v-model.number="form.costoTransporteInterno"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  class="form-input number-input"
+                  :disabled="submitting"
+                />
+                <span class="input-suffix">USD</span>
+              </div>
+              <span class="field-hint-mini">Costo del traslado terrestre desde {{ form.origenProvincia }}, {{ form.origenDepartamento }} hacia {{ form.destinoProvincia }}, {{ form.destinoDepartamento }}.</span>
             </div>
 
             <!-- 3. TRIBUTOS Y GRAVÁMENES SUNAT -->
@@ -985,6 +1119,7 @@ import CotizacionFormHeader from './CotizacionFormHeader.vue'
 import CotizacionStepperNav from './CotizacionStepperNav.vue'
 import CotizacionProformaPreview from './CotizacionProformaPreview.vue'
 import DocumentosUploadPanel from '@/shared/components/DocumentosUploadPanel.vue'
+import { getDepartamentosPeru, getProvinciasPorDepartamento } from '../data/peruUbigeo'
 
 const props = defineProps({
   cotizacionToEdit: {
@@ -1080,6 +1215,11 @@ const defaultForm = () => ({
   idTipoCarga: null,
   idMercancia: null,
   servicioTransporte: false,
+  origenDepartamento: 'CALLAO',
+  origenProvincia: 'Callao',
+  destinoDepartamento: 'LIMA',
+  destinoProvincia: 'Lima (Metropolitana)',
+  costoTransporteInterno: 0,
   valorFob: 0,
   montoFleteEstimado: 0,
   montoSeguroEstimado: 0,
@@ -1090,6 +1230,21 @@ const defaultForm = () => ({
   totalCotizado: 0,
   observaciones: ''
 })
+
+// Catálogo de Ubigeo y Helpers
+const departamentosList = computed(() => getDepartamentosPeru())
+const provinciasOrigenList = computed(() => getProvinciasPorDepartamento(form.value.origenDepartamento))
+const provinciasDestinoList = computed(() => getProvinciasPorDepartamento(form.value.destinoDepartamento))
+
+const onOrigenDepartamentoChange = () => {
+  const provs = getProvinciasPorDepartamento(form.value.origenDepartamento)
+  form.value.origenProvincia = provs.length > 0 ? provs[0] : ''
+}
+
+const onDestinoDepartamentoChange = () => {
+  const provs = getProvinciasPorDepartamento(form.value.destinoDepartamento)
+  form.value.destinoProvincia = provs.length > 0 ? provs[0] : ''
+}
 
 const form = ref(defaultForm())
 
@@ -1169,6 +1324,11 @@ watch(
         idTipoCarga: val.idTipoCarga || null,
         idMercancia: val.idMercancia || null,
         servicioTransporte: val.servicioTransporte === true,
+        origenDepartamento: val.origenDepartamento || 'CALLAO',
+        origenProvincia: val.origenProvincia || 'Callao',
+        destinoDepartamento: val.destinoDepartamento || 'LIMA',
+        destinoProvincia: val.destinoProvincia || 'Lima (Metropolitana)',
+        costoTransporteInterno: Number(val.costoTransporteInterno || 0),
         valorFob: Number(val.valorFob || 0),
         montoFleteEstimado: Number(val.montoFleteEstimado || 0),
         montoSeguroEstimado: Number(val.montoSeguroEstimado || 0),
@@ -1307,12 +1467,13 @@ const recalcularLiquidacion = () => {
   const fob = Number(form.value.valorFob) || 0
   const flete = Number(form.value.montoFleteEstimado) || 0
   const honorarios = Number(form.value.montoHonorariosEstimado) || 0
+  const costoTransp = form.value.servicioTransporte ? (Number(form.value.costoTransporteInterno) || 0) : 0
 
   if (form.value.regimenAduanero === 'EXPORTACION_DEFINITIVA') {
     form.value.tasaAdValorem = 0
     form.value.tasaPercepcion = 0
     form.value.montoTributosEstimado = 0
-    form.value.totalCotizado = Number((flete + honorarios).toFixed(2))
+    form.value.totalCotizado = Number((flete + honorarios + costoTransp).toFixed(2))
   } else {
     // Si no fue editado manualmente, seguro = fob * 0.0075 (~0.75% SUNAT)
     if (!seguroManual.value) {
@@ -1320,7 +1481,7 @@ const recalcularLiquidacion = () => {
     }
     const tributos = Number((montoAdValorem.value + montoIgv.value + montoPercepcion.value).toFixed(2))
     form.value.montoTributosEstimado = tributos
-    form.value.totalCotizado = Number((flete + honorarios + tributos).toFixed(2))
+    form.value.totalCotizado = Number((flete + honorarios + tributos + costoTransp).toFixed(2))
   }
 }
 
@@ -1343,7 +1504,9 @@ watch(
     form.value.montoHonorariosEstimado,
     form.value.tasaAdValorem,
     form.value.tasaPercepcion,
-    form.value.regimenAduanero
+    form.value.regimenAduanero,
+    form.value.servicioTransporte,
+    form.value.costoTransporteInterno
   ],
   () => {
     recalcularLiquidacion()
@@ -2916,6 +3079,187 @@ const handleSubmit = () => {
   right: 0.75rem;
   color: var(--color-primary);
   font-size: 1rem;
+}
+
+/* =========================================================================
+   PANEL CONFIGURACIÓN DE RUTA DE TRANSPORTE INTERNO SGA
+   ========================================================================= */
+.transport-route-config-panel {
+  margin-top: var(--space-4, 1rem);
+  padding: var(--space-5, 1.25rem);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl, 1rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+  box-shadow: var(--shadow-sm);
+}
+
+.route-panel-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+}
+
+.route-badge-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(194, 65, 12, 0.12);
+  color: #c2410c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.route-panel-title {
+  margin: 0;
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.route-panel-desc {
+  margin: 0.15rem 0 0 0;
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-muted);
+}
+
+.route-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4, 1rem);
+}
+
+@media (max-width: 768px) {
+  .route-inputs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.route-location-card {
+  padding: var(--space-4, 1rem);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 0.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+
+.loc-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  font-size: var(--font-size-2xs, 0.65rem);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full, 9999px);
+  width: fit-content;
+}
+
+.loc-origin {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+}
+
+.loc-dest {
+  background: rgba(234, 88, 12, 0.1);
+  color: #ea580c;
+  border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.loc-fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3, 0.75rem);
+}
+
+@media (max-width: 480px) {
+  .loc-fields-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.loc-label {
+  font-size: var(--font-size-2xs, 0.65rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.route-cost-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 1rem);
+  padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg, 0.75rem);
+  flex-wrap: wrap;
+}
+
+.cost-title-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  color: var(--color-text-main);
+}
+
+.cost-title-box i {
+  color: var(--color-success);
+  font-size: 1.1rem;
+}
+
+.route-cost-label {
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 800;
+  color: var(--color-text-main);
+}
+
+.route-cost-sub {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-muted);
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.route-cost-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  min-width: 220px;
+}
+
+.currency-tag {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.cost-input {
+  font-weight: 800;
+  text-align: right;
+  font-size: var(--font-size-base, 1rem);
+}
+
+.transport-summary-row-box {
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(194, 65, 12, 0.25);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: var(--space-4, 1rem);
 }
 
 /* =========================================================================
