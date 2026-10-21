@@ -254,51 +254,53 @@
           </div>
         </section>
 
-        <!-- BLOQUE 03: CLASIFICACIÓN COMERCIAL -->
+        <!-- BLOQUE 03: CLASIFICACIÓN COMERCIAL (GESTIÓN AUTOMÁTICA DEL SISTEMA) -->
         <section class="form-block-card">
           <div class="block-header">
             <div class="block-idx">03</div>
             <div class="block-header-info">
-              <h3 class="block-title">Clasificación en Cartera Comercial</h3>
-              <p class="block-sub">Determine el nivel de madurez de la cuenta en el sistema de ventas.</p>
+              <h3 class="block-title">Clasificación en Cartera Comercial (Automática)</h3>
+              <p class="block-sub">El estado de la cuenta se gestiona automáticamente por el ciclo de cotización y aprobación.</p>
             </div>
           </div>
 
           <div class="block-body">
-            <div class="classification-cards-grid">
-              <div
-                :class="['classification-card', { selected: !form.esProspecto }]"
-                @click="form.esProspecto = false"
-              >
-                <div class="card-radio-header">
-                  <div class="classification-icon-circle active-client">
-                    <i class="pi pi-check-circle"></i>
-                  </div>
-                  <div>
-                    <h4 class="classification-title">Cliente Efectivo</h4>
-                    <span class="classification-sub">Cuenta Formalizada</span>
-                  </div>
+            <!-- Si es nuevo registro -->
+            <div v-if="!isEditMode" class="classification-auto-banner prospect-banner">
+              <div class="auto-banner-icon prospect-icon">
+                <i class="pi pi-clock"></i>
+              </div>
+              <div class="auto-banner-content">
+                <div class="auto-banner-header">
+                  <h4 class="auto-banner-title">Prospecto Comercial (Lead en Evaluación)</h4>
+                  <span class="auto-banner-badge badge-prospect">ASIGNACIÓN INICIAL AUTOMÁTICA</span>
                 </div>
-                <p class="classification-desc">
-                  Empresa o persona con contrato o servicios aduaneros previamente liquidados. Autorizado para órdenes de servicio directas.
+                <p class="auto-banner-desc">
+                  Todo nuevo registro ingresa al sistema como <strong>Prospecto Comercial</strong>.
+                  Una vez emitida y <strong>aprobada su primera cotización aduanera</strong>, el sistema lo promoverá de forma automática a <strong>Cliente Efectivo</strong>.
                 </p>
               </div>
+            </div>
 
-              <div
-                :class="['classification-card', { selected: form.esProspecto }]"
-                @click="form.esProspecto = true"
-              >
-                <div class="card-radio-header">
-                  <div class="classification-icon-circle prospect-client">
-                    <i class="pi pi-clock"></i>
-                  </div>
-                  <div>
-                    <h4 class="classification-title">Prospecto Comercial</h4>
-                    <span class="classification-sub">Lead en Evaluación</span>
-                  </div>
+            <!-- Si es modo edición -->
+            <div v-else class="classification-auto-banner" :class="form.esProspecto ? 'prospect-banner' : 'client-banner'">
+              <div class="auto-banner-icon" :class="form.esProspecto ? 'prospect-icon' : 'client-icon'">
+                <i :class="form.esProspecto ? 'pi pi-clock' : 'pi pi-check-circle'"></i>
+              </div>
+              <div class="auto-banner-content">
+                <div class="auto-banner-header">
+                  <h4 class="auto-banner-title">
+                    {{ form.esProspecto ? 'Prospecto Comercial (Lead en Evaluación)' : 'Cliente Efectivo (Cuenta Formalizada)' }}
+                  </h4>
+                  <span :class="['auto-banner-badge', form.esProspecto ? 'badge-prospect' : 'badge-client']">
+                    {{ form.esProspecto ? 'EN PROCESO DE FORMALIZACIÓN' : 'CUENTA FORMALIZADA' }}
+                  </span>
                 </div>
-                <p class="classification-desc">
-                  Empresa en etapa de cotización previa o prospección. Se formalizará como cliente efectivo al aprobar su primera propuesta comercial.
+                <p class="auto-banner-desc" v-if="form.esProspecto">
+                  Este registro se encuentra clasificado como <strong>Prospecto Comercial</strong>. Se promoverá automáticamente a <strong>Cliente Efectivo</strong> tan pronto como se apruebe una cotización comercial asociada.
+                </p>
+                <p class="auto-banner-desc" v-else>
+                  Esta cuenta ha sido promovida a <strong>Cliente Efectivo</strong> tras la aprobación de propuestas aduaneras. Posee historial comercial formalizado.
                 </p>
               </div>
             </div>
@@ -895,85 +897,98 @@ const handleSubmit = () => {
   color: var(--color-primary);
 }
 
-/* Clasificación Cards Grid */
-.classification-cards-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Clasificación Automática Banner */
+.classification-auto-banner {
+  display: flex;
+  align-items: flex-start;
   gap: var(--space-4, 1rem);
-}
-
-@media (max-width: 640px) {
-  .classification-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.classification-card {
-  padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
-  border: 1px solid var(--color-border);
+  padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
   border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
-  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.classification-card:hover {
-  border-color: var(--color-border-subtle);
-  background: var(--color-bg-surface);
+.classification-auto-banner.prospect-banner {
+  border-color: rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.05);
 }
 
-.classification-card.selected {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  box-shadow: 0 0 0 1px var(--color-primary);
+.classification-auto-banner.client-banner {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.05);
 }
 
-.card-radio-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3, 0.75rem);
-  margin-bottom: var(--space-2, 0.5rem);
-}
-
-.classification-icon-circle {
-  width: 2.2rem;
-  height: 2.2rem;
+.auto-banner-icon {
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
+  flex-shrink: 0;
 }
 
-.active-client {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
-}
-
-.prospect-client {
+.auto-banner-icon.prospect-icon {
   background: var(--color-warning-subtle);
   color: var(--color-warning);
 }
 
-.classification-title {
-  font-size: var(--font-size-sm, 0.875rem);
+.auto-banner-icon.client-icon {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.auto-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  flex: 1;
+}
+
+.auto-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+  flex-wrap: wrap;
+}
+
+.auto-banner-title {
+  font-size: var(--font-size-base, 1rem);
   font-weight: 800;
   color: var(--color-text-main);
   margin: 0;
 }
 
-.classification-sub {
+.auto-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full, 9999px);
   font-size: var(--font-size-2xs, 0.65rem);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
+  font-weight: 800;
   letter-spacing: 0.05em;
-  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.classification-desc {
-  font-size: var(--font-size-xs, 0.75rem);
+.auto-banner-badge.badge-prospect {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.auto-banner-badge.badge-client {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.auto-banner-desc {
+  font-size: var(--font-size-sm, 0.875rem);
   color: var(--color-text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
 }
 

@@ -342,6 +342,7 @@
                 :value="cl.esProspecto ? 'Prospecto' : 'Cliente Efectivo'"
                 :severity="cl.esProspecto ? 'warn' : 'success'"
                 rounded
+                :title="cl.esProspecto ? 'Se promoverá automáticamente a Cliente Efectivo al aprobarse una cotización' : 'Cuenta formalizada con cotizaciones aprobadas'"
               />
             </template>
           </Column>
@@ -349,17 +350,6 @@
           <Column header="Acciones" headerClass="text-right" bodyClass="text-right">
             <template #body="{ data: cl }">
               <div class="actions-wrapper">
-                <button
-                  v-if="cl.esProspecto"
-                  type="button"
-                  class="action-btn-outline"
-                  style="border-color: var(--color-accent-copper, #c2410c); color: var(--color-accent-copper, #c2410c);"
-                  title="Formalizar prospecto a cliente regular"
-                  @click="handleConvertirCliente(cl)"
-                >
-                  <i class="pi pi-check"></i>
-                  <span>Formalizar</span>
-                </button>
                 <button type="button" class="action-btn-outline" @click="openEditCliente(cl)">
                   Editar
                 </button>
@@ -783,25 +773,6 @@ const handleDeleteCliente = async (cliente) => {
     await loadData()
   } catch (err) {
     showToast(err.response?.data?.message || 'No se pudo eliminar el cliente.', 'error')
-  }
-}
-
-const handleConvertirCliente = async (cliente) => {
-  const confirmed = await confirmAction({
-    message: `¿Desea formalizar a "${cliente.razonSocial}" de prospecto comercial a cliente formal?`,
-    header: 'Formalización de Cliente',
-    icon: 'pi pi-check-circle',
-    acceptLabel: 'Sí, Formalizar',
-    acceptClass: 'p-button-success'
-  })
-  if (!confirmed) return
-
-  try {
-    await comercialService.convertirACliente(cliente.idCliente)
-    showToast(`"${cliente.razonSocial}" ahora es cliente formal.`)
-    await loadData()
-  } catch (err) {
-    showToast(err.response?.data?.message || 'Error al formalizar cliente.', 'error')
   }
 }
 
