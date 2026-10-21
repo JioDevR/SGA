@@ -24,7 +24,7 @@
 
       <!-- 1. Hero Banner Card con Estilo Editorial Cálido Reutilizable -->
       <HeroBannerCard
-        kicker="MÓDULO DE MARKETING & GESTIÓN COMERCIAL"
+        kicker="RECEPCIÓN COMERCIAL // PROSPECTOS & EMISIÓN DE COTIZACIONES"
         title="Control de Cotizaciones, Clientes y Expedientes"
         description="Supervisión de prospectos comerciales, emisión de presupuestos de despacho aduanero y formalización de expedientes operativos."
       />

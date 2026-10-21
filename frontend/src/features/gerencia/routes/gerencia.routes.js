@@ -12,7 +12,7 @@ export const gerenciaRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
-      title: 'Sedes Territoriales - Gerencia SGA'
+      title: 'Gerencia General - Sedes - SGA'
     }
   },
   {
@@ -22,7 +22,7 @@ export const gerenciaRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
-      title: 'Catálogos Auxiliares - Gerencia SGA'
+      title: 'Gerencia General - Catálogos Auxiliares - SGA'
     }
   },
   {
@@ -32,7 +32,7 @@ export const gerenciaRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
-      title: 'Panel Ejecutivo - Gerencia SGA'
+      title: 'Gerencia General - Resumen Ejecutivo - SGA'
     }
   },
   {
@@ -42,7 +42,7 @@ export const gerenciaRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
-      title: 'Parque Automotor & Flota - Gerencia SGA'
+      title: 'Gerencia General - Flota - SGA'
     }
   },
   {
@@ -52,7 +52,7 @@ export const gerenciaRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.GERENTE_GENERAL, ROLES.ADMINISTRADOR_TI],
-      title: 'Plantilla de Conductores MTC - Gerencia SGA'
+      title: 'Gerencia General - Conductores - SGA'
     }
   }
 ]

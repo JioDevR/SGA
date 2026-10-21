@@ -8,7 +8,7 @@ export const rolesRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.AGENTE_COMERCIAL],
-      title: 'Recepción Comercial & Ventas - SGA'
+      title: 'Recepción Comercial - SGA'
     }
   },
   {
@@ -18,7 +18,7 @@ export const rolesRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.SUPERVISOR_ADUANERO],
-      title: 'Gestión Aduanera & Operaciones - SGA'
+      title: 'Gestión Aduanera - SGA'
     }
   },
   {
@@ -38,7 +38,7 @@ export const rolesRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.SUPERVISOR_ADUANERO, ROLES.AGENTE_ADUANERO],
-      title: 'Agente Aduanero & Trámites - SGA'
+      title: 'Agente Aduanero - SGA'
     }
   },
   {
@@ -58,7 +58,7 @@ export const rolesRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL, ROLES.CONTADOR],
-      title: 'Finanzas & Cobranzas - SGA'
+      title: 'Finanzas - SGA'
     }
   },
   {

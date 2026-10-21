@@ -34,12 +34,12 @@
           @change="handleModuleSelectChange"
         >
           <option value="administracion-ti">00 Administración TI</option>
-          <option value="gerencia-general">01 Gerencia General & Sedes</option>
+          <option value="gerencia-general">01 Gerencia General</option>
           <option value="comercial">02 Recepción Comercial</option>
           <option value="gestion-aduanera">03 Gestión Aduanera</option>
-          <option value="agente-aduanero">04 Agente Aduanero & Trámites</option>
+          <option value="agente-aduanero">04 Agente Aduanero</option>
           <option value="transporte-flota">05 Transporte y Flota</option>
-          <option value="finanzas">06 Finanzas & Cobranzas</option>
+          <option value="finanzas">06 Finanzas</option>
           <option value="legal-auditoria">07 Legal y Auditoría</option>
         </select>
         <i class="pi pi-chevron-down select-chevron-icon"></i>

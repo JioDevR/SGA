@@ -2,8 +2,8 @@
   <div class="supervision-view">
     <!-- 1. Hero Banner Editorial Cálido Reutilizable -->
     <HeroBannerCard
-      kicker="SUPERVISIÓN ADUANERA // AUDITORÍA & CONTROL OPERATIVO"
-      title="Bandeja de Supervisión Aduanera y Gestión de Expedientes"
+      kicker="GESTIÓN ADUANERA // AUDITORÍA & CONTROL OPERATIVO"
+      title="Gestión Aduanera y Supervisión de Expedientes"
       description="Auditoría técnica de propuestas comerciales, control de partidas arancelarias, validación de regímenes aduaneros, apertura de Expedientes Aduaneros y control de canales SUNAT."
     />
 

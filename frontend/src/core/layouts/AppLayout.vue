@@ -169,13 +169,13 @@ const displayUserRole = computed(() => {
 
 const currentSectionName = computed(() => {
   const map = {
-    'administracion-ti': 'Administración & Control TI',
-    'gerencia-general': 'Gerencia General & Sedes',
-    'comercial': 'Recepción Comercial & Ventas',
-    'gestion-aduanera': 'Gestión Aduanera & Operaciones',
-    'agente-aduanero': 'Agente Aduanero & Trámites',
+    'administracion-ti': 'Administración TI',
+    'gerencia-general': 'Gerencia General',
+    'comercial': 'Recepción Comercial',
+    'gestion-aduanera': 'Gestión Aduanera',
+    'agente-aduanero': 'Agente Aduanero',
     'transporte-flota': 'Transporte y Flota',
-    'finanzas': 'Finanzas & Cobranzas',
+    'finanzas': 'Finanzas',
     'legal-auditoria': 'Legal y Auditoría'
   }
   return map[navigationStore.currentModule] || 'Operaciones'
@@ -205,7 +205,7 @@ const currentTitle = computed(() => {
       clientes: 'Directorio de Clientes & Prospectos',
       ordenes: 'Expedientes Aduaneros'
     }
-    return vMap[navigationStore.comercialSubOption] || 'Recepción Comercial & Ventas'
+    return vMap[navigationStore.comercialSubOption] || 'Recepción Comercial'
   }
   if (navigationStore.currentModule === 'gestion-aduanera') {
     const sMap = {
@@ -215,19 +215,19 @@ const currentTitle = computed(() => {
       clasificacion: 'Clasificación Arancelaria NANDINA',
       tributos: 'Cálculo y Liquidación de Tributos'
     }
-    return sMap[navigationStore.gestionAduaneraSubOption] || 'Gestión Aduanera & Operaciones'
+    return sMap[navigationStore.gestionAduaneraSubOption] || 'Gestión Aduanera'
   }
   if (navigationStore.currentModule === 'agente-aduanero') {
-    return 'Control de Almacén Aduanero y Trámites'
+    return 'Agente Aduanero'
   }
   if (navigationStore.currentModule === 'transporte-flota') {
-    return 'Transporte y Monitoreo de Flota'
+    return 'Transporte y Flota'
   }
   if (navigationStore.currentModule === 'legal-auditoria') {
-    return 'Legal y Auditoría de Expedientes'
+    return 'Legal y Auditoría'
   }
   if (navigationStore.currentModule === 'finanzas') {
-    return 'Finanzas & Liquidación Contable'
+    return 'Finanzas'
   }
   return route.meta?.title?.replace(' - SGA', '') || 'Operaciones'
 })

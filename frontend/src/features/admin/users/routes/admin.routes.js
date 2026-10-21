@@ -12,7 +12,7 @@ export const adminRoutes = [
     meta: {
       requiresAuth: true,
       roles: [ROLES.ADMINISTRADOR_TI, ROLES.GERENTE_GENERAL],
-      title: 'Gestor de Usuarios TI - SGA'
+      title: 'Administración TI - Usuarios - SGA'
     }
   },
   {

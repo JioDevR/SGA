@@ -2,8 +2,8 @@
   <div class="legal-view">
     <!-- Hero Banner Card Editorial -->
     <HeroBannerCard
-      kicker="ASESORÍA JURÍDICA // ASUNTOS CONTENCIOSO-TRIBUTARIOS & SUNAT"
-      title="Gestión Legal Aduanera, Recursos de Reclamación y Dictámenes"
+      kicker="LEGAL Y AUDITORÍA // ASUNTOS CONTENCIOSO-TRIBUTARIOS & SUNAT"
+      title="Legal y Auditoría - Recursos de Reclamación y Dictámenes"
       description="Patrocinio y defensa jurídica en despachos aduaneros observados, contingencias de duda razonable de valor, inspecciones de Canal Rojo y apelaciones ante el Tribunal Fiscal."
     />
 

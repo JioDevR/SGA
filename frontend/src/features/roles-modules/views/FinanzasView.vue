@@ -3,7 +3,7 @@
     <!-- 1. Hero Banner Card Warm Editorial Reutilizable -->
     <HeroBannerCard
       kicker="FINANZAS // GESTIÓN DE LIQUIDACIONES Y COBRANZAS"
-      title="Liquidación Aduanera, Facturación y Conciliación Bancaria"
+      title="Finanzas - Liquidación Aduanera, Facturación y Cobranzas"
       description="Emisión y consolidación de balances aduaneros: tributos liquidados ante SUNAT, gastos de depósito temporal, flete local terrestre y honorarios profesionales de despacho. Control de cobranzas bancarias y detracciones SPOT."
     />
 

@@ -44,13 +44,13 @@ export const useNavigationStore = defineStore('navigation', {
 
     moduleTitle: (state) => {
       const titles = {
-        'administracion-ti': 'Administración TI & Usuarios',
-        'gerencia-general': 'Gerencia General & Sedes',
-        'comercial': 'Recepción Comercial & Ventas',
-        'gestion-aduanera': 'Gestión Aduanera & Operaciones',
-        'agente-aduanero': 'Agente Aduanero & Trámites',
+        'administracion-ti': 'Administración TI',
+        'gerencia-general': 'Gerencia General',
+        'comercial': 'Recepción Comercial',
+        'gestion-aduanera': 'Gestión Aduanera',
+        'agente-aduanero': 'Agente Aduanero',
         'transporte-flota': 'Transporte y Flota',
-        'finanzas': 'Finanzas & Cobranzas',
+        'finanzas': 'Finanzas',
         'legal-auditoria': 'Legal y Auditoría'
       }
       return titles[state.currentModule] || 'Operaciones'

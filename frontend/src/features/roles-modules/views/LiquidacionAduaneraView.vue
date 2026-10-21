@@ -2,8 +2,8 @@
   <div class="liquidador-view">
     <!-- Hero Banner Card Editorial -->
     <HeroBannerCard
-      kicker="LIQUIDACIÓN ADUANERA // NOMENCLATURA & DAM SUNAT"
-      title="Clasificación Arancelaria Nandina y Declaración Aduanera (DAM)"
+      kicker="GESTIÓN ADUANERA // LIQUIDACIÓN & DAM SUNAT"
+      title="Liquidación Aduanera - Clasificación Arancelaria y DAM"
       description="Cálculo de base imponible CIF aduanera, liquidación de derechos arancelarios Ad-Valorem, IGV (16%), IPM (2%), ISC y percepciones SUNAT para la formulación de la DAM."
     />
 

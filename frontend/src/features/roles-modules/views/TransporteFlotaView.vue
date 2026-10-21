@@ -2,7 +2,7 @@
   <div class="transporte-view">
     <!-- Hero Banner Card -->
     <HeroBannerCard
-      kicker="TRANSPORTE & DISTRIBUCIÓN // CABINA OPERATIVA DE RUTA"
+      kicker="TRANSPORTE Y FLOTA // CABINA OPERATIVA DE RUTA"
       :title="bannerTitle"
       :description="bannerDesc"
     />
