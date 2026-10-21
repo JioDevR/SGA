@@ -36,15 +36,32 @@
 
     <button
       type="button"
-      :class="['stepper-step-btn', { active: currentStep === 3, completed: form.totalCotizado > 0 }]"
+      :class="['stepper-step-btn', { active: currentStep === 3, completed: currentStep > 3 || docsCount > 0 }]"
       @click="$emit('update:currentStep', 3)"
     >
       <span class="step-badge">
-        <i v-if="form.totalCotizado > 0" class="pi pi-check"></i>
+        <i v-if="docsCount > 0 || currentStep > 3" class="pi pi-check"></i>
         <span v-else>3</span>
       </span>
       <div class="step-info">
         <span class="step-label">PASO 03</span>
+        <span class="step-title">Documentación</span>
+      </div>
+    </button>
+
+    <div class="stepper-divider"></div>
+
+    <button
+      type="button"
+      :class="['stepper-step-btn', { active: currentStep === 4, completed: form.totalCotizado > 0 }]"
+      @click="$emit('update:currentStep', 4)"
+    >
+      <span class="step-badge">
+        <i v-if="form.totalCotizado > 0" class="pi pi-check"></i>
+        <span v-else>4</span>
+      </span>
+      <div class="step-info">
+        <span class="step-label">PASO 04</span>
         <span class="step-title">Costos & Liquidación</span>
       </div>
     </button>
@@ -60,6 +77,10 @@ defineProps({
   form: {
     type: Object,
     required: true
+  },
+  docsCount: {
+    type: Number,
+    default: 0
   }
 })
 

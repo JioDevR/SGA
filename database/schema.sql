@@ -166,8 +166,12 @@ CREATE TABLE cotizacion (
     id_puerto_destino INT NULL,
     servicio_transporte BOOLEAN NOT NULL DEFAULT FALSE,
     -- Costos y Liquidación Estimada (USD)
+    valor_fob DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     monto_flete DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    monto_seguro_estimado DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     monto_honorarios DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+    tasa_advalorem DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+    tasa_percepcion DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
     monto_tributos DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     total_cotizado DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     validez_dias INT NOT NULL DEFAULT 15,

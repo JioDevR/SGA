@@ -14,6 +14,7 @@ import pe.sga.repository.*;
 import pe.sga.service.ICotizacionService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -135,13 +136,11 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .servicioTransporte(dto.getServicioTransporte() != null ? dto.getServicioTransporte() : false)
                 .fechaEmision(fecha)
                 .validezDias(dto.getValidezDias() != null ? dto.getValidezDias() : 15)
-                .montoFleteEstimado(dto.getMontoFleteEstimado() != null ? dto.getMontoFleteEstimado() : BigDecimal.ZERO)
-                .montoHonorariosEstimado(dto.getMontoHonorariosEstimado() != null ? dto.getMontoHonorariosEstimado() : BigDecimal.ZERO)
-                .montoTributosEstimado(dto.getMontoTributosEstimado() != null ? dto.getMontoTributosEstimado() : BigDecimal.ZERO)
-                .totalCotizado(dto.getTotalCotizado())
                 .estado(dto.getEstado() != null ? dto.getEstado() : EstadoCotizacion.PENDIENTE)
                 .observaciones(dto.getObservaciones())
                 .build();
+
+        calcularValoresEconomicos(cotizacion, dto);
 
         return mapToResponse(cotizacionRepository.save(cotizacion));
     }
@@ -189,11 +188,9 @@ public class CotizacionServiceImpl implements ICotizacionService {
         if (dto.getRegimenAduanero() != null) cotizacion.setRegimenAduanero(dto.getRegimenAduanero());
         if (dto.getServicioTransporte() != null) cotizacion.setServicioTransporte(dto.getServicioTransporte());
         if (dto.getValidezDias() != null) cotizacion.setValidezDias(dto.getValidezDias());
-        if (dto.getMontoFleteEstimado() != null) cotizacion.setMontoFleteEstimado(dto.getMontoFleteEstimado());
-        if (dto.getMontoHonorariosEstimado() != null) cotizacion.setMontoHonorariosEstimado(dto.getMontoHonorariosEstimado());
-        if (dto.getMontoTributosEstimado() != null) cotizacion.setMontoTributosEstimado(dto.getMontoTributosEstimado());
-        if (dto.getTotalCotizado() != null) cotizacion.setTotalCotizado(dto.getTotalCotizado());
         if (dto.getObservaciones() != null) cotizacion.setObservaciones(dto.getObservaciones());
+
+        calcularValoresEconomicos(cotizacion, dto);
 
         return mapToResponse(cotizacionRepository.save(cotizacion));
     }
@@ -269,6 +266,53 @@ public class CotizacionServiceImpl implements ICotizacionService {
         return codigo;
     }
 
+    private void calcularValoresEconomicos(Cotizacion cotizacion, CotizacionRequestDTO dto) {
+        BigDecimal fob = dto.getValorFob() != null ? dto.getValorFob() : (cotizacion.getValorFob() != null ? cotizacion.getValorFob() : BigDecimal.ZERO);
+        BigDecimal flete = dto.getMontoFleteEstimado() != null ? dto.getMontoFleteEstimado() : (cotizacion.getMontoFleteEstimado() != null ? cotizacion.getMontoFleteEstimado() : BigDecimal.ZERO);
+        BigDecimal honorarios = dto.getMontoHonorariosEstimado() != null ? dto.getMontoHonorariosEstimado() : (cotizacion.getMontoHonorariosEstimado() != null ? cotizacion.getMontoHonorariosEstimado() : BigDecimal.ZERO);
+        String regimen = cotizacion.getRegimenAduanero() != null ? cotizacion.getRegimenAduanero().trim().toUpperCase() : "IMPORTACION_DEFINITIVA";
+
+        cotizacion.setValorFob(fob);
+        cotizacion.setMontoFleteEstimado(flete);
+        cotizacion.setMontoHonorariosEstimado(honorarios);
+
+        if ("EXPORTACION_DEFINITIVA".equals(regimen)) {
+            cotizacion.setMontoSeguroEstimado(dto.getMontoSeguroEstimado() != null ? dto.getMontoSeguroEstimado() : BigDecimal.ZERO);
+            cotizacion.setTasaAdValorem(BigDecimal.ZERO);
+            cotizacion.setTasaPercepcion(BigDecimal.ZERO);
+            cotizacion.setMontoTributosEstimado(BigDecimal.ZERO);
+            BigDecimal total = flete.add(honorarios).setScale(2, RoundingMode.HALF_UP);
+            cotizacion.setTotalCotizado(dto.getTotalCotizado() != null && dto.getTotalCotizado().compareTo(BigDecimal.ZERO) > 0 ? dto.getTotalCotizado() : total);
+        } else {
+            BigDecimal seguro;
+            if (dto.getMontoSeguroEstimado() != null && dto.getMontoSeguroEstimado().compareTo(BigDecimal.ZERO) > 0) {
+                seguro = dto.getMontoSeguroEstimado();
+            } else {
+                seguro = fob.multiply(new BigDecimal("0.0075")).setScale(2, RoundingMode.HALF_UP);
+            }
+            BigDecimal tasaAdv = dto.getTasaAdValorem() != null ? dto.getTasaAdValorem() : BigDecimal.ZERO;
+            BigDecimal tasaPercep = dto.getTasaPercepcion() != null ? dto.getTasaPercepcion() : BigDecimal.ZERO;
+
+            BigDecimal cif = fob.add(flete).add(seguro).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal advalorem = cif.multiply(tasaAdv.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal baseIgv = cif.add(advalorem).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal igv = baseIgv.multiply(new BigDecimal("0.18")).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal basePercep = baseIgv.add(igv).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal percep = tasaPercep.compareTo(BigDecimal.ZERO) > 0
+                    ? basePercep.multiply(tasaPercep.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+
+            BigDecimal tributos = advalorem.add(igv).add(percep).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal total = flete.add(honorarios).add(tributos).setScale(2, RoundingMode.HALF_UP);
+
+            cotizacion.setMontoSeguroEstimado(seguro);
+            cotizacion.setTasaAdValorem(tasaAdv);
+            cotizacion.setTasaPercepcion(tasaPercep);
+            cotizacion.setMontoTributosEstimado(tributos);
+            cotizacion.setTotalCotizado(dto.getTotalCotizado() != null && dto.getTotalCotizado().compareTo(BigDecimal.ZERO) > 0 ? dto.getTotalCotizado() : total);
+        }
+    }
+
     private CotizacionResponseDTO mapToResponse(Cotizacion c) {
         boolean tieneExpediente = false;
         Integer idExpediente = null;
@@ -304,8 +348,12 @@ public class CotizacionServiceImpl implements ICotizacionService {
                 .servicioTransporte(c.getServicioTransporte())
                 .fechaEmision(c.getFechaEmision())
                 .validezDias(c.getValidezDias())
+                .valorFob(c.getValorFob())
                 .montoFleteEstimado(c.getMontoFleteEstimado())
+                .montoSeguroEstimado(c.getMontoSeguroEstimado())
                 .montoHonorariosEstimado(c.getMontoHonorariosEstimado())
+                .tasaAdValorem(c.getTasaAdValorem())
+                .tasaPercepcion(c.getTasaPercepcion())
                 .montoTributosEstimado(c.getMontoTributosEstimado())
                 .totalCotizado(c.getTotalCotizado())
                 .estado(c.getEstado())

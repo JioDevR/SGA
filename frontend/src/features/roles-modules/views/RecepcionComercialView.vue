@@ -555,6 +555,8 @@ import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import { comercialService } from '../services/comercialService'
 import { expedienteService } from '../services/expedienteService'
+import { documentoService } from '@/features/documentos/services/documentoService'
+import { useAuthStore } from '@/features/auth/stores/authStore'
 import { useNavigationStore } from '@/core/stores/navigationStore'
 import { useNotification } from '@/shared/composables/useNotification'
 import { useConfirmation } from '@/shared/composables/useConfirmation'
@@ -564,6 +566,7 @@ import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.v
 import HeroBannerCard from '@/shared/components/HeroBannerCard.vue'
 import MetricCard from '@/shared/components/MetricCard.vue'
 
+const authStore = useAuthStore()
 const navigationStore = useNavigationStore()
 const { showSuccess, showError, showInfo } = useNotification()
 const { confirmAction, confirmDelete } = useConfirmation()
@@ -819,14 +822,35 @@ const handleQuickClientCreated = async (newClient) => {
   await loadData()
 }
 
-const handleCotizacionSaved = async ({ isEdit, cotizacionId, payload }) => {
+const handleCotizacionSaved = async ({ isEdit, cotizacionId, payload, documentos }) => {
   try {
     if (isEdit) {
       await comercialService.updateCotizacion(cotizacionId, payload)
       showToast('Cotización actualizada exitosamente.')
     } else {
-      await comercialService.createCotizacion(payload)
-      showToast('Cotización registrada exitosamente.')
+      const created = await comercialService.createCotizacion(payload)
+      const newId = created?.idCotizacion
+
+      if (newId && documentos && documentos.length > 0) {
+        let uploadedCount = 0
+        for (const doc of documentos) {
+          try {
+            await documentoService.upload([doc.file], {
+              categoria: doc.categoria,
+              descripcion: doc.descripcion || '',
+              entidadTipo: 'COTIZACION',
+              idEntidad: newId,
+              idUsuario: authStore.user?.idUsuario || 1
+            })
+            uploadedCount++
+          } catch (docErr) {
+            console.error('Error al subir documento sustentatorio:', docErr)
+          }
+        }
+        showToast(`Cotización registrada exitosamente con ${uploadedCount} documento(s) adjunto(s).`)
+      } else {
+        showToast('Cotización registrada exitosamente.')
+      }
     }
     showCotizacionForm.value = false
     await loadData()

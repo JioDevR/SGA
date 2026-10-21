@@ -37,6 +37,7 @@
     <CotizacionStepperNav
       v-model:current-step="currentStep"
       :form="form"
+      :docs-count="isEditMode ? existingDocsCount : queuedDocs.length"
     />
 
     <!-- 2. Grid Principal -->
@@ -607,6 +608,54 @@
                 class="btn-espresso"
                 @click="currentStep = 3"
               >
+                <span>Continuar a Documentación</span>
+                <i class="pi pi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- PASO 3: DOCUMENTACIÓN SUSTENTATORIA -->
+        <!-- ========================================================================= -->
+        <section v-show="currentStep === 3" class="form-block-card">
+          <div class="block-header">
+            <div class="block-idx">03</div>
+            <div class="block-header-info">
+              <h3 class="block-title">Documentación Sustentatoria de la Propuesta</h3>
+              <p class="block-sub">Adjunte facturas proforma, listas de empaque, certificados de origen o resoluciones sectoriales para respaldar técnica y documentalmente la cotización.</p>
+            </div>
+          </div>
+
+          <div class="block-body">
+            <DocumentosUploadPanel
+              :mode="isEditMode ? 'live' : 'deferred'"
+              v-model="queuedDocs"
+              :entidad-tipo="'COTIZACION'"
+              :id-entidad="props.cotizacionToEdit?.idCotizacion"
+              :entidad-id="props.cotizacionToEdit?.idCotizacion"
+              :codigo-entidad="form.codigoCotizacion || 'NUEVA'"
+              :titulo-entidad="selectedClientObject?.razonSocial || 'Propuesta Comercial'"
+              :permiso-requerido="selectedMercancia?.requierePermiso"
+              :entidad-reguladora="selectedMercancia?.entidadReguladora"
+              :hide-header-banner="true"
+            />
+
+            <!-- Botones de Navegación del Paso 3 -->
+            <div class="step-footer-actions">
+              <button
+                type="button"
+                class="btn-outline-warm"
+                @click="currentStep = 2"
+              >
+                <i class="pi pi-arrow-left"></i>
+                <span>Regresar a Régimen y Mercancía</span>
+              </button>
+              <button
+                type="button"
+                class="btn-espresso"
+                @click="currentStep = 4"
+              >
                 <span>Continuar a Costos y Liquidación</span>
                 <i class="pi pi-arrow-right"></i>
               </button>
@@ -615,20 +664,44 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- PASO 3: COSTOS Y LIQUIDACIÓN ESTIMADA -->
+        <!-- PASO 4: ESTRUCTURA ECONÓMICA Y LIQUIDACIÓN ESTIMADA -->
         <!-- ========================================================================= -->
-        <section v-show="currentStep === 3" class="form-block-card">
+        <section v-show="currentStep === 4" class="form-block-card">
           <div class="block-header">
-            <div class="block-idx">03</div>
+            <div class="block-idx">04</div>
             <div class="block-header-info">
               <h3 class="block-title">Estructura Económica y Liquidación Estimada (USD)</h3>
-              <p class="block-sub">Desglose los componentes de flete internacional, agenciamiento aduanero y el cálculo detallado de tributos arancelarios.</p>
+              <p class="block-sub">Determine el valor comercial de la mercancía (FOB), fletes, agenciamiento aduanero y la liquidación tributaria arancelaria oficial.</p>
             </div>
           </div>
 
           <div class="block-body">
-            <!-- 1. Flete y Honorarios -->
+            <!-- 1. Valor de Mercancía, Flete y Seguro -->
             <div class="costs-two-cols">
+              <!-- Valor FOB Obligatorio -->
+              <div class="field-group highlight-group">
+                <div class="label-with-badge">
+                  <label for="cot-fob" class="field-label">Valor de Mercancía (FOB en Factura Comercial) *</label>
+                  <span class="kicker-mini-badge">BASE DE CÁLCULO</span>
+                </div>
+                <div class="input-icon-box">
+                  <i class="pi pi-money-bill input-icon"></i>
+                  <input
+                    id="cot-fob"
+                    v-model.number="form.valorFob"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    class="form-input number-input"
+                    required
+                    :disabled="submitting"
+                  />
+                  <span class="input-suffix">USD</span>
+                </div>
+                <span class="field-hint-mini">Monto de la factura comercial del proveedor. Sin este dato no existe base de cálculo.</span>
+              </div>
+
               <!-- Flete Internacional -->
               <div class="field-group">
                 <label for="cot-flete" class="field-label">Flete Internacional Estimado (USD)</label>
@@ -642,44 +715,128 @@
                     min="0"
                     placeholder="0.00"
                     class="form-input number-input"
-                    @input="recalculateTotal"
                     :disabled="submitting"
                   />
                   <span class="input-suffix">USD</span>
                 </div>
-                <span class="field-hint-mini">Transporte marítimo / aéreo internacional</span>
+                <span class="field-hint-mini">Costo del flete marítimo o aéreo internacional (viene cotizado o acordado).</span>
               </div>
+            </div>
 
-              <!-- Honorarios de Despacho -->
+            <!-- Fila: Seguro Estimado y Badge CIF / FOB -->
+            <div class="costs-two-cols">
+              <!-- Seguro Estimado (Automático editable en Import / Opcional en Export) -->
               <div class="field-group">
-                <label for="cot-honorarios" class="field-label">Honorarios Agencia Aduanas (USD)</label>
+                <div class="label-with-badge">
+                  <label for="cot-seguro" class="field-label">Seguro Estimado (USD)</label>
+                  <span v-if="form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'" class="kicker-mini-badge">
+                    {{ seguroManual ? 'MANUAL' : 'AUTO (0.75% SUNAT)' }}
+                  </span>
+                </div>
                 <div class="input-icon-box">
-                  <i class="pi pi-briefcase input-icon"></i>
+                  <i class="pi pi-shield input-icon"></i>
                   <input
-                    id="cot-honorarios"
-                    v-model.number="form.montoHonorariosEstimado"
+                    id="cot-seguro"
+                    v-model.number="form.montoSeguroEstimado"
                     type="number"
                     step="0.01"
                     min="0"
                     placeholder="0.00"
                     class="form-input number-input"
-                    @input="recalculateTotal"
+                    @input="handleSeguroManualInput"
                     :disabled="submitting"
                   />
                   <span class="input-suffix">USD</span>
                 </div>
-                <span class="field-hint-mini">Servicios de despacho aduanero y comisión</span>
+                <div class="seguro-helper-row">
+                  <span class="field-hint-mini">
+                    {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Opcional si el Incoterm convenido incluye póliza propia.' : 'Por defecto: FOB * 0.0075 (tabla referencial SUNAT ~0.75%), o editable si el cliente contrató póliza.' }}
+                  </span>
+                  <button
+                    v-if="seguroManual && form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'"
+                    type="button"
+                    class="btn-reset-seguro"
+                    @click="resetearSeguroAutomatico"
+                  >
+                    Restablecer 0.75%
+                  </button>
+                </div>
+              </div>
+
+              <!-- Base de Valoración Visible (Badge CIF en Importación / FOB en Exportación) -->
+              <div class="field-group">
+                <label class="field-label">
+                  {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Valor Oficial de Exportación (DAM 40)' : 'Valor CIF Calculado (Base Imponible Tributos)' }}
+                </label>
+                <div class="cif-display-box">
+                  <div class="cif-info-left">
+                    <span class="cif-badge-label">
+                      {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'BASE DECLARADA' : 'CIF = FOB + FLETE + SEGURO' }}
+                    </span>
+                    <span class="cif-amount">
+                      ${{ formatNumber(form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? form.valorFob : valorCif) }}
+                      <span class="cif-currency">USD</span>
+                    </span>
+                  </div>
+                  <i :class="form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'pi pi-send cif-icon' : 'pi pi-calculator cif-icon'"></i>
+                </div>
+                <span class="field-hint-mini">
+                  {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Monto de referencia para la aduana de salida.' : 'Sirve de base visible oficial para la liquidación de tributos SUNAT.' }}
+                </span>
               </div>
             </div>
 
-            <!-- 2. DESGLOSE DETALLADO DE TRIBUTOS ARANCELARIOS (SUMA AUTOMÁTICA) -->
-            <div class="tributos-breakdown-card">
+            <!-- 2. Gastos Operativos y Agencia de Aduanas -->
+            <div class="field-group">
+              <div class="label-with-badge">
+                <label for="cot-honorarios" class="field-label">Gastos Operativos y Agencia de Aduanas (USD) *</label>
+                <span class="kicker-mini-badge">TARIFA PLANA SGA</span>
+              </div>
+              <div class="input-icon-box">
+                <i class="pi pi-briefcase input-icon"></i>
+                <input
+                  id="cot-honorarios"
+                  v-model.number="form.montoHonorariosEstimado"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  class="form-input number-input"
+                  :disabled="submitting"
+                />
+                <span class="input-suffix">USD</span>
+              </div>
+              <span class="field-hint-mini">Agrupa honorarios aduaneros + visto bueno + almacén temporal + flete local (ej. $800 - $1,500 USD).</span>
+            </div>
+
+            <!-- 3. TRIBUTOS Y GRAVÁMENES SUNAT -->
+            <!-- Caso Exportación Definitiva: Inafecto de Tributos -->
+            <div v-if="form.regimenAduanero === 'EXPORTACION_DEFINITIVA'" class="export-inafecto-banner">
+              <div class="inafecto-icon-box">
+                <i class="pi pi-info-circle"></i>
+              </div>
+              <div class="inafecto-body">
+                <h4 class="inafecto-title">Régimen de Exportación Definitiva (REG-40): Inafecto de Tributos SUNAT</h4>
+                <p class="inafecto-desc">
+                  Conforme al Art. 60 de la Ley General de Aduanas (D.L. 1053) y el TUO de la Ley del IGV, la exportación definitiva de mercancías no se encuentra afecta a ningún derecho arancelario Ad-Valórem, IGV/IPM ni percepción aduanera.
+                </p>
+                <div class="inafecto-badge-row">
+                  <span class="inafecto-pill">Tasa Ad-Valórem: 0%</span>
+                  <span class="inafecto-pill">Tasa IGV/IPM: 0%</span>
+                  <span class="inafecto-pill">Percepción: 0%</span>
+                  <span class="inafecto-pill total-zero">TRIBUTOS SUNAT: $0.00 USD</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caso Importación Definitiva: Desglose Completo según cuadro -->
+            <div v-else class="tributos-breakdown-card">
               <div class="tributos-card-header">
                 <div class="tributos-header-left">
                   <i class="pi pi-percentage header-icon"></i>
                   <div>
                     <h4 class="tributos-card-title">Desglose de Tributos y Gravámenes SUNAT (USD)</h4>
-                    <p class="tributos-card-desc">Ingrese el arancel Ad-Valorem e IGV/IPM. El sistema sumará automáticamente el tributo total estimado para la base de datos.</p>
+                    <p class="tributos-card-desc">Cálculo automático sobre el Valor CIF calculado (${{ formatNumber(valorCif) }} USD) según la tasa ad-valórem y percepción seleccionada.</p>
                   </div>
                 </div>
                 <div class="tributos-total-badge">
@@ -689,82 +846,78 @@
               </div>
 
               <div class="tributos-inputs-grid">
-                <!-- Ad-Valorem -->
+                <!-- Tasa y Monto Ad-Valórem -->
                 <div class="tributo-item">
                   <div class="tributo-item-top">
-                    <label for="cot-advalorem" class="tributo-label">Arancel Ad-Valorem (USD)</label>
-                    <span v-if="selectedMercancia" class="tributo-rate-pill">Tasa: {{ selectedMercancia.arancelBasePct }}%</span>
+                    <label for="cot-tasa-advalorem" class="tributo-label">Tasa Ad-Valórem *</label>
+                    <span class="tributo-rate-pill">SELECTOR</span>
                   </div>
-                  <div class="input-icon-box">
-                    <i class="pi pi-dollar input-icon"></i>
-                    <input
-                      id="cot-advalorem"
-                      v-model.number="form.adValoremEstimado"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      class="form-input number-input"
-                      @input="recalculateTributos"
-                      :disabled="submitting"
-                    />
+                  <select
+                    id="cot-tasa-advalorem"
+                    v-model.number="form.tasaAdValorem"
+                    class="form-select-styled"
+                    :disabled="submitting"
+                  >
+                    <option :value="0">0% (Insumos / Libre arancel)</option>
+                    <option :value="6">6% (Bienes intermedios / Maquinaria)</option>
+                    <option :value="11">11% (Bienes de consumo final)</option>
+                  </select>
+                  <div class="read-only-amount-box">
+                    <span class="read-only-label">Monto Ad-Valórem:</span>
+                    <span class="read-only-val">${{ formatNumber(montoAdValorem) }} USD</span>
                   </div>
-                  <span class="tributo-helper">Gravamen arancelario sobre valor CIF</span>
+                  <span class="tributo-helper">advalorem = cif * tasa_advalorem</span>
                 </div>
 
-                <!-- IGV / IPM (18%) -->
+                <!-- IGV (16%) + IPM (2%) -->
                 <div class="tributo-item">
                   <div class="tributo-item-top">
-                    <label for="cot-igv" class="tributo-label">IGV (16%) + IPM (2%) (USD)</label>
+                    <label class="tributo-label">IGV (16%) + IPM (2%)</label>
                     <span class="tributo-rate-pill">Tasa: 18%</span>
                   </div>
-                  <div class="input-icon-box">
-                    <i class="pi pi-dollar input-icon"></i>
-                    <input
-                      id="cot-igv"
-                      v-model.number="form.igvEstimado"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      class="form-input number-input"
-                      @input="recalculateTributos"
-                      :disabled="submitting"
-                    />
+                  <div class="read-only-fixed-rate">
+                    <span class="fixed-rate-text">18.00% (Fija SUNAT)</span>
                   </div>
-                  <span class="tributo-helper">Impuesto General a las Ventas y Promoción Municipal</span>
+                  <div class="read-only-amount-box">
+                    <span class="read-only-label">Monto IGV + IPM:</span>
+                    <span class="read-only-val">${{ formatNumber(montoIgv) }} USD</span>
+                  </div>
+                  <span class="tributo-helper">igv_ipm = (cif + advalorem) * 0.18</span>
                 </div>
 
-                <!-- Otros Gravámenes / Percepción -->
+                <!-- Percepción SUNAT (Selector Opcional) -->
                 <div class="tributo-item">
                   <div class="tributo-item-top">
-                    <label for="cot-otros-trib" class="tributo-label">Otros Gravámenes / Percepción (USD)</label>
-                    <span class="tributo-rate-pill-optional">Opcional</span>
+                    <label for="cot-tasa-percepcion" class="tributo-label">Percepción SUNAT</label>
+                    <span class="tributo-rate-pill-optional">SELECTOR + AUTO</span>
                   </div>
-                  <div class="input-icon-box">
-                    <i class="pi pi-dollar input-icon"></i>
-                    <input
-                      id="cot-otros-trib"
-                      v-model.number="form.otrosTributosEstimado"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      class="form-input number-input"
-                      @input="recalculateTributos"
-                      :disabled="submitting"
-                    />
+                  <select
+                    id="cot-tasa-percepcion"
+                    v-model.number="form.tasaPercepcion"
+                    class="form-select-styled"
+                    :disabled="submitting"
+                  >
+                    <option :value="0">0% (Sin percepción / Exonerado)</option>
+                    <option :value="3.5">3.5% (Frecuente / Importador habitual)</option>
+                    <option :value="5">5% (Bienes usados)</option>
+                    <option :value="10">10% (Primera importación / No habido)</option>
+                  </select>
+                  <div class="read-only-amount-box">
+                    <span class="read-only-label">Monto Percepción:</span>
+                    <span class="read-only-val">${{ formatNumber(montoPercepcion) }} USD</span>
                   </div>
-                  <span class="tributo-helper">ISC, salvaguardias o percepción SUNAT</span>
+                  <span class="tributo-helper">percepcion = (cif + adv + igv) * tasa</span>
                 </div>
               </div>
             </div>
 
-            <!-- Total Cotizado Liquidado -->
+            <!-- 4. Total Cotizado Liquidado -->
             <div class="total-summary-banner">
               <div class="total-banner-info">
                 <span class="total-badge">IMPORTE TOTAL LIQUIDADO</span>
-                <span class="total-sub">Suma consolidada de flete, honorarios y tributos estimados (Flete + Honorarios + Tributos)</span>
+                <span class="total-sub">
+                  {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Suma consolidada de flete y gastos operativos de agencia (Flete + Gastos Op.)' : 'Suma consolidada de flete, gastos operativos y tributos estimados (Flete + Gastos Op. + Tributos)' }}
+                </span>
               </div>
               <div class="total-val-box">
                 <span class="currency-symbol">$</span>
@@ -773,15 +926,15 @@
               </div>
             </div>
 
-            <!-- Botones de Navegación del Paso 3 -->
+            <!-- Botones de Navegación del Paso 4 -->
             <div class="step-footer-actions">
               <button
                 type="button"
                 class="btn-outline-warm"
-                @click="currentStep = 2"
+                @click="currentStep = 3"
               >
                 <i class="pi pi-arrow-left"></i>
-                <span>Regresar a Régimen y Mercancía</span>
+                <span>Regresar a Documentación</span>
               </button>
 
               <button
@@ -810,6 +963,7 @@
         :is-edit-mode="isEditMode"
         :submitting="submitting"
         :is-form-ready="isFormReady"
+        :docs-count="isEditMode ? existingDocsCount : queuedDocs.length"
         :get-regimen-label="getRegimenLabel"
         :format-number="formatNumber"
         @submit="handleSubmit"
@@ -826,9 +980,11 @@ import Tag from 'primevue/tag'
 import { useAuthStore } from '@/features/auth/stores/authStore'
 import { comercialService } from '../services/comercialService'
 import { catalogoService } from '@/features/admin/catalogos/services/catalogoService'
+import { documentoService } from '@/features/documentos/services/documentoService'
 import CotizacionFormHeader from './CotizacionFormHeader.vue'
 import CotizacionStepperNav from './CotizacionStepperNav.vue'
 import CotizacionProformaPreview from './CotizacionProformaPreview.vue'
+import DocumentosUploadPanel from '@/shared/components/DocumentosUploadPanel.vue'
 
 const props = defineProps({
   cotizacionToEdit: {
@@ -848,6 +1004,13 @@ const currentStep = ref(1)
 const submitting = ref(false)
 const errorMessage = ref('')
 const loadingCatalogos = ref(false)
+
+// Estado para gestión documental en el Paso 03
+const queuedDocs = ref([])
+const existingDocsCount = ref(0)
+
+// Bandera para indicar si el usuario editó manualmente el Seguro en importación
+const seguroManual = ref(false)
 
 // Catálogos auxiliares traídos desde API
 const puertos = ref([])
@@ -889,7 +1052,7 @@ const quickClient = ref({
   esProspecto: true
 })
 
-// Opciones de Régimen Aduanero Oficial (Únicamente los 2 solicitados)
+// Opciones de Régimen Aduanero Oficial
 const regimenOptions = [
   {
     value: 'IMPORTACION_DEFINITIVA',
@@ -917,11 +1080,12 @@ const defaultForm = () => ({
   idTipoCarga: null,
   idMercancia: null,
   servicioTransporte: false,
+  valorFob: 0,
   montoFleteEstimado: 0,
+  montoSeguroEstimado: 0,
   montoHonorariosEstimado: 0,
-  adValoremEstimado: 0,
-  igvEstimado: 0,
-  otrosTributosEstimado: 0,
+  tasaAdValorem: 0,
+  tasaPercepcion: 0,
   montoTributosEstimado: 0,
   totalCotizado: 0,
   observaciones: ''
@@ -988,8 +1152,11 @@ onMounted(() => {
 
 watch(
   () => props.cotizacionToEdit,
-  (val) => {
+  async (val) => {
     errorMessage.value = ''
+    queuedDocs.value = []
+    seguroManual.value = false
+
     if (val && val.idCotizacion) {
       form.value = {
         codigoCotizacion: val.codigoCotizacion || '',
@@ -1002,18 +1169,33 @@ watch(
         idTipoCarga: val.idTipoCarga || null,
         idMercancia: val.idMercancia || null,
         servicioTransporte: val.servicioTransporte === true,
+        valorFob: Number(val.valorFob || 0),
         montoFleteEstimado: Number(val.montoFleteEstimado || 0),
+        montoSeguroEstimado: Number(val.montoSeguroEstimado || 0),
         montoHonorariosEstimado: Number(val.montoHonorariosEstimado || 0),
-        adValoremEstimado: 0,
-        igvEstimado: 0,
-        otrosTributosEstimado: 0,
+        tasaAdValorem: Number(val.tasaAdValorem || 0),
+        tasaPercepcion: Number(val.tasaPercepcion || 0),
         montoTributosEstimado: Number(val.montoTributosEstimado || 0),
         totalCotizado: Number(val.totalCotizado || 0),
         observaciones: val.observaciones || ''
       }
-      // Si ya hay montoTributosEstimado pero los desgloses vienen en 0, se mantiene montoTributosEstimado
+
+      if (form.value.montoSeguroEstimado > 0) {
+        seguroManual.value = true
+      }
+
+      try {
+        const docs = await documentoService.getDocumentos({
+          entidadTipo: 'COTIZACION',
+          idCotizacion: val.idCotizacion
+        })
+        existingDocsCount.value = Array.isArray(docs) ? docs.length : 0
+      } catch {
+        existingDocsCount.value = 0
+      }
     } else {
       form.value = defaultForm()
+      existingDocsCount.value = 0
     }
   },
   { immediate: true }
@@ -1072,27 +1254,101 @@ const handleSaveQuickClient = async () => {
   }
 }
 
-// Acción al cambiar mercancía
+// Acción al cambiar mercancía: sincronizar arancel si corresponde
 const handleMercanciaChange = () => {
-  // Opcional: si la mercancía tiene arancel base y el usuario no ha ingresado tributos
+  if (selectedMercancia.value) {
+    if (selectedMercancia.value.arancelBasePct !== undefined && selectedMercancia.value.arancelBasePct !== null) {
+      const pct = Number(selectedMercancia.value.arancelBasePct)
+      if ([0, 6, 11].includes(pct)) {
+        form.value.tasaAdValorem = pct
+      }
+    }
+    recalcularLiquidacion()
+  }
 }
 
-// Recálculo dinámico de tributos (Ad-Valorem + IGV/IPM + Otros)
-const recalculateTributos = () => {
-  const adv = Number(form.value.adValoremEstimado) || 0
-  const igv = Number(form.value.igvEstimado) || 0
-  const otros = Number(form.value.otrosTributosEstimado) || 0
-  form.value.montoTributosEstimado = Number((adv + igv + otros).toFixed(2))
-  recalculateTotal()
+// =========================================================================
+// MOTOR DE VALORACIÓN ADUANERA Y LIQUIDACIÓN ECONÓMICA (SUNAT)
+// =========================================================================
+
+// Valor CIF Calculado = FOB + Flete + Seguro
+const valorCif = computed(() => {
+  const fob = Number(form.value.valorFob) || 0
+  const flete = Number(form.value.montoFleteEstimado) || 0
+  const seguro = Number(form.value.montoSeguroEstimado) || 0
+  return Number((fob + flete + seguro).toFixed(2))
+})
+
+// Monto Ad-Valórem = CIF * tasa_advalorem
+const montoAdValorem = computed(() => {
+  if (form.value.regimenAduanero === 'EXPORTACION_DEFINITIVA') return 0
+  const tasa = Number(form.value.tasaAdValorem) || 0
+  return Number((valorCif.value * (tasa / 100)).toFixed(2))
+})
+
+// IGV (16%) + IPM (2%) = (CIF + Ad-Valórem) * 0.18
+const montoIgv = computed(() => {
+  if (form.value.regimenAduanero === 'EXPORTACION_DEFINITIVA') return 0
+  const base = valorCif.value + montoAdValorem.value
+  return Number((base * 0.18).toFixed(2))
+})
+
+// Percepción SUNAT = (CIF + Ad-Valórem + IGV/IPM) * tasa_percepcion
+const montoPercepcion = computed(() => {
+  if (form.value.regimenAduanero === 'EXPORTACION_DEFINITIVA') return 0
+  const tasa = Number(form.value.tasaPercepcion) || 0
+  if (tasa <= 0) return 0
+  const base = valorCif.value + montoAdValorem.value + montoIgv.value
+  return Number((base * (tasa / 100)).toFixed(2))
+})
+
+// Recálculo integral de liquidación
+const recalcularLiquidacion = () => {
+  const fob = Number(form.value.valorFob) || 0
+  const flete = Number(form.value.montoFleteEstimado) || 0
+  const honorarios = Number(form.value.montoHonorariosEstimado) || 0
+
+  if (form.value.regimenAduanero === 'EXPORTACION_DEFINITIVA') {
+    form.value.tasaAdValorem = 0
+    form.value.tasaPercepcion = 0
+    form.value.montoTributosEstimado = 0
+    form.value.totalCotizado = Number((flete + honorarios).toFixed(2))
+  } else {
+    // Si no fue editado manualmente, seguro = fob * 0.0075 (~0.75% SUNAT)
+    if (!seguroManual.value) {
+      form.value.montoSeguroEstimado = Number((fob * 0.0075).toFixed(2))
+    }
+    const tributos = Number((montoAdValorem.value + montoIgv.value + montoPercepcion.value).toFixed(2))
+    form.value.montoTributosEstimado = tributos
+    form.value.totalCotizado = Number((flete + honorarios + tributos).toFixed(2))
+  }
 }
 
-// Recálculo dinámico de costos totales (Flete + Honorarios + Tributos)
-const recalculateTotal = () => {
-  const f = Number(form.value.montoFleteEstimado) || 0
-  const h = Number(form.value.montoHonorariosEstimado) || 0
-  const t = Number(form.value.montoTributosEstimado) || 0
-  form.value.totalCotizado = Number((f + h + t).toFixed(2))
+const handleSeguroManualInput = () => {
+  seguroManual.value = true
+  recalcularLiquidacion()
 }
+
+const resetearSeguroAutomatico = () => {
+  seguroManual.value = false
+  recalcularLiquidacion()
+}
+
+// Watch dinámico de insumos para recálculo automático y sincronización en vivo
+watch(
+  () => [
+    form.value.valorFob,
+    form.value.montoFleteEstimado,
+    form.value.montoSeguroEstimado,
+    form.value.montoHonorariosEstimado,
+    form.value.tasaAdValorem,
+    form.value.tasaPercepcion,
+    form.value.regimenAduanero
+  ],
+  () => {
+    recalcularLiquidacion()
+  }
+)
 
 const formatNumber = (num) => {
   if (num === null || num === undefined || isNaN(num)) return '0.00'
@@ -1109,7 +1365,8 @@ const isFormReady = computed(() => {
     !!form.value.idCliente &&
     !!form.value.regimenAduanero &&
     form.value.validezDias > 0 &&
-    form.value.totalCotizado > 0
+    Number(form.value.valorFob) > 0 &&
+    Number(form.value.totalCotizado) > 0
   )
 })
 
@@ -1121,9 +1378,15 @@ const handleSubmit = () => {
     return
   }
 
+  if (!form.value.valorFob || form.value.valorFob <= 0) {
+    errorMessage.value = 'El Valor de Mercancía (FOB) es obligatorio y debe ser mayor a $0.00 USD. Configure los montos en el Paso 04.'
+    currentStep.value = 4
+    return
+  }
+
   if (form.value.totalCotizado <= 0) {
-    errorMessage.value = 'El total cotizado debe ser mayor a $0.00 USD. Configure los montos en el Paso 03.'
-    currentStep.value = 3
+    errorMessage.value = 'El total cotizado debe ser mayor a $0.00 USD. Configure los montos en el Paso 04.'
+    currentStep.value = 4
     return
   }
 
@@ -1134,7 +1397,8 @@ const handleSubmit = () => {
     payload: {
       ...form.value,
       idUsuarioComercial: authStore.user?.idUsuario || form.value.idUsuarioComercial || 1
-    }
+    },
+    documentos: queuedDocs.value
   })
 }
 </script>
@@ -2768,6 +3032,206 @@ const handleSubmit = () => {
   font-size: var(--font-size-2xs, 0.65rem);
   color: var(--color-text-muted);
   line-height: 1.25;
+}
+
+/* Styled Select and Read-only boxes for Customs calculation */
+.form-select-styled {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-surface);
+  color: var(--color-text-main);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.form-select-styled:focus {
+  border-color: var(--color-primary);
+}
+
+.form-select-styled:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.read-only-amount-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0.5rem;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-sm, 0.25rem);
+  border: 1px dashed var(--color-border);
+  margin-top: 0.25rem;
+}
+
+.read-only-label {
+  font-size: var(--font-size-2xs, 0.65rem);
+  color: var(--color-text-muted);
+}
+
+.read-only-val {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 700;
+  font-family: var(--font-family-serif, monospace);
+  color: var(--color-text-main);
+}
+
+.read-only-fixed-rate {
+  padding: 0.55rem 0.75rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  align-items: center;
+}
+
+.fixed-rate-text {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+/* Seguro Helper Row & Reset */
+.seguro-helper-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.btn-reset-seguro {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-2xs, 0.65rem);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  margin-top: 0.15rem;
+}
+
+.btn-reset-seguro:hover {
+  opacity: 0.85;
+}
+
+/* CIF / Base Valuation Box */
+.cif-display-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  background: var(--color-bg-subtle);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md, 0.5rem);
+  min-height: 44px;
+}
+
+.cif-info-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cif-badge-label {
+  font-size: var(--font-size-2xs, 0.65rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+}
+
+.cif-amount {
+  font-size: var(--font-size-base, 1rem);
+  font-weight: 800;
+  font-family: var(--font-family-serif, monospace);
+  color: var(--color-text-main);
+}
+
+.cif-currency {
+  font-size: var(--font-size-2xs, 0.65rem);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-left: 0.2rem;
+}
+
+.cif-icon {
+  font-size: 1.35rem;
+  color: var(--color-primary);
+}
+
+/* Export Inafecto Banner */
+.export-inafecto-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4, 1rem);
+  padding: var(--space-5, 1.25rem);
+  background: rgba(59, 130, 246, 0.06);
+  border: 1.5px solid rgba(59, 130, 246, 0.25);
+  border-radius: var(--radius-xl, 1rem);
+}
+
+.inafecto-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(59, 130, 246, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.inafecto-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.inafecto-title {
+  margin: 0;
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.inafecto-desc {
+  margin: 0;
+  font-size: var(--font-size-xs, 0.75rem);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.inafecto-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.inafecto-pill {
+  font-size: var(--font-size-2xs, 0.65rem);
+  font-weight: 700;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm, 0.25rem);
+}
+
+.inafecto-pill.total-zero {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
 }
 
 /* Sidebar Live Badges */

@@ -40,8 +40,12 @@ public class CotizacionResponseDTO {
     // Costos y Fechas
     private LocalDate fechaEmision;
     private Integer validezDias;
+    private BigDecimal valorFob;
     private BigDecimal montoFleteEstimado;
+    private BigDecimal montoSeguroEstimado;
     private BigDecimal montoHonorariosEstimado;
+    private BigDecimal tasaAdValorem;
+    private BigDecimal tasaPercepcion;
     private BigDecimal montoTributosEstimado;
     private BigDecimal totalCotizado;
 

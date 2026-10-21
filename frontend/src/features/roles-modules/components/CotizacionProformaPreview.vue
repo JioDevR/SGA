@@ -63,18 +63,40 @@
         <div class="proforma-divider"></div>
 
         <div class="proforma-row">
-          <span class="p-label">Flete Estimado:</span>
+          <span class="p-label">Valor FOB (Mercancía):</span>
+          <span class="p-val font-semibold">${{ formatVal(form.valorFob) }}</span>
+        </div>
+
+        <div class="proforma-row">
+          <span class="p-label">Flete Internacional:</span>
           <span class="p-val">${{ formatVal(form.montoFleteEstimado) }}</span>
         </div>
 
         <div class="proforma-row">
-          <span class="p-label">Honorarios:</span>
+          <span class="p-label">Seguro Estimado:</span>
+          <span class="p-val">${{ formatVal(form.montoSeguroEstimado) }}</span>
+        </div>
+
+        <div v-if="form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'" class="proforma-row cif-row">
+          <span class="p-label">Valor CIF Base:</span>
+          <span class="p-val text-accent font-bold">${{ formatVal((Number(form.valorFob) || 0) + (Number(form.montoFleteEstimado) || 0) + (Number(form.montoSeguroEstimado) || 0)) }}</span>
+        </div>
+
+        <div class="proforma-row">
+          <span class="p-label">Gastos Op. & Agencia:</span>
           <span class="p-val">${{ formatVal(form.montoHonorariosEstimado) }}</span>
         </div>
 
         <div class="proforma-row">
-          <span class="p-label">Tributos Totales:</span>
-          <span class="p-val">${{ formatVal(form.montoTributosEstimado) }}</span>
+          <span class="p-label">Tributos SUNAT:</span>
+          <span :class="['p-val', form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'text-success' : '']">
+            {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Inafecto ($0.00)' : '$' + formatVal(form.montoTributosEstimado) }}
+          </span>
+        </div>
+
+        <div v-if="docsCount > 0" class="proforma-row">
+          <span class="p-label">Documentos:</span>
+          <span class="p-val text-info"><i class="pi pi-paperclip"></i> {{ docsCount }} adjunto(s)</span>
         </div>
 
         <div class="proforma-divider"></div>
@@ -107,12 +129,16 @@
           <i :class="form.regimenAduanero ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
           <span>Régimen aduanero determinado</span>
         </li>
+        <li :class="['checklist-row', { valid: Number(form.valorFob) > 0 }]">
+          <i :class="Number(form.valorFob) > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
+          <span>Valor FOB de mercancía (> $0.00)</span>
+        </li>
         <li :class="['checklist-row', { valid: form.validezDias > 0 }]">
           <i :class="form.validezDias > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
           <span>Plazo de validez especificado</span>
         </li>
-        <li :class="['checklist-row', { valid: form.totalCotizado > 0 }]">
-          <i :class="form.totalCotizado > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
+        <li :class="['checklist-row', { valid: Number(form.totalCotizado) > 0 }]">
+          <i :class="Number(form.totalCotizado) > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
           <span>Monto total cotizado (> $0.00 USD)</span>
         </li>
       </ul>
@@ -187,6 +213,10 @@ const props = defineProps({
   formatNumber: {
     type: Function,
     default: null
+  },
+  docsCount: {
+    type: Number,
+    default: 0
   }
 })
 

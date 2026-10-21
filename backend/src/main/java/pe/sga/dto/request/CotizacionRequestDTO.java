@@ -45,10 +45,22 @@ public class CotizacionRequestDTO {
     private Integer validezDias = 15;
 
     @Builder.Default
+    private BigDecimal valorFob = BigDecimal.ZERO;
+
+    @Builder.Default
     private BigDecimal montoFleteEstimado = BigDecimal.ZERO;
 
     @Builder.Default
+    private BigDecimal montoSeguroEstimado = BigDecimal.ZERO;
+
+    @Builder.Default
     private BigDecimal montoHonorariosEstimado = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal tasaAdValorem = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal tasaPercepcion = BigDecimal.ZERO;
 
     @Builder.Default
     private BigDecimal montoTributosEstimado = BigDecimal.ZERO;

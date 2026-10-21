@@ -57,13 +57,29 @@ public class Cotizacion {
     @Builder.Default
     private Boolean servicioTransporte = false;
 
+    @Column(name = "valor_fob", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal valorFob = BigDecimal.ZERO;
+
     @Column(name = "monto_flete_estimado", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal montoFleteEstimado = BigDecimal.ZERO;
 
+    @Column(name = "monto_seguro_estimado", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal montoSeguroEstimado = BigDecimal.ZERO;
+
     @Column(name = "monto_honorarios_estimado", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal montoHonorariosEstimado = BigDecimal.ZERO;
+
+    @Column(name = "tasa_advalorem", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal tasaAdValorem = BigDecimal.ZERO;
+
+    @Column(name = "tasa_percepcion", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal tasaPercepcion = BigDecimal.ZERO;
 
     @Column(name = "monto_tributos_estimado", nullable = false, precision = 12, scale = 2)
     @Builder.Default
