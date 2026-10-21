@@ -1,13 +1,9 @@
 package pe.sga.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import pe.sga.dto.seed.InitialSeedDataDTO;
 import pe.sga.entity.CatalogoPuerto;
 import pe.sga.entity.CatalogoTipoCarga;
 import pe.sga.entity.Rol;
@@ -20,8 +16,6 @@ import pe.sga.repository.RolRepository;
 import pe.sga.repository.SedeRepository;
 import pe.sga.repository.UsuarioRepository;
 
-import java.io.InputStream;
-
 @Component
 @Slf4j
 public class DataInitializer implements CommandLineRunner {
@@ -32,7 +26,6 @@ public class DataInitializer implements CommandLineRunner {
     private final CatalogoPuertoRepository puertoRepository;
     private final CatalogoTipoCargaRepository tipoCargaRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ObjectMapper objectMapper;
 
     public DataInitializer(
             RolRepository rolRepository,
@@ -47,14 +40,13 @@ public class DataInitializer implements CommandLineRunner {
         this.puertoRepository = puertoRepository;
         this.tipoCargaRepository = tipoCargaRepository;
         this.passwordEncoder = passwordEncoder;
-        this.objectMapper = new ObjectMapper();
     }
 
     @Override
     public void run(String... args) {
-        log.info("Iniciando verificación de datos iniciales del sistema SGA...");
+        log.info("Iniciando verificación e inicialización mínima del sistema SGA...");
 
-        // 1. Roles institucionales base (según enum de negocio)
+        // 1. Roles del sistema según enum RolUsuario (con sus nombres y etiquetas normativas)
         for (RolUsuario rolEnum : RolUsuario.values()) {
             if (!rolRepository.existsByNombreRol(rolEnum)) {
                 rolRepository.save(Rol.builder()
@@ -64,130 +56,68 @@ public class DataInitializer implements CommandLineRunner {
                         .build());
             }
         }
+        log.info("Roles del sistema verificados.");
 
-        // 2. Cargar datos configurables desde initial-data.json
-        try {
-            Resource resource = new ClassPathResource("initial-data.json");
-            if (!resource.exists()) {
-                log.warn("No se encontró initial-data.json en el classpath. Se omite carga inicial.");
-                return;
-            }
+        // 2. Sede única de prueba
+        Sede sedePrueba = sedeRepository.findAll().stream().findFirst().orElseGet(() -> {
+            Sede nueva = Sede.builder()
+                    .codigoSede("SED-PRUEBA")
+                    .nombre("Prueba")
+                    .tipo("SEDE_CENTRAL")
+                    .direccion("Dirección de Prueba")
+                    .distrito("Callao")
+                    .telefono("+51 1 000-0000")
+                    .estado("OPERATIVO")
+                    .build();
+            log.info("Sede inicial 'Prueba' creada exitosamente.");
+            return sedeRepository.save(nueva);
+        });
 
-            try (InputStream is = resource.getInputStream()) {
-                InitialSeedDataDTO seedData = objectMapper.readValue(is, InitialSeedDataDTO.class);
-                if (seedData == null) {
-                    log.warn("El archivo initial-data.json está vacío.");
-                    return;
-                }
-
-                // Cargar sedes desde JSON
-                if (seedData.getSedes() != null && sedeRepository.count() == 0) {
-                    for (InitialSeedDataDTO.SedeSeedDTO s : seedData.getSedes()) {
-                        if (!sedeRepository.existsByCodigoSede(s.getCodigoSede())) {
-                            sedeRepository.save(Sede.builder()
-                                    .codigoSede(s.getCodigoSede())
-                                    .nombre(s.getNombre())
-                                    .tipo(s.getTipo() != null ? s.getTipo() : "SEDE_CENTRAL")
-                                    .direccion(s.getDireccion())
-                                    .distrito(s.getDistrito())
-                                    .telefono(s.getTelefono())
-                                    .estado(s.getEstado() != null ? s.getEstado() : "OPERATIVO")
-                                    .build());
-                        }
-                    }
-                    log.info("Sedes cargadas desde initial-data.json con éxito.");
-                }
-
-                // Cargar puertos desde JSON
-                if (seedData.getPuertos() != null && puertoRepository.count() == 0) {
-                    for (InitialSeedDataDTO.PuertoSeedDTO p : seedData.getPuertos()) {
-                        if (!puertoRepository.existsByCodigoPuerto(p.getCodigoPuerto())) {
-                            puertoRepository.save(CatalogoPuerto.builder()
-                                    .codigoPuerto(p.getCodigoPuerto())
-                                    .nombre(p.getNombre())
-                                    .pais(p.getPais())
-                                    .tipo(p.getTipo() != null ? p.getTipo() : "MARITIMO")
-                                    .estado(p.getEstado() != null ? p.getEstado() : "ACTIVO")
-                                    .build());
-                        }
-                    }
-                    log.info("Catálogo de puertos cargado desde initial-data.json con éxito.");
-                }
-
-                // Cargar tipos de carga desde JSON
-                if (seedData.getTiposCarga() != null && tipoCargaRepository.count() == 0) {
-                    for (InitialSeedDataDTO.TipoCargaSeedDTO tc : seedData.getTiposCarga()) {
-                        if (!tipoCargaRepository.existsByCodigo(tc.getCodigo())) {
-                            tipoCargaRepository.save(CatalogoTipoCarga.builder()
-                                    .codigo(tc.getCodigo())
-                                    .nombre(tc.getNombre())
-                                    .estado(tc.getEstado() != null ? tc.getEstado() : "ACTIVO")
-                                    .build());
-                        }
-                    }
-                    log.info("Catálogo de tipos de carga cargado desde initial-data.json con éxito.");
-                }
-
-                // Cargar usuario administrador desde JSON
-                Rol rolAdminTi = rolRepository.findByNombreRol(RolUsuario.ADMINISTRADOR_TI)
-                        .orElse(null);
-
-                Sede sede = sedeRepository.findAll().stream().findFirst().orElse(null);
-
-                if (seedData.getAdmin() != null && !usuarioRepository.existsByUsername(seedData.getAdmin().getUsername())) {
-                    InitialSeedDataDTO.AdminSeedDTO adminDto = seedData.getAdmin();
-                    usuarioRepository.save(Usuario.builder()
-                            .rol(rolAdminTi)
-                            .sede(sede)
-                            .username(adminDto.getUsername())
-                            .passwordHash(passwordEncoder.encode(adminDto.getPassword()))
-                            .nombres(adminDto.getNombres())
-                            .apellidos(adminDto.getApellidos())
-                            .correoInstitucional(adminDto.getCorreoInstitucional())
-                            .tipoDocumento(adminDto.getTipoDocumento() != null ? adminDto.getTipoDocumento() : "DNI")
-                            .numeroDocumento(adminDto.getNumeroDocumento())
-                            .telefono(adminDto.getTelefono())
-                            .cargoTitulo(adminDto.getCargoTitulo() != null ? adminDto.getCargoTitulo() : RolUsuario.ADMINISTRADOR_TI.getEtiqueta())
-                            .codigoSunat(adminDto.getCodigoSunat())
-                            .estadoActivo(true)
-                            .build());
-                    log.info("Usuario inicial '{}' cargado exitosamente desde initial-data.json.", adminDto.getUsername());
-                }
-
-                // Sembrar usuarios de prueba para los 7 roles restantes si no existen
-                seedUserIfMissing("gerente", "Carlos", "Mendoza Véliz", "gerente@sga.pe", RolUsuario.GERENTE_GENERAL, sede);
-                seedUserIfMissing("comercial", "Sofía", "Paredes Romero", "comercial@sga.pe", RolUsuario.AGENTE_COMERCIAL, sede);
-                seedUserIfMissing("supervisor", "Jorge", "Valenzuela Castro", "supervisor@sga.pe", RolUsuario.SUPERVISOR_ADUANERO, sede);
-                seedUserIfMissing("agente", "Miguel", "Aduviri Ramos", "agente@sga.pe", RolUsuario.AGENTE_ADUANERO, sede);
-                seedUserIfMissing("transporte", "Raúl", "Cárdenas Meléndez", "transporte@sga.pe", RolUsuario.SUPERVISOR_TRANSPORTE, sede);
-                seedUserIfMissing("contador", "Elena", "Morales Benítez", "contador@sga.pe", RolUsuario.CONTADOR, sede);
-                seedUserIfMissing("legal", "Fernando", "Arana Silva", "legal@sga.pe", RolUsuario.ASESOR_LEGAL, sede);
-            }
-        } catch (Exception e) {
-            log.error("Error al procesar initial-data.json: {}", e.getMessage(), e);
+        // 3. Catálogo de puertos: un único puerto de prueba
+        if (puertoRepository.count() == 0) {
+            puertoRepository.save(CatalogoPuerto.builder()
+                    .codigoPuerto("PRUEBA")
+                    .nombre("Prueba")
+                    .pais("Perú")
+                    .tipo("MARITIMO")
+                    .estado("ACTIVO")
+                    .build());
+            log.info("Catálogo de puertos: registrado puerto 'Prueba'.");
         }
-    }
 
-    private void seedUserIfMissing(String username, String nombres, String apellidos, String correo, RolUsuario rolEnum, Sede sede) {
-        if (!usuarioRepository.existsByUsername(username)) {
-            rolRepository.findByNombreRol(rolEnum).ifPresent(rol -> {
-                usuarioRepository.save(Usuario.builder()
-                        .rol(rol)
-                        .sede(sede)
-                        .username(username)
-                        .passwordHash(passwordEncoder.encode("Password123!"))
-                        .nombres(nombres)
-                        .apellidos(apellidos)
-                        .correoInstitucional(correo)
-                        .tipoDocumento("DNI")
-                        .numeroDocumento("7000000" + (username.length()))
-                        .telefono("+51 900 000 000")
-                        .cargoTitulo(rolEnum.getEtiqueta())
-                        .codigoSunat("SUNAT-" + rolEnum.name())
-                        .estadoActivo(true)
-                        .build());
-                log.info("Usuario semilla '{}' creado con rol {}.", username, rolEnum);
-            });
+        // 4. Catálogo de tipos de carga: un único tipo de carga de prueba
+        if (tipoCargaRepository.count() == 0) {
+            tipoCargaRepository.save(CatalogoTipoCarga.builder()
+                    .codigo("PRUEBA")
+                    .nombre("Prueba")
+                    .estado("ACTIVO")
+                    .build());
+            log.info("Catálogo de tipos de carga: registrado tipo 'Prueba'.");
         }
+
+        // 5. Usuario Administrador único (admin)
+        if (!usuarioRepository.existsByUsername("admin")) {
+            Rol rolAdminTi = rolRepository.findByNombreRol(RolUsuario.ADMINISTRADOR_TI)
+                    .orElseThrow(() -> new IllegalStateException("El rol ADMINISTRADOR_TI no fue encontrado en la base de datos"));
+
+            usuarioRepository.save(Usuario.builder()
+                    .rol(rolAdminTi)
+                    .sede(sedePrueba)
+                    .username("admin")
+                    .passwordHash(passwordEncoder.encode("Password123!"))
+                    .nombres("Administrador")
+                    .apellidos("Sistema")
+                    .correoInstitucional("admin@sga.pe")
+                    .tipoDocumento("DNI")
+                    .numeroDocumento("00000000")
+                    .telefono("+51 999 999 999")
+                    .cargoTitulo(RolUsuario.ADMINISTRADOR_TI.getEtiqueta())
+                    .codigoSunat("ADM-001")
+                    .estadoActivo(true)
+                    .build());
+            log.info("Usuario administrador 'admin' creado exitosamente.");
+        }
+
+        log.info("Inicialización limpia del sistema SGA completada exitosamente.");
     }
 }
