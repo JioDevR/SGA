@@ -88,6 +88,19 @@ export const comercialService = {
   },
 
   // ==========================================
+  // PAGOS Y ANTICIPOS DE COTIZACIÓN
+  // ==========================================
+  async registrarPagoCotizacion(idCotizacion, data) {
+    const response = await apiClient.post(`/cotizaciones/${idCotizacion}/pagos`, data)
+    return response.data.data
+  },
+
+  async getPagosCotizacion(idCotizacion) {
+    const response = await apiClient.get(`/cotizaciones/${idCotizacion}/pagos`)
+    return response.data.data
+  },
+
+  // ==========================================
   // EXPEDIENTES ADUANEROS OPERATIVOS
   // ==========================================
   async createExpediente(data) {
@@ -104,19 +117,6 @@ export const comercialService = {
     const response = await apiClient.delete(`/expedientes/${id}`)
     return response.data
   },
-
-  // Alias de compatibilidad hacia atrás (deprecados)
-  createOrdenServicio(data) {
-    return this.createExpediente(data)
-  },
-
-  updateOrdenServicioEstado(id, data) {
-    return this.updateExpedienteEstado(id, data)
-  },
-
-  deleteOrdenServicio(id) {
-    return this.deleteExpediente(id)
-  }
 }
 
 export const ventasService = comercialService

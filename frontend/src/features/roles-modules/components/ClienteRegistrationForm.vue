@@ -254,51 +254,53 @@
           </div>
         </section>
 
-        <!-- BLOQUE 03: CLASIFICACIÓN COMERCIAL -->
+        <!-- BLOQUE 03: CLASIFICACIÓN COMERCIAL (GESTIÓN AUTOMÁTICA DEL SISTEMA) -->
         <section class="form-block-card">
           <div class="block-header">
             <div class="block-idx">03</div>
             <div class="block-header-info">
-              <h3 class="block-title">Clasificación en Cartera Comercial</h3>
-              <p class="block-sub">Determine el nivel de madurez de la cuenta en el sistema de ventas.</p>
+              <h3 class="block-title">Clasificación en Cartera Comercial (Automática)</h3>
+              <p class="block-sub">El estado de la cuenta se gestiona automáticamente por el ciclo de cotización y aprobación.</p>
             </div>
           </div>
 
           <div class="block-body">
-            <div class="classification-cards-grid">
-              <div
-                :class="['classification-card', { selected: !form.esProspecto }]"
-                @click="form.esProspecto = false"
-              >
-                <div class="card-radio-header">
-                  <div class="classification-icon-circle active-client">
-                    <i class="pi pi-check-circle"></i>
-                  </div>
-                  <div>
-                    <h4 class="classification-title">Cliente Efectivo</h4>
-                    <span class="classification-sub">Cuenta Formalizada</span>
-                  </div>
+            <!-- Si es nuevo registro -->
+            <div v-if="!isEditMode" class="classification-auto-banner prospect-banner">
+              <div class="auto-banner-icon prospect-icon">
+                <i class="pi pi-clock"></i>
+              </div>
+              <div class="auto-banner-content">
+                <div class="auto-banner-header">
+                  <h4 class="auto-banner-title">Prospecto Comercial (Lead en Evaluación)</h4>
+                  <span class="auto-banner-badge badge-prospect">ASIGNACIÓN INICIAL AUTOMÁTICA</span>
                 </div>
-                <p class="classification-desc">
-                  Empresa o persona con contrato o servicios aduaneros previamente liquidados. Autorizado para órdenes de servicio directas.
+                <p class="auto-banner-desc">
+                  Todo nuevo registro ingresa al sistema como <strong>Prospecto Comercial</strong>.
+                  Una vez emitida y <strong>aprobada su primera cotización aduanera</strong>, el sistema lo promoverá de forma automática a <strong>Cliente Efectivo</strong>.
                 </p>
               </div>
+            </div>
 
-              <div
-                :class="['classification-card', { selected: form.esProspecto }]"
-                @click="form.esProspecto = true"
-              >
-                <div class="card-radio-header">
-                  <div class="classification-icon-circle prospect-client">
-                    <i class="pi pi-clock"></i>
-                  </div>
-                  <div>
-                    <h4 class="classification-title">Prospecto Comercial</h4>
-                    <span class="classification-sub">Lead en Evaluación</span>
-                  </div>
+            <!-- Si es modo edición -->
+            <div v-else class="classification-auto-banner" :class="form.esProspecto ? 'prospect-banner' : 'client-banner'">
+              <div class="auto-banner-icon" :class="form.esProspecto ? 'prospect-icon' : 'client-icon'">
+                <i :class="form.esProspecto ? 'pi pi-clock' : 'pi pi-check-circle'"></i>
+              </div>
+              <div class="auto-banner-content">
+                <div class="auto-banner-header">
+                  <h4 class="auto-banner-title">
+                    {{ form.esProspecto ? 'Prospecto Comercial (Lead en Evaluación)' : 'Cliente Efectivo (Cuenta Formalizada)' }}
+                  </h4>
+                  <span :class="['auto-banner-badge', form.esProspecto ? 'badge-prospect' : 'badge-client']">
+                    {{ form.esProspecto ? 'EN PROCESO DE FORMALIZACIÓN' : 'CUENTA FORMALIZADA' }}
+                  </span>
                 </div>
-                <p class="classification-desc">
-                  Empresa en etapa de cotización previa o prospección. Se formalizará como cliente efectivo al aprobar su primera propuesta comercial.
+                <p class="auto-banner-desc" v-if="form.esProspecto">
+                  Este registro se encuentra clasificado como <strong>Prospecto Comercial</strong>. Se promoverá automáticamente a <strong>Cliente Efectivo</strong> tan pronto como se apruebe una cotización comercial asociada.
+                </p>
+                <p class="auto-banner-desc" v-else>
+                  Esta cuenta ha sido promovida a <strong>Cliente Efectivo</strong> tras la aprobación de propuestas aduaneras. Posee historial comercial formalizado.
                 </p>
               </div>
             </div>
@@ -381,28 +383,6 @@
               <span>Correo electrónico institucional</span>
             </li>
           </ul>
-
-          <div class="sidebar-action-buttons">
-            <button
-              type="button"
-              class="btn-espresso full-width"
-              @click="handleSubmit"
-              :disabled="submitting || !isFormReady"
-            >
-              <i v-if="submitting" class="pi pi-spin pi-spinner"></i>
-              <i v-else class="pi pi-save"></i>
-              <span>{{ isEditMode ? 'Guardar Cambios' : 'Registrar Cliente' }}</span>
-            </button>
-
-            <button
-              type="button"
-              class="btn-outline-warm full-width"
-              @click="$emit('cancel')"
-              :disabled="submitting"
-            >
-              <span>Descartar y Regresar</span>
-            </button>
-          </div>
         </div>
       </aside>
     </div>
@@ -506,8 +486,7 @@ const handleSubmit = () => {
   flex-direction: column;
   gap: var(--space-6, 1.5rem);
   padding-bottom: var(--space-10, 2.5rem);
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* 1. Header Bar */
@@ -515,36 +494,36 @@ const handleSubmit = () => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--space-6, 1.5rem);
-  padding: var(--space-6, 1.5rem) var(--space-8, 2rem);
+  gap: var(--space-5, 1.25rem);
+  padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl, 1rem);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-lg, 0.75rem);
+  box-shadow: var(--shadow-subtle);
   flex-wrap: wrap;
 }
 
 .header-titles {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-  max-width: 800px;
+  gap: 0.35rem;
+  max-width: 820px;
 }
 
 .btn-back-link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
+  gap: 0.4rem;
   background: none;
   border: none;
   color: var(--color-text-muted);
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: 0.725rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
   padding: 0;
-  margin-bottom: var(--space-1, 0.25rem);
+  margin-bottom: 0.15rem;
   transition: color var(--transition-fast);
 }
 
@@ -560,51 +539,55 @@ const handleSubmit = () => {
 }
 
 .badge-kicker {
-  font-size: var(--font-size-2xs, 0.65rem);
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-sm, 0.25rem);
+  color: var(--color-accent-kicker);
+  background: var(--color-bg-subtle);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-xs, 0.25rem);
+  border: 1px solid var(--color-border-subtle);
 }
 
 .mode-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: var(--font-size-2xs, 0.65rem);
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full, 9999px);
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
 }
 
 .mode-create {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
 }
 
 .mode-edit {
-  background: var(--color-warning-subtle);
-  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
 }
 
 .form-main-title {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-2xl, 1.75rem);
-  font-weight: 800;
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 700;
   color: var(--color-text-main);
-  line-height: 1.2;
-  margin: 0;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  margin: 0.15rem 0 0;
 }
 
 .form-main-desc {
-  font-size: var(--font-size-sm, 0.875rem);
+  font-size: 0.8125rem;
   color: var(--color-text-muted);
-  line-height: 1.5;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -617,10 +600,10 @@ const handleSubmit = () => {
 .btn-outline-warm {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.25rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
+  gap: 0.45rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.84rem;
+  font-weight: 600;
   border-radius: var(--radius-md, 0.5rem);
   border: 1px solid var(--color-border);
   background: var(--color-bg-surface);
@@ -630,29 +613,28 @@ const handleSubmit = () => {
 }
 
 .btn-outline-warm:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
   background: var(--color-bg-subtle);
-  border-color: var(--color-border-subtle);
 }
 
 .btn-espresso {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.4rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
+  gap: 0.5rem;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.84rem;
+  font-weight: 600;
   border-radius: var(--radius-md, 0.5rem);
   border: none;
   background: var(--color-primary);
-  color: var(--color-primary-contrast);
+  color: var(--color-primary-text);
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 6px rgba(53, 47, 42, 0.2);
 }
 
 .btn-espresso:hover:not(:disabled) {
-  opacity: 0.92;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -691,7 +673,7 @@ const handleSubmit = () => {
 /* 2. Grid de Contenido */
 .form-content-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 400px;
   gap: var(--space-6, 1.5rem);
   align-items: start;
 }
@@ -727,11 +709,12 @@ const handleSubmit = () => {
 }
 
 .block-idx {
-  font-family: var(--font-family-serif);
-  font-size: var(--font-size-lg, 1.25rem);
-  font-weight: 800;
-  color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md, 0.9375rem);
+  font-weight: 700;
+  color: var(--color-accent-kicker);
+  background: var(--color-bg-muted);
+  border: 1px solid var(--color-border-subtle);
   width: 2.25rem;
   height: 2.25rem;
   display: flex;
@@ -895,85 +878,98 @@ const handleSubmit = () => {
   color: var(--color-primary);
 }
 
-/* Clasificación Cards Grid */
-.classification-cards-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Clasificación Automática Banner */
+.classification-auto-banner {
+  display: flex;
+  align-items: flex-start;
   gap: var(--space-4, 1rem);
-}
-
-@media (max-width: 640px) {
-  .classification-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.classification-card {
-  padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
-  border: 1px solid var(--color-border);
+  padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
   border-radius: var(--radius-lg, 0.75rem);
+  border: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
-  cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.classification-card:hover {
-  border-color: var(--color-border-subtle);
-  background: var(--color-bg-surface);
+.classification-auto-banner.prospect-banner {
+  border-color: rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.05);
 }
 
-.classification-card.selected {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  box-shadow: 0 0 0 1px var(--color-primary);
+.classification-auto-banner.client-banner {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.05);
 }
 
-.card-radio-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3, 0.75rem);
-  margin-bottom: var(--space-2, 0.5rem);
-}
-
-.classification-icon-circle {
-  width: 2.2rem;
-  height: 2.2rem;
+.auto-banner-icon {
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
+  flex-shrink: 0;
 }
 
-.active-client {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
-}
-
-.prospect-client {
+.auto-banner-icon.prospect-icon {
   background: var(--color-warning-subtle);
   color: var(--color-warning);
 }
 
-.classification-title {
-  font-size: var(--font-size-sm, 0.875rem);
+.auto-banner-icon.client-icon {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.auto-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  flex: 1;
+}
+
+.auto-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+  flex-wrap: wrap;
+}
+
+.auto-banner-title {
+  font-size: var(--font-size-base, 1rem);
   font-weight: 800;
   color: var(--color-text-main);
   margin: 0;
 }
 
-.classification-sub {
+.auto-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full, 9999px);
   font-size: var(--font-size-2xs, 0.65rem);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
+  font-weight: 800;
   letter-spacing: 0.05em;
-  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.classification-desc {
-  font-size: var(--font-size-xs, 0.75rem);
+.auto-banner-badge.badge-prospect {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.auto-banner-badge.badge-client {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.auto-banner-desc {
+  font-size: var(--font-size-sm, 0.875rem);
   color: var(--color-text-muted);
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -1037,9 +1033,9 @@ const handleSubmit = () => {
 }
 
 .card-client-name {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-md, 1.1rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text-main);
   margin: 0 0 var(--space-2, 0.5rem) 0;
   line-height: 1.3;
@@ -1047,14 +1043,14 @@ const handleSubmit = () => {
 
 .card-doc-pill {
   display: inline-block;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: var(--font-size-xs, 0.75rem);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   padding: 0.25rem 0.75rem;
   background: var(--color-bg-subtle);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-full, 9999px);
+  border-radius: var(--radius-pill);
   color: var(--color-text-main);
 }
 
@@ -1100,20 +1096,22 @@ const handleSubmit = () => {
 
 .status-pill-badge {
   font-size: var(--font-size-2xs, 0.65rem);
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   padding: 0.15rem 0.55rem;
-  border-radius: var(--radius-full, 9999px);
+  border-radius: var(--radius-pill);
 }
 
 .badge-client {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
 }
 
 .badge-prospect {
-  background: var(--color-warning-subtle);
-  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
 }
 
 .card-footer-stamp {
@@ -1130,9 +1128,9 @@ const handleSubmit = () => {
 .checklist-card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl, 1rem);
+  border-radius: var(--radius-lg, 0.75rem);
   padding: var(--space-5, 1.25rem);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-subtle);
   display: flex;
   flex-direction: column;
   gap: var(--space-4, 1rem);
@@ -1169,18 +1167,7 @@ const handleSubmit = () => {
 }
 
 .checklist-row.valid {
-  color: var(--color-success);
+  color: var(--color-success-text);
   font-weight: 600;
-}
-
-.sidebar-action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-  margin-top: var(--space-2, 0.5rem);
-}
-
-.full-width {
-  width: 100%;
 }
 </style>

@@ -41,6 +41,17 @@
         <span>Conciliación & Arqueo</span>
         <span class="tab-counter">{{ pagosRealizadosList.length }}</span>
       </button>
+
+      <button
+        type="button"
+        class="tab-nav-btn"
+        :class="{ active: activeTab === 'anticipos' }"
+        @click="switchTab('anticipos')"
+      >
+        <i class="pi pi-shield"></i>
+        <span>Anticipos Pre-Expediente</span>
+        <span class="tab-counter" :style="anticiposPendientesCount > 0 ? 'background: #ea580c; color: #fff; font-weight: 700;' : ''">{{ anticiposList.length }}</span>
+      </button>
     </div>
 
     <!-- 3. Cuadrícula de Métricas KPI en Warm Editorial -->
@@ -444,6 +455,183 @@
                   <i class="pi pi-file-pdf"></i>
                   <span>Ver Voucher</span>
                 </button>
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: ANTICIPOS Y PAGOS PRE-EXPEDIENTE                               -->
+    <!-- ===================================================================== -->
+    <div v-if="activeTab === 'anticipos'" class="tab-container">
+      <div class="tab-content-section">
+        <div class="section-header-row">
+          <div>
+            <span class="badge-kicker">CONTROL DE INGRESOS PRE-OPERATIVOS</span>
+            <h3 class="section-title">Bandeja de Anticipos y Pagos de Cotizaciones</h3>
+          </div>
+
+          <div class="section-controls">
+            <!-- Filtro de Estado -->
+            <select v-model="filterEstadoAnticipo" class="filter-select">
+              <option value="">Todos los Estados</option>
+              <option value="PENDIENTE_REVISION">Pendientes de Aprobación</option>
+              <option value="APROBADO">Aprobados / Conformes</option>
+              <option value="OBSERVADO">Observados</option>
+              <option value="RECHAZADO">Rechazados</option>
+            </select>
+
+            <!-- Búsqueda rápida -->
+            <div class="search-input-wrap">
+              <i class="pi pi-search search-icon"></i>
+              <input
+                v-model="searchQueryAnticipo"
+                type="text"
+                placeholder="Buscar por cotización, cliente u operación..."
+                class="search-input"
+              />
+            </div>
+
+            <button type="button" class="btn-outline-warm" @click="loadAnticipos" :disabled="loadingAnticipos">
+              <i :class="['pi pi-sync', { 'pi-spin': loadingAnticipos }]"></i>
+              <span>Actualizar</span>
+            </button>
+
+            <button type="button" class="btn-primary-action" @click="openRegistrarPagoModal">
+              <i class="pi pi-plus"></i>
+              <span>+ Registrar Anticipo / Pago</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla de Anticipos -->
+        <div class="table-container">
+          <DataTable
+            :value="filteredAnticipos"
+            :loading="loadingAnticipos"
+            responsiveLayout="scroll"
+            class="custom-datatable"
+            dataKey="idPago"
+          >
+            <template #empty>
+              <div class="empty-state">
+                <i class="pi pi-shield empty-icon"></i>
+                <p class="empty-title">No hay anticipos ni pagos registrados con este criterio</p>
+                <p class="empty-desc">Los abonos reportados en las cotizaciones comerciales aparecerán aquí para verificación y visto bueno de Finanzas.</p>
+              </div>
+            </template>
+
+            <Column header="N° Pago">
+              <template #body="{ data: a }">
+                <div class="client-cell">
+                  <span class="font-mono font-bold text-xs">{{ a.codigoPago }}</span>
+                  <span class="client-sub">{{ formatDateTime(a.fechaRegistro) }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Cotización Origen">
+              <template #body="{ data: a }">
+                <div class="client-cell">
+                  <span class="font-mono font-bold text-xs text-primary">{{ a.codigoCotizacion }}</span>
+                  <span class="client-sub">Total: ${{ Number(a.totalCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Cliente Importador">
+              <template #body="{ data: a }">
+                <div class="client-cell">
+                  <span class="client-name">{{ a.clienteRazonSocial || 'Cliente no asignado' }}</span>
+                  <span class="client-sub">Doc: {{ a.clienteNumeroDocumento }}</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Monto Abonado">
+              <template #body="{ data: a }">
+                <div class="client-cell">
+                  <span class="font-mono font-bold text-sm text-success">
+                    {{ a.moneda === 'PEN' ? 'S/' : '$' }} {{ Number(a.montoAbonado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+                  </span>
+                  <span v-if="a.moneda === 'USD'" class="client-sub">
+                    Equiv: S/ {{ Number(a.montoEquivalentePen || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 }) }}
+                  </span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Banco & N° Operación">
+              <template #body="{ data: a }">
+                <div class="client-cell">
+                  <span class="font-bold text-xs">{{ a.bancoDestino }}</span>
+                  <span class="client-sub font-mono">Op: {{ a.numeroOperacion }} ({{ a.fechaOperacion }})</span>
+                </div>
+              </template>
+            </Column>
+
+            <Column header="Modalidad">
+              <template #body="{ data: a }">
+                <Tag
+                  :value="formatTipoAbono(a.tipoAbono)"
+                  severity="info"
+                  rounded
+                />
+              </template>
+            </Column>
+
+            <Column header="Estado Finanzas">
+              <template #body="{ data: a }">
+                <Tag
+                  :value="getEstadoAnticipoLabel(a.estadoPago)"
+                  :severity="getEstadoAnticipoSeverity(a.estadoPago)"
+                  rounded
+                />
+              </template>
+            </Column>
+
+            <Column header="Acciones de Control" headerClass="text-right" bodyClass="text-right">
+              <template #body="{ data: a }">
+                <div class="actions-wrapper">
+                  <!-- Botón Ver Voucher -->
+                  <button
+                    v-if="a.idDocumentoComprobante"
+                    type="button"
+                    class="btn-action-outline"
+                    title="Ver comprobante bancario"
+                    @click="verVoucherAnticipo(a)"
+                  >
+                    <i class="pi pi-file-pdf"></i>
+                    <span>Voucher</span>
+                  </button>
+
+                  <!-- Si está pendiente de revisión -->
+                  <template v-if="a.estadoPago === 'PENDIENTE_REVISION'">
+                    <button
+                      type="button"
+                      class="btn-action-approve"
+                      title="Aprobar abono y habilitar cotización para Expediente Aduanero"
+                      @click="openValidarAnticipo(a, 'APROBAR')"
+                    >
+                      <i class="pi pi-check"></i>
+                      <span>Aprobar</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-action-observe"
+                      title="Observar abono bancario"
+                      @click="openValidarAnticipo(a, 'OBSERVAR')"
+                    >
+                      <i class="pi pi-eye"></i>
+                      <span>Observar</span>
+                    </button>
+                  </template>
+                  <span v-else class="text-xs text-muted">
+                    {{ a.usuarioFinanzasNombre ? 'Validado por ' + a.usuarioFinanzasNombre : 'Conforme' }}
+                  </span>
+                </div>
               </template>
             </Column>
           </DataTable>
@@ -879,7 +1067,76 @@
     </Dialog>
 
     <!-- ===================================================================== -->
-    <!-- MODAL 4: GESTOR UNIVERSAL DE DOCUMENTOS ADJUNTOS                      -->
+    <!-- MODAL 4: VALIDACIÓN FINANCIERA DE ANTICIPO / PAGO DE COTIZACIÓN       -->
+    <!-- ===================================================================== -->
+    <Dialog
+      v-model:visible="showValidarAnticipoModal"
+      modal
+      :header="validarAccion === 'APROBAR' ? 'Aprobación de Pago / Anticipo' : 'Observación de Pago Bancario'"
+      :style="{ width: '560px', maxWidth: '95vw' }"
+      class="custom-dialog-warm"
+    >
+      <div v-if="selectedAnticipo" class="modal-body">
+        <div class="anticipo-validation-summary mb-3">
+          <div class="summary-line">
+            <span class="label">Cotización:</span>
+            <strong class="val">{{ selectedAnticipo.codigoCotizacion }} — {{ selectedAnticipo.clienteRazonSocial }}</strong>
+          </div>
+          <div class="summary-line">
+            <span class="label">Operación Bancaria:</span>
+            <span class="val font-mono">{{ selectedAnticipo.bancoDestino }} (N° {{ selectedAnticipo.numeroOperacion }})</span>
+          </div>
+          <div class="summary-line">
+            <span class="label">Monto Abonado:</span>
+            <strong class="val text-success">
+              {{ selectedAnticipo.moneda === 'PEN' ? 'S/' : '$' }} {{ Number(selectedAnticipo.montoAbonado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+              <span v-if="selectedAnticipo.moneda === 'USD'" class="text-xs text-muted">(Equiv: S/ {{ Number(selectedAnticipo.montoEquivalentePen || 0).toLocaleString('es-PE', { minimumFractionDigits: 2 }) }})</span>
+            </strong>
+          </div>
+          <div class="summary-line">
+            <span class="label">Modalidad:</span>
+            <span class="val">{{ formatTipoAbono(selectedAnticipo.tipoAbono) }}</span>
+          </div>
+        </div>
+
+        <div v-if="validarAccion === 'APROBAR'" class="alert-box-success mb-3">
+          <i class="pi pi-check-circle mr-2"></i>
+          <span>Al aprobar este pago, la cotización quedará <strong>habilitada financieramente</strong> y se desbloqueará la Apertura de Expediente Aduanero.</span>
+        </div>
+        <div v-else class="alert-box-warning mb-3">
+          <i class="pi pi-exclamation-triangle mr-2"></i>
+          <span>Al observar este abono, se notificará al área comercial para que rectifique el voucher o número de operación.</span>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="form-label">Notas / Observaciones de Finanzas</label>
+          <textarea
+            v-model="observacionFinanzas"
+            rows="3"
+            class="form-textarea"
+            :placeholder="validarAccion === 'APROBAR' ? 'Ej. Abono verificado conforme en extracto bancario BCP...' : 'Indique el motivo de discrepancia o por qué no se ubica la operación...'"
+          ></textarea>
+        </div>
+      </div>
+
+      <template #footer>
+        <button type="button" class="btn-outline-warm" @click="showValidarAnticipoModal = false">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          :class="validarAccion === 'APROBAR' ? 'btn-primary-action' : 'btn-danger-action'"
+          :disabled="submittingValidacion"
+          @click="submitValidarAnticipo"
+        >
+          <i :class="[validarAccion === 'APROBAR' ? 'pi pi-check' : 'pi pi-times', { 'pi-spin': submittingValidacion }]"></i>
+          <span>{{ validarAccion === 'APROBAR' ? 'Confirmar Aprobación Bancaria' : 'Confirmar Observación' }}</span>
+        </button>
+      </template>
+    </Dialog>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 5: GESTOR UNIVERSAL DE DOCUMENTOS ADJUNTOS                      -->
     <!-- ===================================================================== -->
     <DocumentosManagerModal
       :visible="showDocsModal"
@@ -889,6 +1146,13 @@
       :codigo-entidad="selectedDocCodigo"
       :titulo-entidad="selectedDocTitulo"
       @close="showDocsModal = false"
+    />
+
+    <!-- Modal: Registro de Pago / Anticipo de Cotizaciones (Finanzas) -->
+    <RegistrarPagoModal
+      :visible="showRegistrarPagoModal"
+      @close="showRegistrarPagoModal = false"
+      @saved="onPagoRegistradoEnFinanzas"
     />
   </div>
 </template>
@@ -903,6 +1167,7 @@ import Dialog from 'primevue/dialog'
 import HeroBannerCard from '@/shared/components/HeroBannerCard.vue'
 import MetricCard from '@/shared/components/MetricCard.vue'
 import DocumentosManagerModal from '@/shared/components/DocumentosManagerModal.vue'
+import RegistrarPagoModal from '../components/RegistrarPagoModal.vue'
 
 import finanzasService from '../services/finanzasService'
 import { expedienteService } from '../services/expedienteService'
@@ -942,6 +1207,18 @@ const showEmisionModal = ref(false)
 const showPagoModal = ref(false)
 const showDetalleModal = ref(false)
 const showDocsModal = ref(false)
+const showValidarAnticipoModal = ref(false)
+const showRegistrarPagoModal = ref(false)
+
+// Estado para Anticipos de Cotización
+const anticiposList = ref([])
+const loadingAnticipos = ref(false)
+const filterEstadoAnticipo = ref('')
+const searchQueryAnticipo = ref('')
+const selectedAnticipo = ref(null)
+const validarAccion = ref('APROBAR')
+const observacionFinanzas = ref('')
+const submittingValidacion = ref(false)
 
 const submittingEmision = ref(false)
 const submittingPago = ref(false)
@@ -1051,7 +1328,19 @@ const calculatedTotalUsd = computed(() => {
 // =========================================================================
 
 async function loadAllData() {
-  await Promise.all([loadLiquidaciones(), loadMetricas(), loadExpedientes()])
+  await Promise.all([loadLiquidaciones(), loadMetricas(), loadExpedientes(), loadAnticipos()])
+}
+
+async function loadAnticipos() {
+  loadingAnticipos.value = true
+  try {
+    const data = await finanzasService.getAnticipos()
+    anticiposList.value = Array.isArray(data) ? data : []
+  } catch (err) {
+    console.error('Error al cargar anticipos de cotización:', err)
+  } finally {
+    loadingAnticipos.value = false
+  }
 }
 
 async function loadLiquidaciones() {
@@ -1266,14 +1555,126 @@ function formatDateTime(dt) {
   return isNaN(d.getTime()) ? dt : d.toLocaleString('es-PE')
 }
 
+const anticiposPendientesCount = computed(() => {
+  return anticiposList.value.filter((a) => a.estadoPago === 'PENDIENTE_REVISION').length
+})
+
+const filteredAnticipos = computed(() => {
+  let list = anticiposList.value
+  if (filterEstadoAnticipo.value) {
+    list = list.filter((a) => a.estadoPago === filterEstadoAnticipo.value)
+  }
+  if (searchQueryAnticipo.value.trim()) {
+    const q = searchQueryAnticipo.value.toLowerCase()
+    list = list.filter(
+      (a) =>
+        (a.codigoCotizacion && a.codigoCotizacion.toLowerCase().includes(q)) ||
+        (a.codigoPago && a.codigoPago.toLowerCase().includes(q)) ||
+        (a.clienteRazonSocial && a.clienteRazonSocial.toLowerCase().includes(q)) ||
+        (a.numeroOperacion && a.numeroOperacion.toLowerCase().includes(q)) ||
+        (a.bancoDestino && a.bancoDestino.toLowerCase().includes(q))
+    )
+  }
+  return list
+})
+
+function formatTipoAbono(tipo) {
+  switch (tipo) {
+    case 'ADELANTO': return 'Adelanto / Anticipo'
+    case 'PAGO_TOTAL': return 'Pago Total (100%)'
+    case 'GARANTIA_CREDITO': return 'Línea de Crédito'
+    default: return tipo || 'Abono'
+  }
+}
+
+function getEstadoAnticipoLabel(st) {
+  switch (st) {
+    case 'PENDIENTE_REVISION': return 'Pendiente Revisión'
+    case 'APROBADO': return 'Aprobado / Conforme'
+    case 'OBSERVADO': return 'Observado'
+    case 'RECHAZADO': return 'Rechazado'
+    default: return st || 'Pendiente'
+  }
+}
+
+function getEstadoAnticipoSeverity(st) {
+  switch (st) {
+    case 'APROBADO': return 'success'
+    case 'PENDIENTE_REVISION': return 'warn'
+    case 'OBSERVADO': return 'danger'
+    case 'RECHAZADO': return 'danger'
+    default: return 'info'
+  }
+}
+
+function openValidarAnticipo(anticipo, accion = 'APROBAR') {
+  selectedAnticipo.value = anticipo
+  validarAccion.value = accion
+  observacionFinanzas.value = accion === 'APROBAR' ? 'Abono verificado y conforme en cuenta bancaria.' : ''
+  showValidarAnticipoModal.value = true
+}
+
+async function submitValidarAnticipo() {
+  if (!selectedAnticipo.value) return
+  submittingValidacion.value = true
+  try {
+    await finanzasService.validarAnticipo(selectedAnticipo.value.idPago, {
+      accion: validarAccion.value,
+      observacionFinanzas: observacionFinanzas.value
+    })
+    showValidarAnticipoModal.value = false
+    await loadAnticipos()
+  } catch (err) {
+    console.error('Error al validar anticipo:', err)
+    alert(err.response?.data?.message || 'Error al validar el pago bancario.')
+  } finally {
+    submittingValidacion.value = false
+  }
+}
+
+function verVoucherAnticipo(anticipo) {
+  if (anticipo.idCotizacion) {
+    selectedDocEntidadId.value = anticipo.idCotizacion
+    selectedDocCodigo.value = anticipo.codigoCotizacion || `COT-${anticipo.idCotizacion}`
+    selectedDocTitulo.value = `Documentos y Voucher - ${anticipo.codigoCotizacion}`
+    showDocsModal.value = true
+  }
+}
+
+function openRegistrarPagoModal() {
+  showRegistrarPagoModal.value = true
+}
+
+async function onPagoRegistradoEnFinanzas() {
+  await loadAnticipos()
+}
+
 // Escuchar cambios de subopción desde el menú lateral si aplica
 watch(() => navigationStore.finanzasSubOption, (val) => {
   if (val === 'facturacion') {
     activeTab.value = 'conciliacion'
+  } else if (val === 'anticipos') {
+    activeTab.value = 'anticipos'
   } else {
     activeTab.value = 'liquidaciones'
   }
 })
+
+// Escuchar disparadores de acciones desde el Sidebar
+watch(
+  () => [navigationStore.finanzasActionTrigger, navigationStore.navTick],
+  ([act]) => {
+    if (act === 'registrar-anticipo') {
+      activeTab.value = 'anticipos'
+      openRegistrarPagoModal()
+      setTimeout(() => {
+        if (navigationStore.finanzasActionTrigger === 'registrar-anticipo') {
+          navigationStore.finanzasActionTrigger = null
+        }
+      }, 50)
+    }
+  }
+)
 
 onMounted(() => {
   loadAllData()
@@ -1282,9 +1683,10 @@ onMounted(() => {
 
 <style scoped>
 .finanzas-view {
-  padding: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 /* Pestañas de Navegación */
@@ -1880,5 +2282,87 @@ onMounted(() => {
     width: 100%;
     border: none;
   }
+}
+
+.btn-action-approve {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #15803d;
+  color: #fff;
+  border: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-action-approve:hover {
+  opacity: 0.9;
+}
+
+.btn-action-observe {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #b45309;
+  color: #fff;
+  border: none;
+  padding: 0.35rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-action-observe:hover {
+  opacity: 0.9;
+}
+
+.anticipo-validation-summary {
+  background: var(--color-bg-card, #f8f6f0);
+  border: 1px solid var(--color-border-warm, #d8cdbf);
+  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.summary-line .label {
+  color: var(--color-text-muted, #7c7267);
+  font-weight: 600;
+}
+
+.alert-box-success {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  color: #166534;
+  font-size: 0.8125rem;
+}
+
+.alert-box-warning {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 0.8125rem;
 }
 </style>

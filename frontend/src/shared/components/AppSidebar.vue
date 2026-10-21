@@ -176,7 +176,20 @@
       <!-- SUB-OPCIONES: 02 RECEPCIÓN COMERCIAL -->
       <!-- ======================================================== -->
       <ul v-else-if="navigationStore.currentModule === 'comercial'" class="nav-list">
-        <!-- Sub-opción 01: Cotizaciones -->
+        <!-- Sub-opción 01: Dashboard Comercial -->
+        <li class="nav-item">
+          <button
+            type="button"
+            :class="['nav-sub-btn', { active: navigationStore.comercialSubOption === 'dashboard' }]"
+            @click="handleComercialSubClick('dashboard')"
+            :title="isCollapsed ? 'Dashboard Comercial' : ''"
+          >
+            <span class="nav-num">01</span>
+            <span v-if="!isCollapsed" class="nav-label">Dashboard Comercial</span>
+          </button>
+        </li>
+
+        <!-- Sub-opción 02: Cotizaciones -->
         <li class="nav-item">
           <button
             type="button"
@@ -184,25 +197,25 @@
             @click="handleComercialSubClick('cotizaciones')"
             :title="isCollapsed ? 'Cotizaciones Comerciales' : ''"
           >
-            <span class="nav-num">01</span>
+            <span class="nav-num">02</span>
             <span v-if="!isCollapsed" class="nav-label">Cotizaciones</span>
           </button>
         </li>
 
-        <!-- Sub-opción 02: Clientes & Prospectos -->
+        <!-- Sub-opción 03: Clientes & Prospectos -->
         <li class="nav-item">
           <button
             type="button"
             :class="['nav-sub-btn', { active: navigationStore.comercialSubOption === 'clientes' }]"
             @click="handleComercialSubClick('clientes')"
-            :title="isCollapsed ? 'Directorio de Clientes' : ''"
+            :title="isCollapsed ? 'Directorio de Clientes & Prospectos' : ''"
           >
-            <span class="nav-num">02</span>
+            <span class="nav-num">03</span>
             <span v-if="!isCollapsed" class="nav-label">Clientes & Prospectos</span>
           </button>
         </li>
 
-        <!-- Sub-opción 03: Expedientes Aduaneros -->
+        <!-- Sub-opción 04: Expedientes Aduaneros -->
         <li class="nav-item">
           <button
             type="button"
@@ -210,34 +223,8 @@
             @click="handleComercialSubClick('ordenes')"
             :title="isCollapsed ? 'Expedientes Aduaneros' : ''"
           >
-            <span class="nav-num">03</span>
-            <span v-if="!isCollapsed" class="nav-label">Expedientes Aduaneros</span>
-          </button>
-        </li>
-
-        <!-- Sub-opción 04: Acción Rápida - Nueva Cotización -->
-        <li class="nav-item">
-          <button
-            type="button"
-            class="nav-sub-btn action-item"
-            @click="handleComercialAction('nueva-cotizacion')"
-            :title="isCollapsed ? 'Emitir Nueva Cotización' : ''"
-          >
             <span class="nav-num">04</span>
-            <span v-if="!isCollapsed" class="nav-label">+ Nueva Cotización</span>
-          </button>
-        </li>
-
-        <!-- Sub-opción 05: Acción Rápida - Nuevo Cliente -->
-        <li class="nav-item">
-          <button
-            type="button"
-            class="nav-sub-btn action-item"
-            @click="handleComercialAction('nuevo-cliente')"
-            :title="isCollapsed ? 'Registrar Nuevo Cliente' : ''"
-          >
-            <span class="nav-num">05</span>
-            <span v-if="!isCollapsed" class="nav-label">+ Nuevo Cliente</span>
+            <span v-if="!isCollapsed" class="nav-label">Expedientes Aduaneros</span>
           </button>
         </li>
       </ul>
@@ -428,6 +415,30 @@
           >
             <span class="nav-num">02</span>
             <span v-if="!isCollapsed" class="nav-label">Facturación & Pagos</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            type="button"
+            :class="['nav-sub-btn', { active: navigationStore.finanzasSubOption === 'anticipos' }]"
+            @click="handleFinanzasSubClick('anticipos')"
+            :title="isCollapsed ? 'Anticipos de Cotización Pre-Expediente' : ''"
+          >
+            <span class="nav-num">03</span>
+            <span v-if="!isCollapsed" class="nav-label">Anticipos Cotización</span>
+          </button>
+        </li>
+
+        <!-- Sub-opción 04: Acción Rápida - Registrar Anticipo / Pago -->
+        <li class="nav-item">
+          <button
+            type="button"
+            class="nav-sub-btn action-item"
+            @click="handleFinanzasAction('registrar-anticipo')"
+            :title="isCollapsed ? 'Registrar Pago / Anticipo' : ''"
+          >
+            <span class="nav-num">04</span>
+            <span v-if="!isCollapsed" class="nav-label">+ Registrar Anticipo</span>
           </button>
         </li>
       </ul>
@@ -656,6 +667,15 @@ const handleFinanzasSubClick = (subOption) => {
   if (route.path !== '/finanzas') {
     router.push('/finanzas')
   }
+}
+
+// Disparador de acciones rápidas de Finanzas (modales)
+const handleFinanzasAction = (action) => {
+  navigationStore.setActiveModule('finanzas')
+  if (route.path !== '/finanzas') {
+    router.push('/finanzas')
+  }
+  navigationStore.triggerFinanzasAction(action)
 }
 
 

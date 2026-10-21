@@ -36,12 +36,21 @@ public class CotizacionResponseDTO {
     private Integer idPuertoDestino;
     private String puertoDestinoNombre;
     private Boolean servicioTransporte;
+    private String origenDepartamento;
+    private String origenProvincia;
+    private String destinoDepartamento;
+    private String destinoProvincia;
+    private BigDecimal costoTransporteInterno;
 
     // Costos y Fechas
     private LocalDate fechaEmision;
     private Integer validezDias;
+    private BigDecimal valorFob;
     private BigDecimal montoFleteEstimado;
+    private BigDecimal montoSeguroEstimado;
     private BigDecimal montoHonorariosEstimado;
+    private BigDecimal tasaAdValorem;
+    private BigDecimal tasaPercepcion;
     private BigDecimal montoTributosEstimado;
     private BigDecimal totalCotizado;
 
@@ -57,4 +66,11 @@ public class CotizacionResponseDTO {
     private Boolean tieneExpediente;
     private Integer idExpediente;
     private String codigoExpediente;
+
+    // Control Financiero Pre-Expediente
+    private String estadoPago;
+    private BigDecimal totalAbonado;
+    private BigDecimal saldoPendiente;
+    private Boolean tienePagoAprobado;
+    private Boolean habilitadoParaExpediente;
 }

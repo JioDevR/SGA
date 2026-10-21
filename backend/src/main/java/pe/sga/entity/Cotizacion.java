@@ -57,13 +57,45 @@ public class Cotizacion {
     @Builder.Default
     private Boolean servicioTransporte = false;
 
+    @Column(name = "origen_departamento", length = 60)
+    private String origenDepartamento;
+
+    @Column(name = "origen_provincia", length = 60)
+    private String origenProvincia;
+
+    @Column(name = "destino_departamento", length = 60)
+    private String destinoDepartamento;
+
+    @Column(name = "destino_provincia", length = 60)
+    private String destinoProvincia;
+
+    @Column(name = "costo_transporte_interno", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal costoTransporteInterno = BigDecimal.ZERO;
+
+    @Column(name = "valor_fob", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal valorFob = BigDecimal.ZERO;
+
     @Column(name = "monto_flete_estimado", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal montoFleteEstimado = BigDecimal.ZERO;
 
+    @Column(name = "monto_seguro_estimado", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal montoSeguroEstimado = BigDecimal.ZERO;
+
     @Column(name = "monto_honorarios_estimado", nullable = false, precision = 12, scale = 2)
     @Builder.Default
     private BigDecimal montoHonorariosEstimado = BigDecimal.ZERO;
+
+    @Column(name = "tasa_advalorem", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal tasaAdValorem = BigDecimal.ZERO;
+
+    @Column(name = "tasa_percepcion", nullable = false, precision = 5, scale = 2)
+    @Builder.Default
+    private BigDecimal tasaPercepcion = BigDecimal.ZERO;
 
     @Column(name = "monto_tributos_estimado", nullable = false, precision = 12, scale = 2)
     @Builder.Default
@@ -97,4 +129,16 @@ public class Cotizacion {
 
     @Column(name = "observaciones", columnDefinition = "TEXT")
     private String observaciones;
+
+    @Column(name = "estado_pago", nullable = false, length = 25)
+    @Builder.Default
+    private String estadoPago = "SIN_PAGO";
+
+    @Column(name = "total_abonado", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal totalAbonado = BigDecimal.ZERO;
+
+    @Column(name = "saldo_pendiente", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal saldoPendiente = BigDecimal.ZERO;
 }

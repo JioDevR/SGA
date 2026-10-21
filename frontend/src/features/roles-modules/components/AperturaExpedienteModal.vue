@@ -37,7 +37,7 @@
         </div>
         <div v-else class="picker-empty-alert">
           <i class="pi pi-info-circle"></i>
-          <span>No hay cotizaciones aprobadas pendientes de apertura. Primero apruebe una propuesta en la Bandeja de Cotizaciones.</span>
+          <span>No hay cotizaciones con pago/adelanto aprobado por Finanzas pendientes de apertura. Primero registre el abono del cliente y obtenga la aprobación de Finanzas.</span>
         </div>
       </div>
 
@@ -55,6 +55,14 @@
         <div class="summary-col">
           <span class="summary-label">TOTAL COTIZADO</span>
           <strong class="summary-val text-accent">${{ Number(activeCotizacion.totalCotizado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</strong>
+        </div>
+        <div class="summary-col">
+          <span class="summary-label">ANTICIPO / PAGO</span>
+          <strong class="summary-val" style="color: #15803d;">
+            <i class="pi pi-check-circle" style="font-size: 0.8125rem; margin-right: 2px;"></i>
+            ${{ Number(activeCotizacion.totalAbonado || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+          </strong>
+          <span class="summary-sub" style="color: #15803d; font-weight: 600;">Validado por Finanzas</span>
         </div>
       </div>
 

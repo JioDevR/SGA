@@ -50,8 +50,8 @@
 
         <div class="proforma-row">
           <span class="p-label">Transporte SGA:</span>
-          <span :class="['p-val', form.servicioTransporte ? 'text-accent' : '']">
-            {{ form.servicioTransporte ? '✓ Interno SGA' : 'Externo' }}
+          <span :class="['p-val', form.servicioTransporte ? 'text-accent font-semibold' : '']">
+            {{ form.servicioTransporte ? (form.origenProvincia && form.destinoProvincia ? `✓ ${form.origenProvincia} → ${form.destinoProvincia}` : '✓ Interno SGA') : 'Externo' }}
           </span>
         </div>
 
@@ -62,81 +62,78 @@
 
         <div class="proforma-divider"></div>
 
-        <div class="proforma-row">
-          <span class="p-label">Flete Estimado:</span>
-          <span class="p-val">${{ formatVal(form.montoFleteEstimado) }}</span>
+        <!-- 1. Base Imponible / Valoración (No entra al total de liquidación SGA) -->
+        <div class="proforma-section-header">
+          <span class="section-micro-title">VALORACIÓN ADUANERA (BASE)</span>
         </div>
 
         <div class="proforma-row">
-          <span class="p-label">Honorarios:</span>
-          <span class="p-val">${{ formatVal(form.montoHonorariosEstimado) }}</span>
+          <span class="p-label">Valor FOB (Mercancía):</span>
+          <span class="p-val font-semibold">${{ formatVal(form.valorFob) }}</span>
         </div>
 
-        <div class="proforma-row">
-          <span class="p-label">Tributos Totales:</span>
-          <span class="p-val">${{ formatVal(form.montoTributosEstimado) }}</span>
+        <div v-if="form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'" class="proforma-row">
+          <span class="p-label">Seguro Estimado:</span>
+          <span class="p-val">${{ formatVal(form.montoSeguroEstimado) }}</span>
+        </div>
+
+        <div v-if="form.regimenAduanero !== 'EXPORTACION_DEFINITIVA'" class="proforma-row cif-row">
+          <span class="p-label">Valor CIF Base:</span>
+          <span class="p-val text-accent font-bold">${{ formatVal((Number(form.valorFob) || 0) + (Number(form.montoFleteEstimado) || 0) + (Number(form.montoSeguroEstimado) || 0)) }}</span>
         </div>
 
         <div class="proforma-divider"></div>
 
-        <div class="proforma-row total-row">
-          <span class="p-label-total">TOTAL ESTIMADO:</span>
-          <span class="p-val-total">${{ formatVal(form.totalCotizado) }} USD</span>
+        <!-- 2. Conceptos a Liquidar por Despacho y Logística SGA -->
+        <div class="proforma-section-header">
+          <span class="section-micro-title">CONCEPTOS A LIQUIDAR (SGA)</span>
+        </div>
+
+        <div class="proforma-row">
+          <span class="p-label">Flete Internacional:</span>
+          <span class="p-val">${{ formatVal(form.montoFleteEstimado) }}</span>
+        </div>
+
+        <div class="proforma-row">
+          <span class="p-label">Gastos Op. & Agencia:</span>
+          <span class="p-val">${{ formatVal(form.montoHonorariosEstimado) }}</span>
+        </div>
+
+        <div class="proforma-row">
+          <span class="p-label">Tributos SUNAT:</span>
+          <span :class="['p-val', form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'text-success' : '']">
+            {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Inafecto ($0.00)' : '$' + formatVal(form.montoTributosEstimado) }}
+          </span>
+        </div>
+
+        <div v-if="form.servicioTransporte && Number(form.costoTransporteInterno) > 0" class="proforma-row">
+          <span class="p-label">Flete Transporte Local:</span>
+          <span class="p-val text-accent font-semibold">${{ formatVal(form.costoTransporteInterno) }}</span>
+        </div>
+
+        <div v-if="docsCount > 0" class="proforma-row">
+          <span class="p-label">Documentos:</span>
+          <span class="p-val text-info"><i class="pi pi-paperclip"></i> {{ docsCount }} adjunto(s)</span>
+        </div>
+
+        <div class="proforma-divider"></div>
+
+        <!-- Total Liquidado (Excluye FOB de mercancía) -->
+        <div class="proforma-total-container">
+          <div class="proforma-row total-row">
+            <span class="p-label-total">TOTAL ESTIMADO:</span>
+            <span class="p-val-total">${{ formatVal(form.totalCotizado) }} USD</span>
+          </div>
+          <span class="total-fob-excluded-hint">
+            <i class="pi pi-info-circle"></i>
+            {{ form.regimenAduanero === 'EXPORTACION_DEFINITIVA' ? 'Flete + Gastos Op. (Excluye valor FOB)' : 'Flete + Gastos Op. + Tributos (Excluye valor FOB)' }}
+          </span>
         </div>
       </div>
 
       <div class="card-footer-stamp">
         <i class="pi pi-check-circle"></i>
         <span>SISTEMA DE GESTIÓN ADUANERA • MÓDULO COMERCIAL</span>
-      </div>
-    </div>
-
-    <!-- Tarjeta de Control de Calidad y Validación -->
-    <div class="checklist-card">
-      <h4 class="checklist-title">
-        <i class="pi pi-list-check"></i>
-        <span>Requisitos para Emisión</span>
-      </h4>
-
-      <ul class="checklist-items">
-        <li :class="['checklist-row', { valid: !!form.idCliente }]">
-          <i :class="form.idCliente ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Cliente o prospecto asignado</span>
-        </li>
-        <li :class="['checklist-row', { valid: !!form.regimenAduanero }]">
-          <i :class="form.regimenAduanero ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Régimen aduanero determinado</span>
-        </li>
-        <li :class="['checklist-row', { valid: form.validezDias > 0 }]">
-          <i :class="form.validezDias > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Plazo de validez especificado</span>
-        </li>
-        <li :class="['checklist-row', { valid: form.totalCotizado > 0 }]">
-          <i :class="form.totalCotizado > 0 ? 'pi pi-check-circle' : 'pi pi-circle'"></i>
-          <span>Monto total cotizado (> $0.00 USD)</span>
-        </li>
-      </ul>
-
-      <div class="sidebar-action-buttons">
-        <button
-          type="button"
-          class="btn-espresso full-width"
-          @click="$emit('submit')"
-          :disabled="submitting || !isFormReady"
-        >
-          <i v-if="submitting" class="pi pi-spin pi-spinner"></i>
-          <i v-else class="pi pi-save"></i>
-          <span>{{ isEditMode ? 'Guardar Cambios' : 'Emitir Cotización' }}</span>
-        </button>
-
-        <button
-          type="button"
-          class="btn-outline-warm full-width"
-          @click="$emit('cancel')"
-          :disabled="submitting"
-        >
-          <span>Descartar y Regresar</span>
-        </button>
       </div>
     </div>
   </aside>
@@ -187,6 +184,10 @@ const props = defineProps({
   formatNumber: {
     type: Function,
     default: null
+  },
+  docsCount: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -268,16 +269,16 @@ const formatVal = (val) => {
 }
 
 .proforma-client-name {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-sans);
   font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-text-main);
   margin: 0;
   line-height: 1.3;
 }
 
 .proforma-client-doc {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: var(--font-size-2xs, 0.65rem);
   color: var(--color-primary);
   font-weight: 700;
@@ -350,11 +351,42 @@ const formatVal = (val) => {
 .proforma-divider {
   height: 1px;
   background: var(--color-border-subtle);
-  margin: 0.25rem 0;
+  margin: 0.35rem 0;
+}
+
+.proforma-section-header {
+  padding: 0.2rem 0;
+}
+
+.section-micro-title {
+  font-size: var(--font-size-2xs, 0.6rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.proforma-total-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .total-row {
-  padding-top: var(--space-2, 0.5rem);
+  padding-top: var(--space-1, 0.25rem);
+}
+
+.total-fob-excluded-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--font-size-2xs, 0.65rem);
+  color: var(--color-primary);
+  font-weight: 600;
+  background: var(--color-bg-subtle);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm, 0.25rem);
+  border: 1px dashed var(--color-border);
 }
 
 .p-label-total {
@@ -365,9 +397,9 @@ const formatVal = (val) => {
 }
 
 .p-val-total {
-  font-family: var(--font-family-serif);
+  font-family: var(--font-mono);
   font-size: var(--font-size-md, 1.15rem);
-  font-weight: 900;
+  font-weight: 800;
   color: var(--color-primary);
 }
 
@@ -379,110 +411,5 @@ const formatVal = (val) => {
   color: var(--color-text-muted);
   letter-spacing: 0.05em;
   font-weight: 700;
-}
-
-.checklist-card {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl, 1rem);
-  padding: var(--space-5, 1.25rem);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4, 1rem);
-}
-
-.checklist-title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2, 0.5rem);
-  font-size: var(--font-size-xs, 0.75rem);
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-main);
-  margin: 0;
-}
-
-.checklist-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-}
-
-.checklist-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2, 0.5rem);
-  font-size: var(--font-size-xs, 0.75rem);
-  color: var(--color-text-muted);
-  transition: color var(--transition-fast);
-}
-
-.checklist-row.valid {
-  color: var(--color-success);
-  font-weight: 600;
-}
-
-.sidebar-action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 0.5rem);
-  margin-top: var(--space-2, 0.5rem);
-}
-
-.full-width {
-  width: 100%;
-}
-
-.btn-outline-warm {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.25rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
-  border-radius: var(--radius-md, 0.5rem);
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-surface);
-  color: var(--color-text-main);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-outline-warm:hover:not(:disabled) {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-subtle);
-}
-
-.btn-espresso {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2, 0.5rem);
-  padding: 0.65rem 1.35rem;
-  font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 700;
-  border-radius: var(--radius-md, 0.5rem);
-  border: 1px solid var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-primary-text, #ffffff);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-espresso:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-.btn-espresso:disabled,
-.btn-outline-warm:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>

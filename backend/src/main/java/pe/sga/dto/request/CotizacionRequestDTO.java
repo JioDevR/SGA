@@ -39,16 +39,39 @@ public class CotizacionRequestDTO {
     @Builder.Default
     private Boolean servicioTransporte = false;
 
+    private String origenDepartamento;
+
+    private String origenProvincia;
+
+    private String destinoDepartamento;
+
+    private String destinoProvincia;
+
+    @Builder.Default
+    private BigDecimal costoTransporteInterno = BigDecimal.ZERO;
+
     private LocalDate fechaEmision;
 
     @Builder.Default
     private Integer validezDias = 15;
 
     @Builder.Default
+    private BigDecimal valorFob = BigDecimal.ZERO;
+
+    @Builder.Default
     private BigDecimal montoFleteEstimado = BigDecimal.ZERO;
 
     @Builder.Default
+    private BigDecimal montoSeguroEstimado = BigDecimal.ZERO;
+
+    @Builder.Default
     private BigDecimal montoHonorariosEstimado = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal tasaAdValorem = BigDecimal.ZERO;
+
+    @Builder.Default
+    private BigDecimal tasaPercepcion = BigDecimal.ZERO;
 
     @Builder.Default
     private BigDecimal montoTributosEstimado = BigDecimal.ZERO;
